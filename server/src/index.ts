@@ -32,6 +32,7 @@ import contactRoutes from './routes/contactRoutes';
 import newsletterRoutes from './routes/newsletterRoutes';
 import adminRoutes from './routes/adminRoutes';
 import bannerRoutes from './routes/bannerRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -140,6 +141,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/banners', bannerRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Fallback Route for Undefined Envelopes
 app.use('*', (_req, res) => {
