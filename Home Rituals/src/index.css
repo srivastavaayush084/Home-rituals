@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&family=Poppins:wght@500;600;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #223229;
+  background-color: #ffffff;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f7fbf4;
+  --surface-3: #f4f4f5;
+  --text: #223229;
+  --text-secondary: #6f6f6f;
+  --border: rgba(0, 0, 0, 0.1);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(79, 111, 87, 0.22);
+  color: var(--text);
+}
+
+body .bg-white,
+body .bg-\[\#FAFAF8\],
+body .bg-\[\#EFE9DF\],
+body .bg-\[\#f4f4f5\],
+body .bg-\[\#f7fbf4\],
+body .bg-\[\#fcfffc\],
+body .bg-\[\#f2f7ee\],
+body .bg-\[\#f7f7f7\],
+body .bg-\[\#eef8f2\] {
+  background-color: var(--surface-2) !important;
+}
+
+body .bg-\[var\(--surface\)\] {
+  background-color: var(--surface) !important;
+}
+
+body .text-black,
+body .text-\[\#223229\],
+body .text-\[\#242424\] {
+  color: var(--text) !important;
+}
+
+body .text-\[\#6f6f6f\],
+body .text-\[\#5e6f64\] {
+  color: var(--text-secondary) !important;
+}
+
+body .border-black\/10,
+body .border-black\/5,
+body .border-black\/20 {
+  border-color: var(--border) !important;
+}
+
+
+
+.markdown h1 {
+  font-size: clamp(2.5rem, 4vw, 3rem);
+  font-weight: 800;
+  color: #0f766e;
+  margin-bottom: 1rem;
+}
+
+.markdown h2 {
+  display: inline-block;
+  width: 100%;
+  background: linear-gradient(135deg, #d8f2ea, #ecfeff);
+  border: 1px solid #7dd3fc;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  color: #0f766e;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  box-shadow: 0 20px 35px rgba(15, 118, 110, 0.08);
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown table,
+.markdown blockquote {
+  background: rgba(236, 253, 255, 0.9);
+  border: 1px solid rgba(20, 184, 166, 0.24);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  color: #134e4a;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 1.35rem;
+}
+
+.markdown ul li,
+.markdown ol li {
+  margin: 0.65rem 0;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.markdown table th,
+.markdown table td {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+}
+
+.markdown table th {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.markdown h2 + p,
+.markdown h2 + ul,
+.markdown h2 + ol,
+.markdown h2 + table,
+.markdown h2 + blockquote {
+  margin-top: 1rem;
+}
+
+.markdown hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0), rgba(20, 184, 166, 0.7), rgba(20, 184, 166, 0));
+  margin: 2rem 0;
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  <rect width="800" height="1200" rx="40" fill="#f8efe8"/>
+  <rect x="80" y="80" width="640" height="1040" rx="34" fill="#e8d5be"/>
+  <circle cx="400" cy="420" r="190" fill="#8ba56f"/>
+  <rect x="220" y="720" width="360" height="220" rx="24" fill="#ffffff" fill-opacity="0.92"/>
+  <text x="400" y="840" text-anchor="middle" font-family="Georgia, serif" font-size="54" fill="#223229">Reel 5</text>
+</svg>

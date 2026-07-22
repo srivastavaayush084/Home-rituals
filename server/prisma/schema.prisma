@@ -1,0 +1,240 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  email              String        @unique
+  passwordHash       String
+  name               String
+  phone              String?
+  role               Role          @default(USER)
+  resetPasswordToken String?
+  resetPasswordExp   DateTime?
+  refreshToken       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  reviews            Review[]
+  wishlistItems      WishlistItem[]
+  cartItems          CartItem[]
+  orders             Order[]
+  addresses          Address[]
+}
+
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? // Soft delete field
+  products    Product[]
+}
+
+model Product {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  slug             String         @unique
+  sku              String         @unique
+  description      String
+  shortDescription String?
+  price            Float
+  originalPrice    Float?
+  discountPrice    Float?
+  badge            String?
+  rating           Float          @default(5.0)
+  reviewsCount     Int            @default(0)
+  stock            Int            @default(0)
+  featured         Boolean        @default(false)
+  image            String
+  images           String[]
+  tags             String[]
+  seoTitle         String?
+  seoDescription   String?
+  ingredients      String?
+  usageInstructions String?
+  benefits         String?
+  faqs             Json?          // Array of { question: string, answer: string }
+  category         Category       @relation(fields: [categoryId], references: [id])
+  categoryId       String         @db.ObjectId
+  concern          String
+  collection       String
+  variant          String?
+  packSize         String?
+  stockStatus      String         @default("In Stock")
+  materials        String?
+  careInstructions String?
+  shippingReturns  String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?      // Soft delete field
+  reviews          Review[]
+  wishlistItems    WishlistItem[]
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+
+  @@index([categoryId])
+}
+
+model Review {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  author           String
+  title            String
+  text             String
+  rating           Int
+  isApproved       Boolean  @default(false)
+  verifiedPurchase Boolean  @default(false)
+  productId        String   @db.ObjectId
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId           String?  @db.ObjectId
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+
+  @@index([productId])
+  @@index([isApproved])
+}
+
+model WishlistItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Address {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
+  address1   String
+  address2   String?
+  city       String
+  state      String
+  postalCode String
+  country    String   @default("India")
+  landmark   String?
+  phone      String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model CartItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+
+model Order {
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String      @db.ObjectId
+  user               User        @relation(fields: [userId], references: [id])
+  fullName           String
+  address1           String
+  address2           String?
+  city               String
+  state              String
+  postalCode         String
+  country            String      @default("India")
+  landmark           String?
+  phone              String
+  totalAmount        Float
+  status             String      @default("Pending") // Pending, Confirmed, Packed, Shipped, Delivered, Cancelled, Returned, Refunded
+  paymentStatus      String      @default("Pending") // Pending, Paid, Failed, Refunded
+  razorpayOrderId    String?     @unique
+  razorpayPaymentId  String?     @unique
+  razorpaySignature  String?
+  trackingNumber     String?
+  courierName        String?
+  shippedAt          DateTime?
+  deliveredAt        DateTime?
+  cancelledAt        DateTime?
+  returnedAt         DateTime?
+  refundedAt         DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  items              OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String  @db.ObjectId
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model ContactMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("Unread") // Unread, Read, Replied
+  createdAt DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model BlogPost {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String    @unique
+  title       String
+  excerpt     String
+  category    String
+  image       String
+  readTime    String
+  author      String
+  publishedAt String
+  contentJson Json      // Content array (strings or table html JSONs)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? // Soft delete field
+}
+
+model Banner {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  imageUrl    String
+  linkUrl     String?  @default("/shop")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
