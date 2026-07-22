@@ -8,7 +8,7 @@ const router = Router();
 
 router.post('/', validateRequest(contactSchemas.create), submitContactMessage);
 router.get('/', requireAdmin, listContactMessages);
-router.put('/:id/status', requireAdmin, updateContactMessageStatus);
+router.put('/:id', requireAdmin, updateContactMessageStatus);
 router.delete('/:id', requireAdmin, deleteContactMessage);
 
 export default router;

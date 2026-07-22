@@ -17,6 +17,10 @@ router.delete('/:id', requireAuth, deleteReview);
 
 // Admin-protected review dashboard routes
 router.get('/all', requireAuth, requireAdmin, listAllReviews);
+router.get('/pending', requireAuth, requireAdmin, (req, res, next) => {
+  req.query.approved = 'false';
+  listAllReviews(req, res, next);
+});
 router.put('/:id/approve', requireAuth, requireAdmin, approveReview);
 
 export default router;
