@@ -113,7 +113,7 @@ export async function updateBlog(req: Request, res: Response, next: NextFunction
     const body = req.body;
 
     const blog = await prisma.blogPost.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
 
     if (!blog) {
@@ -147,7 +147,7 @@ export async function deleteBlog(req: Request, res: Response, next: NextFunction
     const { id } = req.params;
 
     const blog = await prisma.blogPost.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
 
     if (!blog) {

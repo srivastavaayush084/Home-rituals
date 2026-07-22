@@ -82,7 +82,7 @@ export async function updateCategory(req: Request, res: Response, next: NextFunc
     const { name, description, image } = req.body;
 
     const category = await prisma.category.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
 
     if (!category) {
@@ -116,7 +116,7 @@ export async function deleteCategory(req: Request, res: Response, next: NextFunc
     const { id } = req.params;
 
     const category = await prisma.category.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
 
     if (!category) {

@@ -279,7 +279,7 @@ export async function deleteProduct(req: Request, res: Response, next: NextFunct
     const { id } = req.params;
 
     const product = await prisma.product.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
 
     if (!product) {
