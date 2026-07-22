@@ -1,4 +1,11 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+let rawBaseUrl = import.meta.env.VITE_API_URL || '';
+if (rawBaseUrl.endsWith('/')) {
+  rawBaseUrl = rawBaseUrl.slice(0, -1);
+}
+if (rawBaseUrl.endsWith('/api')) {
+  rawBaseUrl = rawBaseUrl.slice(0, -4);
+}
+const API_BASE_URL = rawBaseUrl;
 
 export async function apiRequest<T>(
   endpoint: string,
