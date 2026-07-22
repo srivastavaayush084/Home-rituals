@@ -104,6 +104,17 @@ if (swaggerDocument) {
   logger.info(`Swagger API docs available at http://localhost:${PORT}/api-docs`);
 }
 
+// Root Route Welcome Message
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the Home Rituals API Server',
+    version: '1.0.0',
+    documentation: '/api-docs',
+    health: '/api/health',
+  });
+});
+
 // Basic Health Check
 app.get('/api/health', (_req, res) => {
   res.status(200).json({
