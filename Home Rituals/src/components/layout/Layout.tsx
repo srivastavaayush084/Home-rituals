@@ -337,6 +337,86 @@ export function Layout({ children }: LayoutProps) {
         </div>
       ) : null}
 
+      {/* "We are Available on" Section */}
+      <section className="relative overflow-hidden bg-[#FCFAF5] py-10 border-t border-black/5">
+        {/* Left Decorative Leaves */}
+        <svg className="absolute bottom-0 left-0 h-32 w-32 text-[#8B9B7A]/25 pointer-events-none" viewBox="0 0 120 120" fill="currentColor">
+          <path d="M 10 110 C 30 90, 70 70, 100 30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          <path d="M 30 90 C 25 75, 45 75, 45 75 C 45 75, 45 85, 30 90 Z" />
+          <path d="M 50 75 C 45 60, 65 60, 65 60 C 65 60, 65 70, 50 75 Z" />
+          <path d="M 70 58 C 65 43, 85 43, 85 43 C 85 43, 85 53, 70 58 Z" />
+          <path d="M 90 40 C 85 25, 105 25, 105 25 C 105 25, 105 35, 90 40 Z" />
+          <path d="M 25 95 C 15 85, 25 75, 25 75 C 25 75, 35 85, 25 95 Z" />
+          <path d="M 42 81 C 32 71, 42 61, 42 61 C 42 61, 52 71, 42 81 Z" />
+          <path d="M 61 64 C 51 54, 61 44, 61 44 C 61 44, 71 54, 61 64 Z" />
+        </svg>
+
+        {/* Right Decorative Leaves */}
+        <svg className="absolute top-0 right-0 h-32 w-32 text-[#8B9B7A]/25 pointer-events-none transform -scale-x-100 rotate-90" viewBox="0 0 120 120" fill="currentColor">
+          <path d="M 10 110 C 30 90, 70 70, 100 30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          <path d="M 30 90 C 25 75, 45 75, 45 75 C 45 75, 45 85, 30 90 Z" />
+          <path d="M 50 75 C 45 60, 65 60, 65 60 C 65 60, 65 70, 50 75 Z" />
+          <path d="M 70 58 C 65 43, 85 43, 85 43 C 85 43, 85 53, 70 58 Z" />
+          <path d="M 90 40 C 85 25, 105 25, 105 25 C 105 25, 105 35, 90 40 Z" />
+          <path d="M 25 95 C 15 85, 25 75, 25 75 C 25 75, 35 85, 25 95 Z" />
+          <path d="M 42 81 C 32 71, 42 61, 42 61 C 42 61, 52 71, 42 81 Z" />
+          <path d="M 61 64 C 51 54, 61 44, 61 44 C 61 44, 71 54, 61 64 Z" />
+        </svg>
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
+            
+            {/* Title */}
+            <h2 className="text-2xl md:text-3xl font-bold font-sans text-stone-800 tracking-tight text-center md:text-left">
+              We are Available on
+            </h2>
+
+            {/* Logos wrapper */}
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
+              
+              {/* Amazon */}
+              <a href="https://amazon.in" target="_blank" rel="noreferrer" className="flex items-center justify-center hover:opacity-80 transition py-2 px-1">
+                <div className="flex flex-col items-center select-none pt-1">
+                  <span className="text-2xl font-bold tracking-tighter text-black font-sans leading-none">amazon</span>
+                  <svg viewBox="0 0 80 15" className="w-16 h-3 -mt-0.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 6 2 C 30 11, 50 11, 74 2" stroke="#FF9900" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M 66 5 C 69 5, 74 2, 74 2 C 74 2, 71 8, 71 11" stroke="#FF9900" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </a>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-[1px] h-8 bg-stone-300/80" />
+
+              {/* Blinkit */}
+              <a href="https://blinkit.com" target="_blank" rel="noreferrer" className="flex items-center justify-center hover:opacity-90 transition">
+                <div className="bg-[#FCD825] rounded-[14px] px-4 py-2 flex items-center justify-center shadow-sm">
+                  <span className="font-extrabold text-black font-sans text-base tracking-tighter lowercase">blinkit</span>
+                </div>
+              </a>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-[1px] h-8 bg-stone-300/80" />
+
+              {/* Flipkart */}
+              <a href="https://flipkart.com" target="_blank" rel="noreferrer" className="flex items-center justify-center hover:opacity-80 transition py-1">
+                <div className="flex items-center gap-1.5 select-none">
+                  <span className="text-2xl font-black font-sans italic text-[#047BD5] tracking-tight">Flipkart</span>
+                  <svg className="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="30" width="60" height="55" rx="12" fill="#FFE11B" />
+                    <path d="M 38 30 C 38 18, 62 18, 62 30" stroke="#FFE11B" stroke-width="6" fill="none" />
+                    <path d="M 54 45 L 62 45 L 62 51 L 54 51 L 54 57 L 62 57 L 62 63 L 54 63 L 54 75 L 47 75 L 47 45 Z" fill="#047BD5" />
+                    <path d="M 35 48 H 42 M 32 55 H 42 M 35 62 H 42" stroke="#047BD5" stroke-width="4.5" stroke-linecap="round" />
+                  </svg>
+                </div>
+              </a>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-[#44D62C]/30 bg-[#44D62C] px-4 py-16 text-black shadow-[0_24px_70px_rgba(68,214,44,0.14)] sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-5 lg:gap-10">
           <div>
