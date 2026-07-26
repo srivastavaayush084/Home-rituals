@@ -12,7 +12,8 @@ type ButtonProps = {
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function Button({ children, variant = 'primary', size = 'md', to, className = '', icon, onClick, ...props }: ButtonProps) {
-  const base = 'inline-flex items-center justify-center rounded-full font-semibold tracking-[0.02em] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-black/20';
+  const hasHidden = className.split(' ').includes('hidden');
+  const base = `${hasHidden ? '' : 'inline-flex'} items-center justify-center rounded-full font-semibold tracking-[0.02em] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-black/20`;
   const variants = {
     primary: 'bg-[#44D62C] text-white hover:bg-[#44D62C] shadow-lg shadow-[#44D62C]/20',
     secondary: 'bg-[#7a9683] text-white hover:bg-[#44D62C] shadow-lg shadow-[#7a9683]/20',

@@ -66,32 +66,38 @@ function PromotionalBannerSlider({ banners }: { banners: ImageBanner[] }) {
         className="flex transition-transform duration-700 ease-in-out w-full"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {list.map((banner, index) => (
-          <Link
-            key={banner.id || index}
-            to={banner.linkUrl || '/shop'}
-            className="w-full shrink-0 relative block group"
-          >
-            <img
-              src={banner.imageUrl}
-              alt={banner.title}
-              className="w-full h-[320px] sm:h-[450px] lg:h-[540px] object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 sm:p-10 lg:p-12 text-white">
-              <div className="max-w-4xl space-y-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#44D62C] text-[#111] text-xs font-bold uppercase tracking-widest shadow-md">
-                  <Sparkles size={13} /> Exclusive Deal
-                </span>
-                <h3 className="text-xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight drop-shadow-md">
-                  {banner.title}
-                </h3>
-                <div className="pt-2 flex items-center gap-2 text-sm font-semibold text-[#44D62C] group-hover:translate-x-2 transition duration-300">
-                  Shop Deal Now <ArrowRight size={18} />
+        {list.map((banner, index) => {
+          const isDefaultBanner = banner.imageUrl.includes('banner-flat-47-off.jpg') || banner.imageUrl.includes('banner-stay-tuned.jpg');
+          const showOverlay = !isDefaultBanner && banner.title && banner.title.trim().length > 0;
+          return (
+            <Link
+              key={banner.id || index}
+              to={banner.linkUrl || '/shop'}
+              className="w-full shrink-0 relative block group"
+            >
+              <img
+                src={banner.imageUrl}
+                alt={banner.title}
+                className="w-full aspect-[2.1/1] sm:aspect-auto h-auto sm:h-[450px] lg:h-[540px] object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              {showOverlay && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 sm:p-10 lg:p-12 text-white">
+                  <div className="max-w-4xl space-y-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#44D62C] text-[#111] text-xs font-bold uppercase tracking-widest shadow-md">
+                      <Sparkles size={13} /> Exclusive Deal
+                    </span>
+                    <h3 className="text-xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight drop-shadow-md">
+                      {banner.title}
+                    </h3>
+                    <div className="pt-2 flex items-center gap-2 text-sm font-semibold text-[#44D62C] group-hover:translate-x-2 transition duration-300">
+                      Shop Deal Now <ArrowRight size={18} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Link>
-        ))}
+              )}
+            </Link>
+          );
+        })}
       </div>
 
       {list.length > 1 ? (
