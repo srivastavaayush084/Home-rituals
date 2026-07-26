@@ -258,6 +258,46 @@ export function Layout({ children }: LayoutProps) {
                   {item.label}
                 </NavLink>
               ))}
+              <div className="mt-4 pt-4 border-t border-black/10 flex flex-col gap-4">
+                {user ? (
+                  <>
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 text-sm font-medium text-stone-700 hover:text-stone-900"
+                    >
+                      <User size={16} className="text-stone-500" />
+                      Hi, {user.name.split(' ')[0]} (Profile)
+                    </Link>
+                    {user.role === 'ADMIN' ? (
+                      <Link
+                        to="/admin"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-sm font-semibold text-amber-600 hover:text-amber-700"
+                      >
+                        Admin Panel
+                      </Link>
+                    ) : null}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-fit text-left text-sm font-medium text-red-600 hover:text-red-800"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-full bg-[#44D62C] text-white py-2 text-sm font-semibold shadow-md"
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         ) : null}
