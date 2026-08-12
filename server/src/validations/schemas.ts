@@ -69,7 +69,7 @@ export const productSchemas = {
         question: z.string(),
         answer: z.string(),
       })).optional(),
-      categoryId: z.number().int('Category ID must be an integer'),
+      categoryId: z.string().min(1, 'Category ID is required'),
       concern: z.string().min(1, 'Concern is required'),
       collection: z.string().min(1, 'Collection is required'),
       variant: z.string().optional(),
@@ -103,7 +103,7 @@ export const productSchemas = {
         question: z.string(),
         answer: z.string(),
       })).optional(),
-      categoryId: z.number().int().optional(),
+      categoryId: z.string().optional(),
       concern: z.string().optional(),
       collection: z.string().optional(),
       variant: z.string().optional(),
@@ -128,7 +128,7 @@ export const reviewSchemas = {
 export const orderSchemas = {
   create: z.object({
     body: z.object({
-      addressId: z.number().int('Address ID is required'),
+      addressId: z.string().min(1, 'Address ID is required'),
     }),
   }),
   updateStatus: z.object({
