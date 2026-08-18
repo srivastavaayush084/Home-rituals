@@ -88,8 +88,16 @@ export function QuickViewModalContent() {
 
   const currentImage = images[selectedImageIndex] || String(quickViewProduct.image || '/washing-machine-cleaner.png');
   const canNavigate = images.length > 1;
-  const features = Array.isArray(quickViewProduct.features) ? quickViewProduct.features.map(f => String(f)) : [];
-  const highlights = Array.isArray(quickViewProduct.highlights) ? quickViewProduct.highlights.map(h => String(h)) : [];
+  const features = Array.isArray(quickViewProduct.features) && quickViewProduct.features.length > 0
+    ? quickViewProduct.features.map(f => String(f))
+    : (quickViewProduct as any).ingredients
+      ? String((quickViewProduct as any).ingredients).split(',').map((i: string) => i.trim()).filter(Boolean)
+      : [];
+  const highlights = Array.isArray(quickViewProduct.highlights) && quickViewProduct.highlights.length > 0
+    ? quickViewProduct.highlights.map(h => String(h))
+    : (quickViewProduct as any).benefits
+      ? String((quickViewProduct as any).benefits).split(',').map((b: string) => b.trim()).filter(Boolean)
+      : [];
   const faqs = (quickViewProduct as any)?.faqs as Array<{ question: string; answer: string }> | undefined;
 
   const price = Number(quickViewProduct.price) || 0;
@@ -342,7 +350,7 @@ export function QuickViewModalContent() {
                   </button>
                   {activeAccordion === 'howToUse' ? (
                     <div className="border-t border-stone-100 px-4 py-3 text-xs leading-relaxed text-stone-600">
-                      {String(quickViewProduct.howToUse || 'Use as directed on the label for optimal cleaning performance.')}
+                      {String(quickViewProduct.howToUse || (quickViewProduct as any).usageInstructions || 'Use as directed on the label for optimal cleaning performance.')}
                     </div>
                   ) : null}
                 </div>

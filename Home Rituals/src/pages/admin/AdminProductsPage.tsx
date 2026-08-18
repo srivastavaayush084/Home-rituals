@@ -24,6 +24,13 @@ interface Product {
   collection: string;
   badge?: string;
   category?: Category;
+  shortDescription?: string;
+  variant?: string;
+  packSize?: string;
+  usageInstructions?: string;
+  benefits?: string;
+  ingredients?: string;
+  images?: string[];
 }
 
 export const AdminProductsPage: React.FC = () => {
@@ -49,6 +56,13 @@ export const AdminProductsPage: React.FC = () => {
     image: '',
     featured: false,
     badge: '',
+    shortDescription: '',
+    variant: '',
+    packSize: '',
+    usageInstructions: '',
+    benefits: '',
+    ingredients: '',
+    images: [] as string[],
   });
 
   const [saving, setSaving] = useState(false);
@@ -90,6 +104,13 @@ export const AdminProductsPage: React.FC = () => {
         image: product.image,
         featured: product.featured,
         badge: product.badge || '',
+        shortDescription: product.shortDescription || '',
+        variant: product.variant || '',
+        packSize: product.packSize || '',
+        usageInstructions: product.usageInstructions || '',
+        benefits: product.benefits || '',
+        ingredients: product.ingredients || '',
+        images: product.images || [],
       });
     } else {
       setEditingProduct(null);
@@ -106,6 +127,13 @@ export const AdminProductsPage: React.FC = () => {
         image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
         featured: false,
         badge: '',
+        shortDescription: '',
+        variant: '',
+        packSize: '',
+        usageInstructions: '',
+        benefits: '',
+        ingredients: '',
+        images: [] as string[],
       });
     }
     setIsModalOpen(true);
@@ -130,6 +158,13 @@ export const AdminProductsPage: React.FC = () => {
         image: formData.image,
         featured: formData.featured,
         badge: formData.badge || undefined,
+        shortDescription: formData.shortDescription || undefined,
+        variant: formData.variant || undefined,
+        packSize: formData.packSize || undefined,
+        usageInstructions: formData.usageInstructions || undefined,
+        benefits: formData.benefits || undefined,
+        ingredients: formData.ingredients || undefined,
+        images: formData.images.filter(url => url.trim() !== ''),
       };
 
       if (editingProduct) {
@@ -399,10 +434,43 @@ export const AdminProductsPage: React.FC = () => {
                     className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Variant</label>
+                  <input
+                    type="text"
+                    value={formData.variant}
+                    onChange={(e) => setFormData({ ...formData, variant: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                    placeholder="e.g. Deep Clean Formula, Surface Rescue"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Pack Size</label>
+                  <input
+                    type="text"
+                    value={formData.packSize}
+                    onChange={(e) => setFormData({ ...formData, packSize: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                    placeholder="e.g. Pack of 2, 500ml, 1kg"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Description</label>
+                <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Short Description (For Quick View / Catalog)</label>
+                <textarea
+                  rows={2}
+                  value={formData.shortDescription}
+                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                  placeholder="A brief hook or summary for quick browsing..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Description (Full Detailed Story)</label>
                 <textarea
                   rows={3}
                   required
@@ -411,6 +479,41 @@ export const AdminProductsPage: React.FC = () => {
                   className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
                   placeholder="Detailed product story, benefits, and specifications..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Usage Instructions (How to Use)</label>
+                <textarea
+                  rows={2}
+                  value={formData.usageInstructions}
+                  onChange={(e) => setFormData({ ...formData, usageInstructions: e.target.value })}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                  placeholder="Step-by-step directions for use..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Benefits (Comma-separated highlights)</label>
+                  <textarea
+                    rows={2}
+                    value={formData.benefits}
+                    onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                    placeholder="e.g. Cleans hidden parts, removes bad smell..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">Ingredients</label>
+                  <textarea
+                    rows={2}
+                    value={formData.ingredients}
+                    onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                    placeholder="e.g. Plant-based surfactants, Citric acid..."
+                  />
+                </div>
               </div>
 
               <div>
@@ -423,6 +526,49 @@ export const AdminProductsPage: React.FC = () => {
                   className="w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
                   placeholder="https://..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 uppercase mb-1">
+                  Product Gallery Images (Shown in Quick View / Details Slideshow)
+                </label>
+                <div className="space-y-2 mt-1">
+                  {formData.images.map((imgUrl, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        value={imgUrl}
+                        onChange={(e) => {
+                          const newImages = [...formData.images];
+                          newImages[index] = e.target.value;
+                          setFormData({ ...formData, images: newImages });
+                        }}
+                        className="flex-1 px-3 py-2 border border-stone-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                        placeholder="https://..."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newImages = formData.images.filter((_, i) => i !== index);
+                          setFormData({ ...formData, images: newImages });
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition cursor-pointer"
+                        title="Remove Image"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, images: [...formData.images, ''] });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-medium transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Gallery Image
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
