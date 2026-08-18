@@ -1,11 +1,7 @@
 import { Card } from '../components/ui/Card';
 
 const values = ['Powerful cleaning performance', 'Easy daily use', 'Affordable home hygiene essentials', 'Reliable results for every room'];
-const timeline = [
-  { year: '2019', title: 'Founded in Bombay', text: 'A small team focused on making homes cleaner, fresher, and easier to care for.' },
-  { year: '2021', title: 'Cleaning essentials launch', text: 'We introduced practical products for laundry, kitchens, surfaces, and sanitation.' },
-  { year: '2024', title: 'Expanded the Home Rituals range', text: 'Our collection now covers washing machine care, kitchen cleaners, magic erasers, and more.' },
-];
+
 
 export function AboutPage() {
   return (
@@ -45,18 +41,7 @@ export function AboutPage() {
         </div>
       </div>
 
-      <div className="mt-16">
-        <p className="text-sm uppercase tracking-[0.35em] text-black">Our story</p>
-        <div className="mt-6 grid gap-6 md:grid-cols-3">
-          {timeline.map((item) => (
-            <Card key={item.year} className="p-6">
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#D7A86E]">{item.year}</p>
-              <h3 className="mt-3 text-xl font-semibold text-[#242424]">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-[#6f6f6f]">{item.text}</p>
-            </Card>
-          ))}
-        </div>
-      </div>
+
     </div>
   );
 }
