@@ -237,50 +237,69 @@ export function HomePage() {
           </div>
         )}
       </section>
-
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[36px] bg-[#44D62C] p-8 text-white shadow-[0_30px_70px_rgba(79,111,87,0.25)] sm:p-10 lg:p-12">
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-            <div>
-              <p className="text-sm uppercase tracking-[0.35em] text-black">Why choose Home Rituals</p>
-              <h2 className="mt-3 text-3xl font-semibold sm:text-4xl" style={{ fontFamily: 'Playfair Display, serif' }}>Reliable cleaning, made simple for modern homes.</h2>
-              <p className="mt-4 max-w-xl text-lg leading-8 text-white/80">We combine effective sanitation, practical performance, and easy-to-use essentials for kitchens, bathrooms, laundry, and beyond.</p>
+        <div className="overflow-hidden rounded-[40px] bg-gradient-to-br from-[#162C20] to-[#0E1B14] p-8 text-white shadow-[0_30px_70px_rgba(22,44,32,0.15)] sm:p-10 lg:p-14 relative z-0">
+          {/* Subtle background glow accents */}
+          <div className="absolute top-0 right-0 w-[350px] h-[350px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+          <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-amber-500/5 rounded-full blur-[80px] pointer-events-none -z-10" />
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {[
-                  { value: 30, label: 'Cleaning essentials', suffix: '+' },
-                  { value: 99.9, label: 'Hygiene confidence', suffix: '%' },
-                  { value: 100, label: 'Everyday value', suffix: '%' },
-                ].map((stat) => (
-                  <div key={stat.label} className="rounded-[20px] border-2 border-black bg-white p-4 text-black shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:bg-[#f7f7f7]">
-                    <p className="text-xl font-semibold leading-tight text-black">{stat.value}{stat.suffix}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-black/70">{stat.label}</p>
-                  </div>
-                ))}
+          <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] relative z-10">
+            <div className="flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-[#A8D5BA] bg-white/5 border border-white/10 rounded-full px-3.5 py-1.5 mb-4 shadow-sm">
+                  Why choose Home Rituals
+                </div>
+                <h2 className="text-3xl font-semibold leading-tight sm:text-4xl text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Reliable cleaning, <span className="italic font-serif font-normal text-[#A8D5BA]">made simple</span> for modern homes.
+                </h2>
+                <p className="mt-4 max-w-xl text-base leading-8 text-emerald-100/75">
+                  We combine effective sanitation, practical performance, and easy-to-use essentials for kitchens, bathrooms, laundry, and beyond.
+                </p>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {[
-                  { title: 'Thoughtful ingredients', text: 'Botanical, transparent, and consciously chosen.' },
-                  { title: 'Quiet luxury', text: 'Textural packaging and elevated everyday design.' },
-                  { title: 'Home-first', text: 'Made to bring calm to each room and ritual.' },
-                ].map((item) => (
-                  <div key={item.title} className="rounded-[24px] border-2 border-black bg-white p-5 text-black shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:bg-[#f7f7f7]">
-                    <p className="text-base font-semibold text-black">{item.title}</p>
-                    <p className="mt-2 text-sm leading-7 text-black/70">{item.text}</p>
-                  </div>
-                ))}
+              <div className="mt-8 space-y-6">
+                {/* Stats Grid */}
+                <div className="grid gap-4 grid-cols-3">
+                  {[
+                    { value: 30, label: 'Cleaning essentials', suffix: '+' },
+                    { value: 99.9, label: 'Hygiene confidence', suffix: '%' },
+                    { value: 100, label: 'Everyday value', suffix: '%' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="rounded-[20px] border border-white/10 bg-white/5 p-4 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-md">
+                      <p className="text-2xl font-bold leading-tight text-white">{stat.value}{stat.suffix}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.18em] text-emerald-200/80 leading-snug">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Core values cards */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  {[
+                    { title: 'Thoughtful ingredients', text: 'Botanical, transparent, and consciously chosen.' },
+                    { title: 'Quiet luxury', text: 'Textural packaging and elevated everyday design.' },
+                    { title: 'Home-first', text: 'Made to bring calm to each room and ritual.' },
+                  ].map((item) => (
+                    <div key={item.title} className="rounded-[20px] border border-white/10 bg-white/5 p-5 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-md text-left">
+                      <p className="text-xs font-bold tracking-wide text-white uppercase">{item.title}</p>
+                      <p className="mt-2 text-[11px] leading-relaxed text-emerald-100/70">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            <div>
-              <div className="grid gap-4 sm:grid-cols-2">
+
+            {/* Right Column: Cards Grid */}
+            <div className="flex items-center justify-center">
+              <div className="grid gap-4 sm:grid-cols-2 w-full">
                 {concerns.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.title} className="rounded-[24px] border-2 border-black bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:bg-[#f7f7f7]">
-                      <Icon size={20} className="text-black" />
-                      <p className="mt-3 font-semibold text-black">{item.title}</p>
-                      <p className="mt-2 text-sm leading-7 text-black/70">{item.text}</p>
+                    <div key={item.title} className="rounded-[24px] bg-white border border-stone-100/85 p-6 text-stone-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-700 mb-4">
+                        <Icon size={20} />
+                      </div>
+                      <p className="font-bold text-sm text-[#223229] tracking-wide">{item.title}</p>
+                      <p className="mt-2 text-xs leading-6 text-stone-500">{item.text}</p>
                     </div>
                   );
                 })}
