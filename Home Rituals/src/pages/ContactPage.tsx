@@ -46,7 +46,19 @@ export function ContactPage() {
           <div className="mt-8 grid gap-4">
             <Card className="p-5"><p className="text-sm font-semibold text-black">Email</p><p className="mt-2 text-[#242424]">hello@homerituals.com</p></Card>
             <Card className="p-5"><p className="text-sm font-semibold text-black">Call</p><p className="mt-2 text-[#242424]">+91 99999 11111</p></Card>
-            <Card className="p-5"><p className="text-sm font-semibold text-black">Visit</p><p className="mt-2 text-[#242424]">Bombay House, Mumbai</p></Card>
+            <Card className="p-5">
+              <p className="text-sm font-semibold text-black">Visit</p>
+              <p className="mt-2 text-[#242424] leading-relaxed">
+                Floor No.: Office Third Floor<br />
+                Building No./Flat No.: Office No. 321<br />
+                Name Of Premises/Building: SWAGAT BUSINESS HUB,<br />
+                Road/Street: HAZIRA ROAD, SURAT<br />
+                City/Town/Village: Surat<br />
+                District: Surat<br />
+                State: Gujarat<br />
+                PIN Code: 394510
+              </p>
+            </Card>
           </div>
         </div>
         <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">

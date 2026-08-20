@@ -529,7 +529,16 @@ export function Layout({ children }: LayoutProps) {
             </div>
             <ul className="mt-4 space-y-2 text-sm font-semibold text-black/90">
               <li>+91 99999 11111</li>
-              <li>Bombay House, Mumbai</li>
+              <li className="leading-relaxed">
+                Floor No.: Office Third Floor<br />
+                Building No./Flat No.: Office No. 321<br />
+                Name Of Premises/Building: SWAGAT BUSINESS HUB,<br />
+                Road/Street: HAZIRA ROAD, SURAT<br />
+                City/Town/Village: Surat<br />
+                District: Surat<br />
+                State: Gujarat<br />
+                PIN Code: 394510
+              </li>
             </ul>
           </div>
         </div>
