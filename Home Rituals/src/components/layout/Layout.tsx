@@ -528,16 +528,12 @@ export function Layout({ children }: LayoutProps) {
               </a>
             </div>
             <ul className="mt-4 space-y-2 text-sm font-semibold text-black/90">
-              <li>+91 99999 11111</li>
+              <li>+91 8490969922</li>
               <li className="leading-relaxed">
-                Floor No.: Office Third Floor<br />
-                Building No./Flat No.: Office No. 321<br />
-                Name Of Premises/Building: SWAGAT BUSINESS HUB,<br />
-                Road/Street: HAZIRA ROAD, SURAT<br />
-                City/Town/Village: Surat<br />
-                District: Surat<br />
-                State: Gujarat<br />
-                PIN Code: 394510
+                Office No. 321<br />
+                SWAGAT BUSINESS HUB,<br />
+                HAZIRA ROAD, SURAT, GUJRAT,<br />
+                394510
               </li>
             </ul>
           </div>

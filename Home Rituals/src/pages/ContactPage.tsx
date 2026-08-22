@@ -45,18 +45,14 @@ export function ContactPage() {
           <p className="mt-4 text-lg leading-8 text-[#6f6f6f]">Reach out for product guidance, order support, or a simple hello. We believe thoughtful care deserves thoughtful conversation.</p>
           <div className="mt-8 grid gap-4">
             <Card className="p-5"><p className="text-sm font-semibold text-black">Email</p><p className="mt-2 text-[#242424]">hello@homerituals.com</p></Card>
-            <Card className="p-5"><p className="text-sm font-semibold text-black">Call</p><p className="mt-2 text-[#242424]">+91 99999 11111</p></Card>
+            <Card className="p-5"><p className="text-sm font-semibold text-black">Call</p><p className="mt-2 text-[#242424]">+91 8490969922</p></Card>
             <Card className="p-5">
               <p className="text-sm font-semibold text-black">Visit</p>
               <p className="mt-2 text-[#242424] leading-relaxed">
-                Floor No.: Office Third Floor<br />
-                Building No./Flat No.: Office No. 321<br />
-                Name Of Premises/Building: SWAGAT BUSINESS HUB,<br />
-                Road/Street: HAZIRA ROAD, SURAT<br />
-                City/Town/Village: Surat<br />
-                District: Surat<br />
-                State: Gujarat<br />
-                PIN Code: 394510
+                Office No. 321<br />
+                SWAGAT BUSINESS HUB,<br />
+                HAZIRA ROAD, SURAT, GUJRAT,<br />
+                394510
               </p>
             </Card>
           </div>
