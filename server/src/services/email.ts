@@ -60,7 +60,7 @@ export const emailTemplates = {
       <p>Thank you for registering an account with us. We are thrilled to have you join our circle of home care rituals.</p>
       <p>Explore our catalog of premium home hygiene essentials designed for clean, calm living.</p>
       <div style="margin: 25px 0;">
-        <a href="http://localhost:5173/shop" style="background-color: #44D62C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: bold;">Start Shopping</a>
+        <a href="https://homerituals.co" style="background-color: #44D62C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: bold;">Start Shopping</a>
       </div>
       <p>If you have any questions, simply reply to this email.</p>
       <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
