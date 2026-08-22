@@ -511,7 +511,7 @@ export function Layout({ children }: LayoutProps) {
           <div>
             <h3 className="text-sm font-semibold text-black">Contact</h3>
             <div className="mt-4 flex items-center gap-3 text-black/90">
-              <a href="mailto:hello@homerituals.com" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Email">
+              <a href="mailto:info@homerituals.co" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Email">
                 <Mail size={16} />
               </a>
               <a href="https://www.instagram.com/homerituals.co/?hl=en" target="_blank" rel="noreferrer" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Instagram">

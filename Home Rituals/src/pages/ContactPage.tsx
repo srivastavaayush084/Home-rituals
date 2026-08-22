@@ -44,7 +44,7 @@ export function ContactPage() {
           <h1 className="mt-2 text-4xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>We’re here to help with every ritual.</h1>
           <p className="mt-4 text-lg leading-8 text-[#6f6f6f]">Reach out for product guidance, order support, or a simple hello. We believe thoughtful care deserves thoughtful conversation.</p>
           <div className="mt-8 grid gap-4">
-            <Card className="p-5"><p className="text-sm font-semibold text-black">Email</p><p className="mt-2 text-[#242424]">hello@homerituals.com</p></Card>
+            <Card className="p-5"><p className="text-sm font-semibold text-black">Email</p><p className="mt-2 text-[#242424]">info@homerituals.co</p></Card>
             <Card className="p-5"><p className="text-sm font-semibold text-black">Call</p><p className="mt-2 text-[#242424]">+91 8490969922</p></Card>
             <Card className="p-5">
               <p className="text-sm font-semibold text-black">Visit</p>
