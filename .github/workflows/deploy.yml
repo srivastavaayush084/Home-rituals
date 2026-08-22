@@ -1,21 +1,38 @@
-name: Test SSH
+name: Deploy Home Rituals
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: SSH Test
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          port: 22
           debug: true
           script: |
             whoami
             hostname
-            pwd
+
+            cd /root/Home-rituals
+            git pull origin main
+
+            cd "/root/Home-rituals/Home Rituals"
+            npm install
+            npm run build
+            rm -rf /var/www/html/*
+            cp -r dist/* /var/www/html/
+
+            cd /root/Home-rituals/server
+            npm install
+            npm run build
+            pm2 restart home-rituals-api --update-env
+
+            systemctl reload nginx
