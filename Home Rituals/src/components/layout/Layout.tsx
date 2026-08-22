@@ -521,9 +521,9 @@ export function Layout({ children }: LayoutProps) {
                   <circle cx="17.5" cy="6.5" r="1" />
                 </svg>
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="YouTube">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                  <path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18.2 4.8 12 4.8 12 4.8s-6.2 0-7.7.5A2.7 2.7 0 0 0 2.4 7.2 28.7 28.7 0 0 0 2 12a28.7 28.7 0 0 0 .4 4.8 2.7 2.7 0 0 0 1.9 1.9c1.5.5 7.7.5 7.7.5s6.2 0 7.7-.5a2.7 2.7 0 0 0 1.9-1.9A28.7 28.7 0 0 0 22 12a28.7 28.7 0 0 0-.4-4.8ZM10 15.5v-7l6 3.5-6 3.5Z" />
+              <a href="https://www.facebook.com/share/1Czc6yipq5/" target="_blank" rel="noreferrer" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Facebook">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
               </a>
             </div>
