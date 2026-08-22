@@ -11,7 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed": "ts-node-dev prisma/seed.ts"
+    "seed": "ts-node-dev prisma/seed.ts",
+    "fix-indexes": "ts-node-dev --transpile-only src/scripts/fixIndexes.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
