@@ -38,7 +38,7 @@ interface AnalyticsData {
     status: string;
     paymentStatus: string;
     createdAt: string;
-    user: { name: string; email: string };
+    user: { name: string; email: string | null; phone?: string | null };
   }>;
 }
 
@@ -247,7 +247,7 @@ export const AdminDashboardPage: React.FC = () => {
                     <td className="py-3 px-4 font-mono font-medium text-stone-900">#{order.id}</td>
                     <td className="py-3 px-4">
                       <div className="font-medium text-stone-900">{order.user.name}</div>
-                      <div className="text-xs text-stone-500">{order.user.email}</div>
+                      <div className="text-xs text-stone-500">{order.user.email || order.user.phone || ''}</div>
                     </td>
                     <td className="py-3 px-4 font-semibold text-stone-900">₹{order.totalAmount}</td>
                     <td className="py-3 px-4">

@@ -36,12 +36,14 @@ export async function verifyPayment(req: Request, res: Response, next: NextFunct
     });
 
     // Send confirmation emails
-    await sendEmail({
-      to: order.user.email,
-      subject: `Payment Success for Order #${order.id}`,
-      html: emailTemplates.getPaymentSuccessHtml(order.id, razorpayPaymentId, order.totalAmount),
-      text: `Hello ${order.fullName},\n\nWe have received payment of ₹${order.totalAmount} for order #${order.id}.`,
-    });
+    if (order.user.email) {
+      await sendEmail({
+        to: order.user.email,
+        subject: `Payment Success for Order #${order.id}`,
+        html: emailTemplates.getPaymentSuccessHtml(order.id, razorpayPaymentId, order.totalAmount),
+        text: `Hello ${order.fullName},\n\nWe have received payment of ₹${order.totalAmount} for order #${order.id}.`,
+      });
+    }
 
     logger.info(`Payment verified successfully for Order #${orderId}. Payment ID: ${razorpayPaymentId}`);
     return sendSuccess(res, updatedOrder, 200, 'Payment verified successfully');
@@ -92,12 +94,14 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
         });
 
         // Send confirmation email
-        await sendEmail({
-          to: order.user.email,
-          subject: `Payment Confirmed via Webhook - Order #${order.id}`,
-          html: emailTemplates.getPaymentSuccessHtml(order.id, razorpayPaymentId, order.totalAmount),
-          text: `Hello ${order.fullName},\n\nPayment for order #${order.id} has been confirmed.`,
-        });
+        if (order.user.email) {
+          await sendEmail({
+            to: order.user.email,
+            subject: `Payment Confirmed via Webhook - Order #${order.id}`,
+            html: emailTemplates.getPaymentSuccessHtml(order.id, razorpayPaymentId, order.totalAmount),
+            text: `Hello ${order.fullName},\n\nPayment for order #${order.id} has been confirmed.`,
+          });
+        }
 
         logger.info(`Order #${order.id} updated to Paid via Webhook payment.captured`);
       }

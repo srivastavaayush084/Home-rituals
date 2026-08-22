@@ -137,7 +137,7 @@ export const AdminLayout: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="text-right">
               <p className="text-sm font-semibold text-stone-900">{user.name}</p>
-              <p className="text-xs text-stone-500">{user.email}</p>
+              <p className="text-xs text-stone-500">{user.email || user.phone || ''}</p>
             </div>
             <div className="w-9 h-9 rounded-full bg-stone-900 text-white flex items-center justify-center font-bold text-sm">
               {user.name.charAt(0).toUpperCase()}

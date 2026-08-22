@@ -9,7 +9,7 @@ import { sendEmail, emailTemplates } from '../services/email';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtsecretkeyshouldbechangedinproduction';
 
-function generateTokens(user: { id: string; email: string; role: 'USER' | 'ADMIN'; name: string }) {
+function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string }) {
   const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
   const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
   const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
@@ -18,22 +18,34 @@ function generateTokens(user: { id: string; email: string; role: 'USER' | 'ADMIN
 
 export async function register(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
-    const { email, password, name } = req.body;
+    const { email, phone, password, name } = req.body;
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      throw new ConflictError('A user with this email address already exists');
+    if (email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email } });
+      if (existingEmail) {
+        throw new ConflictError('A user with this email address already exists');
+      }
+    }
+
+    if (phone) {
+      const existingPhone = await prisma.user.findFirst({ where: { phone } });
+      if (existingPhone) {
+        throw new ConflictError('A user with this mobile number already exists');
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const userData: any = {
+      passwordHash,
+      name,
+      role: 'USER',
+    };
+    if (email) userData.email = email;
+    if (phone) userData.phone = phone;
+
     const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        name,
-        role: 'USER',
-      },
+      data: userData,
     });
 
     const { accessToken, refreshToken } = generateTokens(user);
@@ -44,17 +56,24 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       data: { refreshToken },
     });
 
-    // Send registration email
-    await sendEmail({
-      to: user.email,
-      subject: 'Welcome to Home Rituals!',
-      html: emailTemplates.getRegistrationHtml(user.name),
-      text: `Hello ${user.name},\n\nWelcome to Home Rituals! Your account has been successfully created.`,
-    });
+    // Send registration email if email was provided
+    if (user.email) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Welcome to Home Rituals!',
+          html: emailTemplates.getRegistrationHtml(user.name),
+          text: `Hello ${user.name},\n\nWelcome to Home Rituals! Your account has been successfully created.`,
+        });
+      } catch (emailErr) {
+        // Log email error but don't fail registration
+      }
+    }
 
     const userProfile = {
       id: user.id,
       email: user.email,
+      phone: user.phone,
       name: user.name,
       role: user.role,
       createdAt: user.createdAt,
@@ -68,16 +87,24 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
 
 export async function login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
-    const { email, password } = req.body;
+    const { emailOrPhone, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: emailOrPhone },
+          { phone: emailOrPhone }
+        ]
+      }
+    });
+
     if (!user) {
-      throw new BadRequestError('Invalid email or password');
+      throw new BadRequestError('Invalid email/mobile number or password');
     }
 
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      throw new BadRequestError('Invalid email or password');
+      throw new BadRequestError('Invalid email/mobile number or password');
     }
 
     const { accessToken, refreshToken } = generateTokens(user);
@@ -91,6 +118,7 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
     const userProfile = {
       id: user.id,
       email: user.email,
+      phone: user.phone,
       name: user.name,
       role: user.role,
       createdAt: user.createdAt,
@@ -169,12 +197,14 @@ export async function forgotPassword(req: AuthenticatedRequest, res: Response, n
 
     const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Reset your password - Home Rituals',
-      html: emailTemplates.getPasswordResetHtml(resetUrl),
-      text: `Please reset your password by clicking this link: ${resetUrl}`,
-    });
+    if (user.email) {
+      await sendEmail({
+        to: user.email,
+        subject: 'Reset your password - Home Rituals',
+        html: emailTemplates.getPasswordResetHtml(resetUrl),
+        text: `Please reset your password by clicking this link: ${resetUrl}`,
+      });
+    }
 
     return sendSuccess(res, null, 200, 'If this email is registered, a password reset link has been sent');
   } catch (error) {
@@ -211,20 +241,22 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
     });
 
     // Send confirmation email
-    await sendEmail({
-      to: user.email,
-      subject: 'Password updated successfully - Home Rituals',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e8efe7; border-radius: 12px;">
-          <h2 style="color: #0B8F3C;">Password Reset Success</h2>
-          <p>Hello ${user.name},</p>
-          <p>Your password has been reset successfully. You can now log in using your new password.</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-          <p style="font-size: 12px; color: #888;">&copy; Home Rituals. All rights reserved.</p>
-        </div>
-      `,
-      text: `Hello ${user.name},\n\nYour password has been successfully reset.`,
-    });
+    if (user.email) {
+      await sendEmail({
+        to: user.email,
+        subject: 'Password updated successfully - Home Rituals',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e8efe7; border-radius: 12px;">
+            <h2 style="color: #0B8F3C;">Password Reset Success</h2>
+            <p>Hello ${user.name},</p>
+            <p>Your password has been reset successfully. You can now log in using your new password.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="font-size: 12px; color: #888;">&copy; Home Rituals. All rights reserved.</p>
+          </div>
+        `,
+        text: `Hello ${user.name},\n\nYour password has been successfully reset.`,
+      });
+    }
 
     return sendSuccess(res, null, 200, 'Password has been reset successfully');
   } catch (error) {

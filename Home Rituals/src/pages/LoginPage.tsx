@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button';
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useApp();
-  const [email, setEmail] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(emailOrPhone, password);
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
@@ -42,11 +42,11 @@ export function LoginPage() {
               </div>
             )}
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={emailOrPhone}
+              onChange={(e) => setEmailOrPhone(e.target.value)}
               className="w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
-              placeholder="Email"
+              placeholder="Email or Mobile Number"
               required
             />
             <input

@@ -3,14 +3,18 @@ import { z } from 'zod';
 export const authSchemas = {
   register: z.object({
     body: z.object({
-      email: z.string().email('Invalid email address'),
+      email: z.string().email('Invalid email address').optional().nullable(),
+      phone: z.string().min(10, 'Phone number must be at least 10 digits').optional().nullable(),
       password: z.string().min(6, 'Password must be at least 6 characters long'),
       name: z.string().min(1, 'Name is required'),
+    }).refine(data => data.email || data.phone, {
+      message: 'Either email or phone number is required',
+      path: ['email']
     }),
   }),
   login: z.object({
     body: z.object({
-      email: z.string().email('Invalid email address'),
+      emailOrPhone: z.string().min(1, 'Email or Phone number is required'),
       password: z.string().min(1, 'Password is required'),
     }),
   }),

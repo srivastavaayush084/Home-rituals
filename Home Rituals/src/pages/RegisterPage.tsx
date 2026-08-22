@@ -7,7 +7,9 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const { register } = useApp();
   const [name, setName] = useState('');
+  const [regType, setRegType] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,9 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(email, password, name);
+      const emailValue = regType === 'email' ? email : null;
+      const phoneValue = regType === 'phone' ? phone : null;
+      await register(emailValue, phoneValue, password, name);
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -42,6 +46,28 @@ export function RegisterPage() {
                 {error}
               </div>
             )}
+            
+            <div className="flex gap-2 p-1 bg-stone-100 rounded-full mb-2">
+              <button
+                type="button"
+                onClick={() => setRegType('email')}
+                className={`flex-1 py-2 px-4 rounded-full text-xs font-semibold tracking-wider uppercase transition ${
+                  regType === 'email' ? 'bg-[#44D62C] text-white shadow-sm' : 'text-stone-600 hover:text-stone-850'
+                }`}
+              >
+                Use Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setRegType('phone')}
+                className={`flex-1 py-2 px-4 rounded-full text-xs font-semibold tracking-wider uppercase transition ${
+                  regType === 'phone' ? 'bg-[#44D62C] text-white shadow-sm' : 'text-stone-600 hover:text-stone-850'
+                }`}
+              >
+                Use Mobile
+              </button>
+            </div>
+
             <input
               type="text"
               value={name}
@@ -50,14 +76,25 @@ export function RegisterPage() {
               placeholder="Full name"
               required
             />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
-              placeholder="Email"
-              required
-            />
+            {regType === 'email' ? (
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
+                placeholder="Email address"
+                required
+              />
+            ) : (
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
+                placeholder="Mobile phone number"
+                required
+              />
+            )}
             <input
               type="password"
               value={password}

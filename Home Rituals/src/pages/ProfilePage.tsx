@@ -248,7 +248,7 @@ export function ProfilePage() {
                     </span>
                   )}
                 </div>
-                <p className="text-stone-300 text-sm mt-1">{user.email}</p>
+                <p className="text-stone-300 text-sm mt-1">{user.email || user.phone || ''}</p>
               </div>
             </div>
 
@@ -582,7 +582,7 @@ export function ProfilePage() {
                       <label className="block text-xs font-semibold text-stone-600 uppercase mb-1">Email Address</label>
                       <input
                         type="email"
-                        value={user.email}
+                        value={user.email || ''}
                         disabled
                         className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 cursor-not-allowed text-sm"
                       />

@@ -10,7 +10,7 @@ interface CartItem {
 
 interface UserPayload {
   id: string | number;
-  email: string;
+  email?: string | null;
   name: string;
   phone?: string | null;
   role: 'USER' | 'ADMIN';
@@ -34,8 +34,8 @@ interface AppContextValue {
   // Auth state
   user: UserPayload | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  login: (emailOrPhone: string, password: string) => Promise<void>;
+  register: (email: string | null, phone: string | null, password: string, name: string) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
@@ -257,8 +257,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearShipping = () => setShipping(null);
 
   // Authentication Flow
-  const login = async (email: string, password: string) => {
-    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/login', 'POST', { email, password });
+  const login = async (emailOrPhone: string, password: string) => {
+    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/login', 'POST', { emailOrPhone, password });
     localStorage.setItem('home-rituals-token', data.token);
     setToken(data.token);
     setUser(data.user);
@@ -276,8 +276,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/register', 'POST', { email, password, name });
+  const register = async (email: string | null, phone: string | null, password: string, name: string) => {
+    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/register', 'POST', { email, phone, password, name });
     localStorage.setItem('home-rituals-token', data.token);
     setToken(data.token);
     setUser(data.user);

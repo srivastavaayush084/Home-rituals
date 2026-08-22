@@ -123,12 +123,14 @@ export async function createOrder(req: AuthenticatedRequest, res: Response, next
     });
 
     // 9. Send email notification
-    await sendEmail({
-      to: req.user!.email,
-      subject: `Order Created! - #${order.id}`,
-      html: emailTemplates.getOrderConfirmationHtml(order.id, order.totalAmount, itemsToCreate),
-      text: `Hello ${order.fullName},\n\nYour order #${order.id} has been created. Total amount: ₹${order.totalAmount}.`,
-    });
+    if (req.user!.email) {
+      await sendEmail({
+        to: req.user!.email,
+        subject: `Order Created! - #${order.id}`,
+        html: emailTemplates.getOrderConfirmationHtml(order.id, order.totalAmount, itemsToCreate),
+        text: `Hello ${order.fullName},\n\nYour order #${order.id} has been created. Total amount: ₹${order.totalAmount}.`,
+      });
+    }
 
     logger.info(`Order placed successfully: #${order.id} for user ID: ${userId}`);
     return sendSuccess(res, { order: updatedOrder, razorpayOrder }, 201, 'Order created successfully');
@@ -295,12 +297,15 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
     });
 
     // Send email alert to user
-    await sendEmail({
-      to: order.user?.email || req.user!.email,
-      subject: `Order Update: #${order.id} - ${status}`,
-      html: emailTemplates.getOrderStatusUpdateHtml(order.id, status, courierName, trackingNumber),
-      text: `Hello,\n\nYour order #${order.id} status is now: ${status}.`,
-    });
+    const userEmail = order.user?.email || req.user!.email;
+    if (userEmail) {
+      await sendEmail({
+        to: userEmail,
+        subject: `Order Update: #${order.id} - ${status}`,
+        html: emailTemplates.getOrderStatusUpdateHtml(order.id, status, courierName, trackingNumber),
+        text: `Hello,\n\nYour order #${order.id} status is now: ${status}.`,
+      });
+    }
 
     logger.info(`Order #${id} status updated to ${status} by admin`);
     return sendSuccess(res, updated, 200, 'Order status updated successfully');
@@ -350,12 +355,14 @@ export async function cancelOrder(req: AuthenticatedRequest, res: Response, next
     });
 
     // Send cancel notification email
-    await sendEmail({
-      to: req.user!.email,
-      subject: `Order Cancelled - #${order.id}`,
-      html: emailTemplates.getOrderStatusUpdateHtml(order.id, 'Cancelled'),
-      text: `Hello ${order.fullName},\n\nYour order #${order.id} has been cancelled successfully.`,
-    });
+    if (req.user!.email) {
+      await sendEmail({
+        to: req.user!.email,
+        subject: `Order Cancelled - #${order.id}`,
+        html: emailTemplates.getOrderStatusUpdateHtml(order.id, 'Cancelled'),
+        text: `Hello ${order.fullName},\n\nYour order #${order.id} has been cancelled successfully.`,
+      });
+    }
 
     logger.info(`Order #${id} cancelled by customer ID: ${userId}`);
     return sendSuccess(res, updated, 200, 'Order cancelled successfully');

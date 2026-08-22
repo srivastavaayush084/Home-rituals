@@ -5,7 +5,7 @@ import { UnauthorizedError, ForbiddenError } from '../utils/response';
 
 export interface UserPayload {
   id: string;
-  email: string;
+  email: string | null;
   name: string;
   phone?: string | null;
   role: 'USER' | 'ADMIN';
@@ -38,7 +38,7 @@ export async function authenticateToken(
     // Validate that the user still exists in database
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, phone: true },
     });
 
     if (user) {
