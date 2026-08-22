@@ -464,30 +464,13 @@ export function Layout({ children }: LayoutProps) {
       </section>
 
       <footer className="border-t border-[#44D62C]/30 bg-[#44D62C] px-4 py-16 text-black shadow-[0_24px_70px_rgba(68,214,44,0.14)] sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-5 lg:gap-10">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-4 lg:gap-10">
           <div>
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Home Rituals logo" className="h-14 w-14 rounded-full bg-white/20 object-contain p-2" />
               <p className="text-xs uppercase tracking-[0.35em] font-semibold text-black">Home Rituals</p>
             </div>
             <p className="mt-4 text-sm leading-7 font-semibold text-black/90">Reliable cleaning and sanitation solutions for homes that want freshness, hygiene, and effortless care every day.</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-black">Shop</h3>
-            <ul className="mt-4 space-y-2 text-sm font-semibold text-black/90">
-              <li>
-                <Link to="/shop" className="block rounded-full px-2 py-1 transition hover:bg-white/15 hover:text-black">Kitchen Care</Link>
-              </li>
-              <li>
-                <Link to="/shop" className="block rounded-full px-2 py-1 transition hover:bg-white/15 hover:text-black">Bathroom Care</Link>
-              </li>
-              <li>
-                <Link to="/shop" className="block rounded-full px-2 py-1 transition hover:bg-white/15 hover:text-black">Laundry</Link>
-              </li>
-              <li>
-                <Link to="/shop" className="block rounded-full px-2 py-1 transition hover:bg-white/15 hover:text-black">Air Care</Link>
-              </li>
-            </ul>
           </div>
           <div>
             <h3 className="text-sm font-semibold text-black">Discover</h3>
