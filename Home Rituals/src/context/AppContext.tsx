@@ -50,6 +50,7 @@ interface AppContextValue {
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   clearCart: () => void;
+  refreshCart: () => Promise<void>;
   toggleWishlist: (productId: number) => void;
   toastMessage: string | null;
   clearToast: () => void;
@@ -402,6 +403,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addToCart,
     removeFromCart,
     clearCart,
+    refreshCart: fetchCartFromServer,
     toggleWishlist,
     toastMessage,
     clearToast: () => setToastMessage(null),
@@ -429,7 +431,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }), [
     user, token, products, isLoadingProducts, cart, wishlistIds, isCartOpen,
     isWishlistOpen, isSearchOpen, searchQuery, filteredProducts, quickViewProduct,
-    addresses, shipping
+    addresses, shipping, fetchCartFromServer
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

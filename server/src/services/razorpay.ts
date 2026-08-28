@@ -21,7 +21,7 @@ try {
  * @param amountInPaise Amount in paise (1 INR = 100 Paise)
  * @param receipt Unique receipt ID (e.g. order-id)
  */
-export async function createRazorpayOrder(amountInPaise: number, receipt: string) {
+export async function createRazorpayOrder(amountInPaise: number, receipt: string, notes?: Record<string, any>) {
   if (!razorpayClient || key_id === 'mock_key_id') {
     logger.info(`Razorpay client is running in MOCK mode. Creating mock order for receipt: ${receipt}`);
     return {
@@ -30,6 +30,7 @@ export async function createRazorpayOrder(amountInPaise: number, receipt: string
       currency: 'INR',
       receipt,
       status: 'created',
+      notes,
     };
   }
 
@@ -38,6 +39,7 @@ export async function createRazorpayOrder(amountInPaise: number, receipt: string
       amount: amountInPaise,
       currency: 'INR',
       receipt,
+      notes,
     });
     return order;
   } catch (error) {
@@ -89,3 +91,22 @@ export function verifyWebhookSignature(payload: string, signature: string, webho
     return false;
   }
 }
+
+/**
+ * Fetches Razorpay Order details
+ */
+export async function fetchRazorpayOrder(razorpayOrderId: string) {
+  if (!razorpayClient || key_id === 'mock_key_id') {
+    logger.warn(`Razorpay client is running in MOCK mode or keys are missing. Cannot fetch order details.`);
+    throw new Error('Razorpay keys not configured');
+  }
+
+  try {
+    const order = await razorpayClient.orders.fetch(razorpayOrderId);
+    return order;
+  } catch (error) {
+    logger.error(`Error fetching Razorpay Order ${razorpayOrderId}:`, error);
+    throw error;
+  }
+}
+

@@ -1,57 +1,172 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../utils/db';
-import { sendSuccess, BadRequestError, NotFoundError } from '../utils/response';
-import { verifyPaymentSignature, verifyWebhookSignature } from '../services/razorpay';
-import { sendEmail, emailTemplates } from '../services/email';
+import { BadRequestError } from '../utils/response';
+import { AuthenticatedRequest } from '../middleware/auth';
+import {
+  verifyPaymentSignature,
+  verifyWebhookSignature,
+  createRazorpayOrder,
+  fetchRazorpayOrder
+} from '../services/razorpay';
+import { finalizePaidOrder } from '../services/orderFinalization';
 import { logger } from '../utils/logger';
 
-export async function verifyPayment(req: Request, res: Response, next: NextFunction) {
+/**
+ * Creates a Razorpay order based on the user's cart content.
+ * Serves as the first step of the checkout process.
+ */
+export async function createRazorpayOrderDirect(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
-    const { razorpayOrderId, razorpayPaymentId, razorpaySignature, orderId } = req.body;
+    const userId = req.user!.id;
+    const { addressId } = req.body;
 
-    // Verify signature
-    const isValid = verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
-    if (!isValid) {
-      throw new BadRequestError('Invalid signature. Payment verification failed.');
+    if (!addressId) {
+      throw new BadRequestError('Address ID is required');
     }
 
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { user: { select: { email: true } } },
-    });
-
-    if (!order) {
-      throw new NotFoundError('Order not found');
-    }
-
-    // Update payment details on Order
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: 'Paid',
-        status: 'Confirmed',
-        razorpayPaymentId,
-        razorpaySignature,
-      },
-    });
-
-    // Send confirmation emails
-    if (order.user.email) {
-      await sendEmail({
-        to: order.user.email,
-        subject: `Payment Success for Order #${order.id}`,
-        html: emailTemplates.getPaymentSuccessHtml(order.id, razorpayPaymentId, order.totalAmount),
-        text: `Hello ${order.fullName},\n\nWe have received payment of ₹${order.totalAmount} for order #${order.id}.`,
+    // Check if Razorpay keys are configured
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || keyId === 'your_razorpay_key_id' || !keySecret || keySecret === 'your_razorpay_key_secret') {
+      logger.error('Razorpay credentials missing in environment configurations.');
+      return res.status(500).json({
+        success: false,
+        error: {
+          message: 'Payment gateway configuration error. Please contact administration.',
+          code: 'PAYMENT_GATEWAY_CONFIG_ERROR',
+        }
       });
     }
 
-    logger.info(`Payment verified successfully for Order #${orderId}. Payment ID: ${razorpayPaymentId}`);
-    return sendSuccess(res, updatedOrder, 200, 'Payment verified successfully');
+    // 1. Get user's cart from database
+    const cartItems = await prisma.cartItem.findMany({
+      where: { userId },
+      include: { product: true },
+    });
+
+    if (cartItems.length === 0) {
+      throw new BadRequestError('Your cart is empty');
+    }
+
+    // 2. Validate stock and calculate totals
+    let totalAmount = 0;
+
+    for (const item of cartItems) {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+      });
+
+      if (!product || product.deletedAt) {
+        throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
+      }
+
+      if (product.stock < item.quantity) {
+        throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
+      }
+
+      // Determine price (use discount price if present, else standard price)
+      const price = product.discountPrice || product.price;
+      totalAmount += price * item.quantity;
+    }
+
+    // 3. Create Razorpay order (Amount is in Paise: 1 INR = 100 Paise)
+    const amountInPaise = Math.round(totalAmount * 100);
+    const receipt = `rcpt_${userId.substring(userId.length - 8)}_${Date.now().toString().substring(5)}`;
+    
+    // Store metadata in order notes to reconstruct cart on Webhook fallback if needed
+    const notes = { userId, addressId };
+    
+    const razorpayOrder = await createRazorpayOrder(amountInPaose(amountInPaise), receipt, notes);
+
+    logger.info(`Razorpay order created: ${razorpayOrder.id} for user ${userId}. Total: ₹${totalAmount}`);
+
+    return res.status(200).json({
+      success: true,
+      order_id: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency || 'INR',
+    });
   } catch (error) {
     next(error);
   }
 }
 
+// Helper to ensure correct type
+function amountInPaose(val: number): number {
+  return val;
+}
+
+/**
+ * Endpoint for the frontend to verify standard Razorpay Web payments.
+ */
+export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const razorpayOrderId = req.body.razorpay_order_id || req.body.razorpayOrderId;
+    const razorpayPaymentId = req.body.razorpay_payment_id || req.body.razorpayPaymentId;
+    const razorpaySignature = req.body.razorpay_signature || req.body.razorpaySignature;
+    const addressId = req.body.addressId;
+
+    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !addressId) {
+      throw new BadRequestError('Missing required payment verification parameters');
+    }
+
+    // 1. Verify HMAC Signature
+    const isValid = verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+    if (!isValid) {
+      throw new BadRequestError('Payment signature verification failed');
+    }
+
+    // 2. Retrieve order from Razorpay to verify amount
+    const rzpOrder = await fetchRazorpayOrder(razorpayOrderId);
+    
+    // 3. Recalculate cart amount and compare
+    const cartItems = await prisma.cartItem.findMany({
+      where: { userId },
+      include: { product: true }
+    });
+
+    let totalAmount = 0;
+    for (const item of cartItems) {
+      const product = await prisma.product.findUnique({ where: { id: item.productId } });
+      if (product) {
+        const price = product.discountPrice || product.price;
+        totalAmount += price * item.quantity;
+      }
+    }
+
+    const expectedAmountInPaise = Math.round(totalAmount * 100);
+    if (rzpOrder.amount !== expectedAmountInPaise) {
+      logger.warn(`Razorpay payment amount verification failed. Expected: ${expectedAmountInPaise}, Got: ${rzpOrder.amount}`);
+      throw new BadRequestError('Payment amount mismatch. Transaction aborted.');
+    }
+
+    // 4. Finalize paid order inside transactional service
+    const finalizationResult = await finalizePaidOrder({
+      userId,
+      addressId,
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+    });
+
+    return res.status(200).json(finalizationResult);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Shared redirect controller matching legacy routes /api/payments/verify
+ */
+export async function verifyPayment(req: Request, res: Response, next: NextFunction) {
+  return verifyPaymentDirect(req as AuthenticatedRequest, res, next);
+}
+
+/**
+ * Webhook controller for Razorpay server events.
+ * Recovers transaction details from Razorpay Order notes if frontend fails to call verify.
+ */
 export async function handleWebhook(req: Request, res: Response, next: NextFunction) {
   try {
     const signature = req.headers['x-razorpay-signature'] as string;
@@ -59,7 +174,7 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
 
     if (!signature || !webhookSecret) {
       logger.warn('Razorpay webhook header or secret is missing. Skipping verification.');
-      return res.status(200).json({ success: true, message: 'Skipped validation' });
+      return res.status(400).json({ success: false, error: 'Webhook configuration error' });
     }
 
     const payload = JSON.stringify(req.body);
@@ -73,38 +188,50 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
     logger.info(`Received Razorpay webhook event: ${event}`);
 
     if (event === 'payment.captured' || event === 'order.paid') {
-      const paymentEntity = req.body.payload.payment.entity;
-      const razorpayOrderId = paymentEntity.order_id;
-      const razorpayPaymentId = paymentEntity.id;
+      const entity = req.body.payload.payment?.entity || req.body.payload.order?.entity;
+      if (!entity) {
+        logger.warn('Webhook received without entities in payload');
+        return res.status(200).json({ success: true });
+      }
 
-      const order = await prisma.order.findUnique({
-        where: { razorpayOrderId },
-        include: { user: { select: { email: true } } },
+      const razorpayOrderId = entity.order_id || entity.id;
+      
+      // Fetch associated Razorpay order to get notes context securely (ignoring potentially modified frontend inputs)
+      const rzpOrder = await fetchRazorpayOrder(razorpayOrderId);
+      const notes = (rzpOrder as any).notes || {};
+      const userId = notes.userId ? String(notes.userId) : undefined;
+      const addressId = notes.addressId ? String(notes.addressId) : undefined;
+
+      if (!userId || !addressId) {
+        logger.warn(`Webhook ignored: missing userId/addressId in notes metadata for Razorpay Order ${razorpayOrderId}`);
+        return res.status(200).json({ success: true, message: 'Skipped - no metadata notes' });
+      }
+
+      // Check if already processed in database
+      const existing = await prisma.order.findFirst({
+        where: {
+          OR: [
+            { razorpayOrderId },
+            { razorpayPaymentId: entity.id }
+          ]
+        }
       });
 
-      if (order && order.paymentStatus !== 'Paid') {
-        // Confirm payment
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            paymentStatus: 'Paid',
-            status: 'Confirmed',
-            razorpayPaymentId,
-          },
-        });
-
-        // Send confirmation email
-        if (order.user.email) {
-          await sendEmail({
-            to: order.user.email,
-            subject: `Payment Confirmed via Webhook - Order #${order.id}`,
-            html: emailTemplates.getPaymentSuccessHtml(order.id, razorpayPaymentId, order.totalAmount),
-            text: `Hello ${order.fullName},\n\nPayment for order #${order.id} has been confirmed.`,
-          });
-        }
-
-        logger.info(`Order #${order.id} updated to Paid via Webhook payment.captured`);
+      if (existing) {
+        logger.info(`Webhook duplicate check: Order for Razorpay Order ${razorpayOrderId} already created`);
+        return res.status(200).json({ success: true });
       }
+
+      // Finalize the order transactionally
+      const paymentId = entity.id || `pay_${Date.now()}_webhook`;
+      await finalizePaidOrder({
+        userId,
+        addressId,
+        razorpayOrderId,
+        razorpayPaymentId: paymentId,
+      });
+
+      logger.info(`Webhook fallback successfully resolved paid order for Razorpay Order: ${razorpayOrderId}`);
     }
 
     return res.status(200).json({ success: true });

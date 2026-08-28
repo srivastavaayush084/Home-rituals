@@ -24,6 +24,8 @@ const WishlistPage = lazy(() => import('./pages/WishlistPage').then((module) => 
 const BlogPage = lazy(() => import('./pages/BlogPage').then((module) => ({ default: module.BlogPage })));
 const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage').then((module) => ({ default: module.BlogArticlePage })));
 const PaymentPage = lazy(() => import('./pages/PaymentPage').then((module) => ({ default: module.PaymentPage })));
+const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage').then((module) => ({ default: module.OrderSuccessPage })));
+const RazorpayDemoPage = lazy(() => import('./pages/RazorpayDemoPage').then((module) => ({ default: module.RazorpayDemoPage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then((module) => ({ default: module.PrivacyPolicyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then((module) => ({ default: module.TermsPage })));
 const RefundCancellationPage = lazy(() => import('./pages/RefundCancellationPage').then((module) => ({ default: module.RefundCancellationPage })));
@@ -75,6 +77,8 @@ function App() {
                   <Route path="/product/:id" element={<ProductPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/payment" element={<PaymentPage />} />
+                  <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+                  <Route path="/razorpay-demo" element={<RazorpayDemoPage />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
