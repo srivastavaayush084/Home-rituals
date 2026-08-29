@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/Button';
 
@@ -14,6 +14,15 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const location = useLocation();
+  const requestedFrom = location.state?.from;
+  const from =
+    typeof requestedFrom === 'string' &&
+    requestedFrom.startsWith('/') &&
+    !requestedFrom.startsWith('//')
+      ? requestedFrom
+      : '/';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -23,7 +32,7 @@ export function RegisterPage() {
       const emailValue = regType === 'email' ? email : null;
       const phoneValue = regType === 'phone' ? phone : null;
       await register(emailValue, phoneValue, password, name);
-      navigate('/');
+      navigate(from);
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

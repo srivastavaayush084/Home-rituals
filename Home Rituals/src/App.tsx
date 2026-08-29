@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { BackToTop } from './components/ui/BackToTop';
 import { QuickViewModal } from './components/ui/QuickViewModal';
+import { TimedAuthPopup } from './components/ui/TimedAuthPopup';
 import { Toast } from './components/ui/Toast';
 import { Preloader } from './components/ui/Preloader';
 import { Layout } from './components/layout/Layout';
@@ -106,6 +107,7 @@ function App() {
       </Suspense>
       <BackToTop />
       <QuickViewModal />
+      <TimedAuthPopup />
       {toastMessage ? <Toast message={toastMessage} onDismiss={clearToast} /> : null}
     </BrowserRouter>
   );
