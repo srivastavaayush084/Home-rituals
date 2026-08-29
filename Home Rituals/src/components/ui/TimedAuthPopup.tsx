@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { X } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { Button } from './Button';
+import { AnimatePresence, motion } from 'framer-motion';
 
-const AUTH_POPUP_DELAY = 10000; // 10 seconds
+const AUTH_POPUP_DELAY = 20000; // 20 seconds
 const AUTH_POPUP_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours
-const AUTH_POPUP_TITLE = "Unlock Exclusive Offers 🎁";
-const AUTH_POPUP_TEXT = "Sign in or create an account to discover special offers, personalized recommendations.";
+const AUTH_POPUP_TITLE = "Unlock Exclusive Offers";
+const AUTH_POPUP_TEXT = "Sign in or create an account to discover special offers, personalized recommendations, and member-only benefits.";
 
 const COOLDOWN_KEY = 'home-rituals-auth-popup-last-shown';
 
@@ -47,7 +48,7 @@ export function TimedAuthPopup() {
       return;
     }
 
-    // Set 10-second delay timer
+    // Set 20-second delay timer
     const timer = setTimeout(() => {
       // Re-verify conditions right before opening to prevent edge cases
       const currentPath = window.location.pathname;
@@ -90,8 +91,6 @@ export function TimedAuthPopup() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const handleClose = () => {
     setIsOpen(false);
   };
@@ -104,55 +103,72 @@ export function TimedAuthPopup() {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 px-4 py-4"
-      onClick={handleClose}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-        className="relative flex w-full max-w-md flex-col items-center rounded-[28px] border border-stone-200 bg-white p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-      >
-        {/* Close Button */}
-        <button
-          type="button"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 px-4 py-4 backdrop-blur-[2px]"
           onClick={handleClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm transition hover:bg-stone-100 hover:scale-105"
-          aria-label="Close dialog"
         >
-          <X size={16} />
-        </button>
-
-        {/* Dynamic Promotional Content */}
-        <div className="mt-4 flex flex-col items-center">
-          <div className="text-4xl select-none">🎁</div>
-          <h2 className="mt-4 text-2xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>
-            {AUTH_POPUP_TITLE}
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-[#5f5f5f]">
-            {AUTH_POPUP_TEXT}
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 w-full space-y-3">
-          <Button
-            onClick={() => handleAction('/login')}
-            className="w-full py-3"
+          <motion.div
+            initial={{ scale: 0.95, y: 15, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.95, y: 15, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="relative flex w-full max-w-[420px] flex-col items-center rounded-[32px] border border-stone-200/60 bg-white p-8 text-center shadow-[0_24px_50px_-12px_rgba(0,0,0,0.15)]"
           >
-            Login
-          </Button>
-          <button
-            onClick={() => handleAction('/register')}
-            className="w-full py-2.5 text-sm font-semibold text-stone-600 hover:text-black hover:underline transition"
-          >
-            Create Account
-          </button>
-        </div>
-      </div>
-    </div>
+            {/* Close Icon Button */}
+            <button
+              type="button"
+              onClick={handleClose}
+              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full border border-stone-150 bg-stone-50 text-stone-500 shadow-sm transition hover:bg-stone-100 hover:text-stone-800 hover:scale-105 active:scale-95"
+              aria-label="Close dialog"
+            >
+              <X size={15} />
+            </button>
+
+            {/* Dynamic Promotional Content */}
+            <div className="mt-4 flex flex-col items-center">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#44D62C]/10 text-[#0B8F3C] text-[10px] font-bold uppercase tracking-wider mb-4 shadow-sm select-none">
+                <Sparkles size={11} className="text-[#0B8F3C]" /> Exclusive Welcome
+              </div>
+              <div className="text-5xl select-none leading-none">🎁</div>
+              <h2 className="mt-4 text-3xl font-semibold text-[#223229] leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
+                {AUTH_POPUP_TITLE}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-stone-500 max-w-[320px]">
+                {AUTH_POPUP_TEXT}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-8 w-full space-y-3">
+              <Button
+                onClick={() => handleAction('/login')}
+                className="w-full py-3.5 shadow-lg shadow-[#44D62C]/20 hover:scale-[1.02] active:scale-[0.98] transition-transform"
+              >
+                Login
+              </Button>
+              <button
+                type="button"
+                onClick={() => handleAction('/register')}
+                className="w-full rounded-full border border-stone-200 bg-white py-3.5 text-sm font-semibold text-stone-850 hover:bg-stone-50 hover:border-stone-300 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                Create Account
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
 export default TimedAuthPopup;
+
