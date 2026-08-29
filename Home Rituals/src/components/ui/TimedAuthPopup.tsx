@@ -44,9 +44,18 @@ export function TimedAuthPopup() {
     }
 
     const timeSinceLastShown = Date.now() - lastShown;
+    console.log('[TimedAuthPopup] Cooldown Check:', {
+      lastShownDate: new Date(lastShown).toLocaleString(),
+      timeSinceLastShownSeconds: Math.round(timeSinceLastShown / 1000),
+      cooldownRemainingSeconds: Math.max(0, Math.round((AUTH_POPUP_COOLDOWN - timeSinceLastShown) / 1000)),
+      isCooldownActive: timeSinceLastShown < AUTH_POPUP_COOLDOWN
+    });
+
     if (timeSinceLastShown < AUTH_POPUP_COOLDOWN) {
       return;
     }
+
+    console.log(`[TimedAuthPopup] Setting trigger timer for ${AUTH_POPUP_DELAY / 1000}s`);
 
     // Set 20-second delay timer
     const timer = setTimeout(() => {
@@ -54,6 +63,7 @@ export function TimedAuthPopup() {
       const currentPath = window.location.pathname;
       if (!user && !isAuthLoading && !authPages.includes(currentPath)) {
         setIsOpen(true);
+        console.log('[TimedAuthPopup] Popup triggered open, storing timestamp');
         // Safe write to localStorage immediately when popup triggers open
         try {
           localStorage.setItem(COOLDOWN_KEY, String(Date.now()));
