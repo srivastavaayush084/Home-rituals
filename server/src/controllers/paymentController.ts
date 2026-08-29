@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../utils/db';
-import { BadRequestError } from '../utils/response';
+import { sendSuccess, BadRequestError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 import {
   verifyPaymentSignature,
@@ -80,8 +80,7 @@ export async function createRazorpayOrderDirect(req: AuthenticatedRequest, res: 
 
     logger.info(`Razorpay order created: ${razorpayOrder.id} for user ${userId}. Total: ₹${totalAmount}`);
 
-    return res.status(200).json({
-      success: true,
+    return sendSuccess(res, {
       order_id: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency || 'INR',
@@ -150,7 +149,7 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
       razorpaySignature,
     });
 
-    return res.status(200).json(finalizationResult);
+    return sendSuccess(res, finalizationResult);
   } catch (error) {
     next(error);
   }
