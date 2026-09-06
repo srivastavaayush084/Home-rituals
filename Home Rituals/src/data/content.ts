@@ -10,7 +10,7 @@ export interface Product {
   reviews: number;
   image: string;
   images?: string[];
-  category: string;
+  category: string | { id?: string | number; name: string; slug?: string };
   concern: string;
   collection: string;
   variant?: string;

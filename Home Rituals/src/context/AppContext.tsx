@@ -380,9 +380,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!term) {
       return products.slice(0, 8);
     }
-    return products.filter((product) =>
-      [product.name, product.description, product.category, product.concern].join(' ').toLowerCase().includes(term)
-    );
+    return products.filter((product) => {
+      const categoryName =
+        typeof product.category === 'object' && product.category
+          ? (product.category as any).name
+          : product.category;
+      return [product.name, product.description, categoryName, product.concern]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(term);
+    });
   }, [searchQuery, products]);
 
   const openQuickView = (product: Product) => setQuickViewProduct(product);

@@ -3,7 +3,11 @@ import { products } from '../../data/content';
 type Props = { category?: string };
 
 export function RecommendedProducts({ category }: Props) {
-  const related = products.filter((p) => category ? p.category.toLowerCase().includes(category.toLowerCase()) : true).slice(0, 4);
+  const related = products.filter((p) => {
+    if (!category) return true;
+    const catName = typeof p.category === 'object' && p.category ? (p.category as any).name : String(p.category || '');
+    return catName.toLowerCase().includes(category.toLowerCase());
+  }).slice(0, 4);
 
   return (
     <div className="space-y-3">
