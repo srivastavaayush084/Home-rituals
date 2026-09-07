@@ -166,9 +166,10 @@ model Order {
   totalAmount        Float
   status             String      @default("Pending") // Pending, Confirmed, Packed, Shipped, Delivered, Cancelled, Returned, Refunded
   paymentStatus      String      @default("Pending") // Pending, Paid, Failed, Refunded
-  razorpayOrderId    String?     @unique
-  razorpayPaymentId  String?     @unique
-  razorpaySignature  String?
+  paymentGateway     String?     @default("Paytm")
+  transactionId      String?
+  gatewayOrderId     String?
+  signature          String?
   trackingNumber     String?
   courierName        String?
   shippedAt          DateTime?
@@ -183,6 +184,8 @@ model Order {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([gatewayOrderId])
+  @@index([transactionId])
 }
 
 model OrderItem {

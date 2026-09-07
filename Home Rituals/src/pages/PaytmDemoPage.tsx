@@ -23,13 +23,12 @@ interface StepLog {
   message?: string;
 }
 
-export function RazorpayDemoPage() {
+export function PaytmDemoPage() {
   const navigate = useNavigate();
-  const { token, user } = useApp();
+  const { token, user, addresses, fetchAddresses } = useApp();
 
-  const [amount, setAmount] = useState<number>(500); // 500 paise = ₹5.00
-  const [receipt, setReceipt] = useState<string>(`rcpt_test_${Date.now().toString().slice(-6)}`);
-  const [description, setDescription] = useState<string>('Test Premium Experience Access');
+  const [amount, setAmount] = useState<number>(5.00); // ₹5.00
+  const [description, setDescription] = useState<string>('Test Hygiene Essentials Order');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
@@ -37,25 +36,21 @@ export function RazorpayDemoPage() {
   // Checkout Lifecycle Logging
   const [steps, setSteps] = useState<StepLog[]>([
     { title: '1. Prepare Order Parameters', status: 'pending' },
-    { title: '2. Backend Razorpay Order Creation (/api/create-order)', status: 'pending' },
-    { title: '3. Customer Standard Checkout Modal', status: 'pending' },
-    { title: '4. Backend Payment Verification (/api/verify-payment)', status: 'pending' }
+    { title: '2. Backend Paytm Transaction Initiation (/api/create-order)', status: 'pending' },
+    { title: '3. Paytm All-in-One Checkout JS / Staging Payment UI', status: 'pending' },
+    { title: '4. Server-to-Server (S2S) Status Verification (/api/payments/verify)', status: 'pending' }
   ]);
-
-  useEffect(() => {
-    // Dynamically inject Razorpay Web Checkout JS script
-    loadScript('https://checkout.razorpay.com/v1/checkout.js');
-  }, []);
 
   // Redirect to login if user is not authenticated
   useEffect(() => {
     if (!token) {
       setError('You must be logged in to access the payment demo. Redirecting...');
       const timer = setTimeout(() => {
-        navigate('/login', { state: { from: '/razorpay-demo' } });
+        navigate('/login', { state: { from: '/paytm-demo' } });
       }, 3000);
       return () => clearTimeout(timer);
     }
+    fetchAddresses();
   }, [token, navigate]);
 
   const updateStep = (index: number, status: 'pending' | 'active' | 'success' | 'failed', message?: string) => {
@@ -65,17 +60,17 @@ export function RazorpayDemoPage() {
   const resetSteps = () => {
     setSteps([
       { title: '1. Prepare Order Parameters', status: 'pending' },
-      { title: '2. Backend Razorpay Order Creation (/api/create-order)', status: 'pending' },
-      { title: '3. Customer Standard Checkout Modal', status: 'pending' },
-      { title: '4. Backend Payment Verification (/api/verify-payment)', status: 'pending' }
+      { title: '2. Backend Paytm Transaction Initiation (/api/create-order)', status: 'pending' },
+      { title: '3. Paytm All-in-One Checkout JS / Staging Payment UI', status: 'pending' },
+      { title: '4. Server-to-Server (S2S) Status Verification (/api/payments/verify)', status: 'pending' }
     ]);
     setError(null);
     setSuccess(false);
   };
 
   const handlePay = async () => {
-    if (amount < 100) {
-      setError('Minimum transaction amount is 100 paise (₹1.00)');
+    if (amount <= 0) {
+      setError('Minimum transaction amount is ₹1.00');
       return;
     }
 
@@ -84,81 +79,87 @@ export function RazorpayDemoPage() {
 
     try {
       // Step 1: Prepare order params
-      updateStep(0, 'success', `Amount: ${amount} paise (₹${(amount / 100).toFixed(2)})`);
+      const addressId = addresses[0]?.id || 'default_demo_address';
+      updateStep(0, 'success', `Amount: ₹${amount.toFixed(2)}, User: ${user?.name || 'Customer'}`);
       updateStep(1, 'active');
 
       // Step 2: Post to `/api/create-order`
-      const orderResponse = await apiRequest<{ order_id: string; amount: number; currency: string }>(
+      const orderResponse = await apiRequest<any>(
         '/api/create-order',
         'POST',
-        { amount, currency: 'INR', receipt }
+        { addressId }
       );
 
-      updateStep(1, 'success', `Razorpay Order ID: ${orderResponse.order_id}`);
+      const orderId = orderResponse.orderId || orderResponse.order_id;
+      const txnToken = orderResponse.txnToken;
+      const mid = orderResponse.mid;
+      const paytmHost = orderResponse.paytmHost || 'https://securegw-stage.paytm.in';
+
+      updateStep(1, 'success', `Paytm Order ID: ${orderId} | Token: ${txnToken?.substring(0, 16)}...`);
       updateStep(2, 'active');
 
-      // Step 3: Trigger Razorpay Checkout modal
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TVFFlhi0zkxalU';
-      
-      const options = {
-        key: razorpayKey,
-        amount: orderResponse.amount,
-        currency: orderResponse.currency,
-        name: 'Home Rituals Premium',
-        description: description,
-        order_id: orderResponse.order_id,
-        handler: async function (response: any) {
-          try {
-            updateStep(2, 'success', `Payment Authorized! ID: ${response.razorpay_payment_id}`);
-            updateStep(3, 'active');
+      // Step 3: Trigger CheckoutJS
+      const scriptUrl = `${paytmHost}/merchantpgpui/checkoutjs/merchants/${mid}.js`;
+      await loadScript(scriptUrl);
 
-            // Step 4: Send keys to `/api/verify-payment`
-            await apiRequest('/api/verify-payment', 'POST', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
-            });
+      if ((window as any).Paytm && (window as any).Paytm.CheckoutJS) {
+        const config = {
+          root: '',
+          flow: 'DEFAULT',
+          data: {
+            orderId: orderId,
+            token: txnToken,
+            tokenType: 'TXN_TOKEN',
+            amount: String(amount),
+          },
+          merchant: {
+            mid: mid,
+            name: 'Home Rituals (Staging)',
+            redirect: false,
+          },
+          handler: {
+            notifyCurrencyCode: function () {},
+            transactionStatus: async function (paymentStatus: any) {
+              console.log('[Paytm Demo] paymentStatus callback:', paymentStatus);
+              updateStep(2, 'success', `Payment Window Closed. Status: ${paymentStatus.STATUS || 'Completed'}`);
+              updateStep(3, 'active');
 
-            updateStep(3, 'success', 'Payment Signature Verified Successfully!');
-            setSuccess(true);
-            setLoading(false);
-          } catch (verifyErr: any) {
-            updateStep(3, 'failed', verifyErr.message || 'Signature mismatch or verification error');
-            setError(`Verification failed: ${verifyErr.message || 'Payment signature mismatch.'}`);
-            setLoading(false);
-          }
-        },
-        prefill: {
-          name: user?.name || 'Customer Name',
-          email: user?.email || 'customer@example.com',
-          contact: user?.phone || '9999999999'
-        },
-        theme: {
-          color: '#44D62C'
-        },
-        modal: {
-          ondismiss: function() {
-            updateStep(2, 'failed', 'Payment Modal Dismissed by User');
-            setError('Payment cancelled: User closed the payment window.');
-            setLoading(false);
-          }
+              try {
+                // Step 4: Verify payment status via server S2S
+                const verifyResult = await apiRequest<any>('/api/payments/verify', 'POST', {
+                  orderId,
+                  addressId,
+                  checksum: paymentStatus.CHECKSUMHASH,
+                });
+
+                updateStep(3, 'success', `Verified S2S Status: ${verifyResult.data?.status || 'TXN_SUCCESS'}`);
+                setSuccess(true);
+                setLoading(false);
+              } catch (verifyErr: any) {
+                updateStep(3, 'failed', verifyErr.message || 'Payment verification failed');
+                setError(`Verification failed: ${verifyErr.message}`);
+                setLoading(false);
+              }
+            },
+          },
+        };
+
+        try {
+          await (window as any).Paytm.CheckoutJS.init(config);
+          (window as any).Paytm.CheckoutJS.invoke();
+        } catch (initErr: any) {
+          updateStep(2, 'failed', initErr.message || 'CheckoutJS invoke error');
+          setError(`Checkout launch failed: ${initErr.message}`);
+          setLoading(false);
         }
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      
-      // Handle payment failure event
-      rzp.on('payment.failed', function (resp: any) {
-        updateStep(2, 'failed', `Payment failed: ${resp.error.description}`);
-        setError(`Payment failed: ${resp.error.description} (Code: ${resp.error.code})`);
+      } else {
+        updateStep(2, 'failed', 'CheckoutJS SDK failed to load from Paytm CDN');
+        setError('Paytm CheckoutJS could not be loaded. Please check your network or adblocker.');
         setLoading(false);
-      });
-
-      rzp.open();
-
+      }
     } catch (err: any) {
-      updateStep(1, 'failed', err.message || 'Error occurred while creating Razorpay order');
-      setError(`Order creation failed: ${err.message || 'Could not connect to backend.'}`);
+      updateStep(1, 'failed', err.message || 'Error occurred while initiating Paytm transaction');
+      setError(`Initiation failed: ${err.message || 'Could not connect to backend.'}`);
       setLoading(false);
     }
   };
@@ -168,13 +169,16 @@ export function RazorpayDemoPage() {
       <div className="mx-auto max-w-4xl">
         
         {/* Sleek Gradient Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 to-green-500 p-8 shadow-xl mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 to-blue-600 p-8 shadow-xl mb-8">
           <div className="relative z-10">
+            <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold text-white uppercase tracking-wider mb-3">
+              Paytm Staging Console
+            </div>
             <h1 className="text-3xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Razorpay Standard Checkout Portal
+              Paytm Payment Gateway Testing Portal
             </h1>
-            <p className="mt-2 text-emerald-100 max-w-xl text-sm">
-              Sandbox testing console for Razorpay Checkout. Specify custom amounts, initiate the payment lifecycle, and verify signatures seamlessly.
+            <p className="mt-2 text-sky-100 max-w-xl text-sm">
+              Sandbox testing console for Paytm All-in-One Payment Gateway. Test transaction initiation, Checksum generation, CheckoutJS modals, and Server-to-Server status verification.
             </p>
           </div>
           <div className="absolute right-0 top-0 h-48 w-48 -translate-y-8 translate-x-8 rounded-full bg-white/10 blur-xl"></div>
@@ -185,7 +189,7 @@ export function RazorpayDemoPage() {
           {/* Form Configuration Card (Left) */}
           <div className="rounded-3xl border border-black/5 bg-white p-6 shadow-md hover:shadow-lg transition duration-300">
             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+              <span className="h-2 w-2 rounded-full bg-sky-500"></span>
               Payment Settings
             </h2>
 
@@ -197,16 +201,16 @@ export function RazorpayDemoPage() {
 
             {success && (
               <div className="mb-6 rounded-2xl bg-emerald-50 p-4 border border-emerald-100 text-sm text-emerald-700 font-medium">
-                🎉 Congratulations! Payment was verified successfully.
+                🎉 Congratulations! Paytm transaction was verified successfully via S2S API.
               </div>
             )}
 
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                  Amount (in Paise)
+                  Amount (in INR)
                 </label>
-                <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition overflow-hidden">
+                <div className="relative rounded-2xl border border-slate-200 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition overflow-hidden">
                   <input
                     type="number"
                     value={amount}
@@ -214,30 +218,17 @@ export function RazorpayDemoPage() {
                       setAmount(Number(e.target.value));
                       setError(null);
                     }}
-                    placeholder="e.g. 500"
+                    placeholder="e.g. 5.00"
                     disabled={loading || !token}
                     className="w-full bg-transparent px-4 py-3 text-slate-800 outline-none font-mono"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">
-                    ₹{(amount / 100).toFixed(2)}
+                    ₹{amount.toFixed(2)}
                   </div>
                 </div>
                 <p className="mt-1.5 text-xs text-slate-400">
-                  Note: 100 paise = ₹1.00. Minimum amount is 100 paise.
+                  Paytm Test/Staging transactions use INR currency.
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                  Receipt ID (Receipt Reference)
-                </label>
-                <input
-                  type="text"
-                  value={receipt}
-                  onChange={(e) => setReceipt(e.target.value)}
-                  disabled={loading || !token}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition font-mono"
-                />
               </div>
 
               <div>
@@ -249,15 +240,23 @@ export function RazorpayDemoPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={loading || !token}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-800 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
                 />
               </div>
 
-              <div className="pt-4">
+              {/* Paytm Staging Info */}
+              <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-xs text-sky-800 space-y-1">
+                <p className="font-semibold text-sky-900">Paytm Staging Environment Guide:</p>
+                <p>• Gateway Host: <code className="bg-sky-100 px-1 rounded text-sky-900">securegw-stage.paytm.in</code></p>
+                <p>• Website Name: <code className="bg-sky-100 px-1 rounded text-sky-900">WEBSTAGING</code></p>
+                <p>• Use Paytm test credentials from your developer dashboard to complete staging payments.</p>
+              </div>
+
+              <div className="pt-2">
                 <button
                   onClick={handlePay}
-                  disabled={loading || !token || amount < 100}
-                  className="w-full relative overflow-hidden group rounded-full bg-emerald-600 py-4 font-semibold text-white shadow-md hover:bg-emerald-500 active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300"
+                  disabled={loading || !token || amount <= 0}
+                  className="w-full relative overflow-hidden group rounded-full bg-sky-600 py-4 font-semibold text-white shadow-md hover:bg-sky-500 active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     {loading ? (
@@ -266,11 +265,11 @@ export function RazorpayDemoPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Processing Payment...
+                        Processing via Paytm...
                       </>
                     ) : (
                       <>
-                        Pay ₹{(amount / 100).toFixed(2)} with Razorpay
+                        Pay ₹{amount.toFixed(2)} with Paytm Staging
                       </>
                     )}
                   </span>
@@ -283,7 +282,7 @@ export function RazorpayDemoPage() {
           <div className="rounded-3xl border border-black/5 bg-slate-900 p-6 shadow-md text-slate-300 flex flex-col justify-between">
             <div>
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="h-2 w-2 rounded-full bg-sky-400 animate-pulse"></span>
                 Checkout Lifecycle Log
               </h2>
 
@@ -297,12 +296,12 @@ export function RazorpayDemoPage() {
                         </div>
                       )}
                       {step.status === 'active' && (
-                        <div className="h-5 w-5 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center">
-                          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <div className="h-5 w-5 rounded-full bg-sky-500/20 border border-sky-500 flex items-center justify-center">
+                          <span className="h-2 w-2 rounded-full bg-sky-400 animate-ping"></span>
                         </div>
                       )}
                       {step.status === 'success' && (
-                        <div className="h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">
+                        <div className="h-5 w-5 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs">
                           ✓
                         </div>
                       )}
@@ -313,11 +312,11 @@ export function RazorpayDemoPage() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className={`text-sm font-semibold ${step.status === 'active' ? 'text-emerald-400' : step.status === 'success' ? 'text-slate-100' : step.status === 'failed' ? 'text-rose-400' : 'text-slate-500'}`}>
+                      <p className={`text-sm font-semibold ${step.status === 'active' ? 'text-sky-400' : step.status === 'success' ? 'text-slate-100' : step.status === 'failed' ? 'text-rose-400' : 'text-slate-500'}`}>
                         {step.title}
                       </p>
                       {step.message && (
-                        <p className={`mt-1 text-xs font-mono break-all leading-relaxed ${step.status === 'success' ? 'text-slate-400' : step.status === 'failed' ? 'text-rose-300' : 'text-emerald-300'}`}>
+                        <p className={`mt-1 text-xs font-mono break-all leading-relaxed ${step.status === 'success' ? 'text-slate-400' : step.status === 'failed' ? 'text-rose-300' : 'text-sky-300'}`}>
                           {step.message}
                         </p>
                       )}
@@ -352,4 +351,4 @@ export function RazorpayDemoPage() {
   );
 }
 
-export default RazorpayDemoPage;
+export default PaytmDemoPage;

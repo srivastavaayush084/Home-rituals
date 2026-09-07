@@ -139,7 +139,7 @@
           }
         },
         "responses": {
-          "201": { "description": "Order created, Razorpay order details returned" }
+          "201": { "description": "Order created, payment order details returned" }
         }
       }
     }

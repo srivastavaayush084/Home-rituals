@@ -33,7 +33,7 @@ import newsletterRoutes from './routes/newsletterRoutes';
 import adminRoutes from './routes/adminRoutes';
 import bannerRoutes from './routes/bannerRoutes';
 import uploadRoutes from './routes/uploadRoutes';
-import { createRazorpayOrderDirect, verifyPaymentDirect } from './controllers/paymentController';
+import { initiatePaymentDirect, verifyPaymentDirect } from './controllers/paymentController';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -144,8 +144,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/banners', bannerRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// Direct Razorpay Standard Checkout Routes
-app.post('/api/create-order', requireAuth, createRazorpayOrderDirect);
+// Direct Checkout Routes
+app.post('/api/create-order', requireAuth, initiatePaymentDirect);
 app.post('/api/verify-payment', requireAuth, verifyPaymentDirect);
 
 // Fallback Route for Undefined Envelopes

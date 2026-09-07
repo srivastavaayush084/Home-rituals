@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../utils/db';
 import { sendSuccess, sendPaginated, BadRequestError, NotFoundError, ForbiddenError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { createRazorpayOrder } from '../services/razorpay';
+import { initiatePaytmTransaction } from '../services/paytm';
 import { sendEmail, emailTemplates } from '../services/email';
 import { logger } from '../utils/logger';
 
@@ -111,16 +111,29 @@ export async function createOrder(req: AuthenticatedRequest, res: Response, next
 
     const { order, itemsToCreate } = result;
 
-    // 8. Integrate with Razorpay (Create Razorpay Order)
-    // Razorpay amount is in paise (1 INR = 100 paise)
-    const amountInPaise = Math.round(order.totalAmount * 100);
-    const razorpayOrder = await createRazorpayOrder(amountInPaise, order.id.toString());
-
-    // Update order with razorpayOrderId
-    const updatedOrder = await prisma.order.update({
-      where: { id: order.id },
-      data: { razorpayOrderId: razorpayOrder.id },
+    // 8. Integrate with Paytm
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { phone: true, email: true },
     });
+
+    let paytmTransaction;
+    try {
+      paytmTransaction = await initiatePaytmTransaction({
+        orderId: order.id.toString(),
+        amount: order.totalAmount,
+        customerId: userId,
+        customerPhone: user?.phone || undefined,
+        customerEmail: user?.email || undefined,
+      });
+
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { gatewayOrderId: order.id.toString(), paymentGateway: 'Paytm' },
+      });
+    } catch (paytmError: any) {
+      logger.warn(`[Paytm] Order ${order.id} created but transaction initiation failed:`, paytmError);
+    }
 
     // 9. Send email notification
     if (req.user!.email) {
@@ -133,7 +146,7 @@ export async function createOrder(req: AuthenticatedRequest, res: Response, next
     }
 
     logger.info(`Order placed successfully: #${order.id} for user ID: ${userId}`);
-    return sendSuccess(res, { order: updatedOrder, razorpayOrder }, 201, 'Order created successfully');
+    return sendSuccess(res, { order, paytmTransaction }, 201, 'Order created successfully');
   } catch (error) {
     next(error);
   }

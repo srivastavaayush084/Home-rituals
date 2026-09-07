@@ -6,9 +6,10 @@ import { logger } from '../utils/logger';
 interface FinalizePaidOrderParams {
   userId: string;
   addressId: string;
-  razorpayOrderId: string;
-  razorpayPaymentId: string;
-  razorpaySignature?: string;
+  transactionId: string;
+  gatewayOrderId: string;
+  signature?: string;
+  paymentGateway?: string;
 }
 
 /**
@@ -18,16 +19,17 @@ interface FinalizePaidOrderParams {
 export async function finalizePaidOrder({
   userId,
   addressId,
-  razorpayOrderId,
-  razorpayPaymentId,
-  razorpaySignature,
+  transactionId,
+  gatewayOrderId,
+  signature,
+  paymentGateway = 'Paytm',
 }: FinalizePaidOrderParams) {
   // 1. Idempotency Check (Duplicate Payment Check)
   const existingOrder = await prisma.order.findFirst({
     where: {
       OR: [
-        { razorpayPaymentId },
-        { razorpayOrderId },
+        { transactionId },
+        { gatewayOrderId },
       ],
     },
     include: {
@@ -128,9 +130,10 @@ export async function finalizePaidOrder({
         totalAmount,
         status: 'Confirmed',
         paymentStatus: 'Paid',
-        razorpayOrderId,
-        razorpayPaymentId,
-        razorpaySignature: razorpaySignature || null,
+        paymentGateway,
+        transactionId,
+        gatewayOrderId,
+        signature: signature || null,
       },
     });
 
@@ -182,7 +185,8 @@ export async function finalizePaidOrder({
           <p>Order <strong>#${order.id}</strong> has been successfully placed and paid.</p>
           <p><strong>Customer:</strong> ${order.fullName}</p>
           <p><strong>Total Amount:</strong> ₹${order.totalAmount}</p>
-          <p><strong>Razorpay Payment ID:</strong> ${razorpayPaymentId}</p>
+          <p><strong>Payment Gateway:</strong> ${paymentGateway}</p>
+          <p><strong>Transaction ID:</strong> ${transactionId}</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
           <p style="font-size: 12px; color: #888;">&copy; Home Rituals. All rights reserved.</p>
         </div>
@@ -193,7 +197,7 @@ export async function finalizePaidOrder({
     logger.error('Error sending confirmation emails post-checkout:', emailError);
   }
 
-  logger.info(`Paid order finalized successfully: Order ID ${order.id}, Payment ID ${razorpayPaymentId}`);
+  logger.info(`Paid order finalized successfully: Order ID ${order.id}, Transaction ID ${transactionId} via ${paymentGateway}`);
 
   return {
     success: true,
