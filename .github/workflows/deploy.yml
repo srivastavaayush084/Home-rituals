@@ -53,6 +53,7 @@ jobs:
             npx prisma generate
             npm run build
             pm2 restart home-rituals-api --update-env || pm2 start dist/index.js --name "home-rituals-api"
+            pm2 save
 
             systemctl reload nginx
             echo "=== Deployment Finished Successfully: $(date) ==="
