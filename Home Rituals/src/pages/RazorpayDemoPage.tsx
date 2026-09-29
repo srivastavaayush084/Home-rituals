@@ -3,17 +3,44 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { apiRequest } from '../utils/apiClient';
 
-function loadScript(src: string): Promise<boolean> {
+function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
+    if (typeof (window as any).Razorpay === 'function') {
       resolve(true);
       return;
     }
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
+
+    const scriptSrc = 'https://checkout.razorpay.com/v1/checkout.js';
+    let script = document.querySelector(`script[src="${scriptSrc}"]`) as HTMLScriptElement | null;
+
+    if (!script) {
+      script = document.createElement('script');
+      script.src = scriptSrc;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
+    const checkInterval = setInterval(() => {
+      if (typeof (window as any).Razorpay === 'function') {
+        clearInterval(checkInterval);
+        resolve(true);
+      }
+    }, 50);
+
+    script.addEventListener('load', () => {
+      clearInterval(checkInterval);
+      resolve(typeof (window as any).Razorpay === 'function');
+    });
+
+    script.addEventListener('error', () => {
+      clearInterval(checkInterval);
+      resolve(false);
+    });
+
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      resolve(typeof (window as any).Razorpay === 'function');
+    }, 10000);
   });
 }
 
@@ -107,10 +134,10 @@ export function RazorpayDemoPage() {
       updateStep(2, 'active');
 
       // Step 3: Load & Trigger Razorpay Checkout
-      const scriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      const scriptLoaded = await loadRazorpayScript();
 
-      if (!scriptLoaded || !(window as any).Razorpay) {
-        updateStep(2, 'failed', 'Razorpay Checkout script failed to load from CDN');
+      if (!scriptLoaded || typeof (window as any).Razorpay !== 'function') {
+        updateStep(2, 'failed', 'Razorpay Checkout script failed to load or is blocked');
         throw new Error('Razorpay Checkout SDK could not be loaded. Please check your network or adblocker.');
       }
 
@@ -164,7 +191,11 @@ export function RazorpayDemoPage() {
         },
       };
 
-      const rzpInstance = new (window as any).Razorpay(options);
+      const RazorpayConstructor = (window as any).Razorpay;
+      if (typeof RazorpayConstructor !== 'function') {
+        throw new Error('Razorpay Checkout SDK is not available as a constructor. Please refresh the page and try again.');
+      }
+      const rzpInstance = new RazorpayConstructor(options);
       rzpInstance.on('payment.failed', (resp: any) => {
         updateStep(2, 'failed', resp.error?.description || 'Payment rejected by gateway');
         setError(`Payment failed: ${resp.error?.description}`);

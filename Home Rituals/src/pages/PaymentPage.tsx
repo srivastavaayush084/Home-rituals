@@ -4,17 +4,44 @@ import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/Button';
 import { apiRequest } from '../utils/apiClient';
 
-function loadScript(src: string): Promise<boolean> {
+function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
+    if (typeof (window as any).Razorpay === 'function') {
       resolve(true);
       return;
     }
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
+
+    const scriptSrc = 'https://checkout.razorpay.com/v1/checkout.js';
+    let script = document.querySelector(`script[src="${scriptSrc}"]`) as HTMLScriptElement | null;
+
+    if (!script) {
+      script = document.createElement('script');
+      script.src = scriptSrc;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
+    const checkInterval = setInterval(() => {
+      if (typeof (window as any).Razorpay === 'function') {
+        clearInterval(checkInterval);
+        resolve(true);
+      }
+    }, 50);
+
+    script.addEventListener('load', () => {
+      clearInterval(checkInterval);
+      resolve(typeof (window as any).Razorpay === 'function');
+    });
+
+    script.addEventListener('error', () => {
+      clearInterval(checkInterval);
+      resolve(false);
+    });
+
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      resolve(typeof (window as any).Razorpay === 'function');
+    }, 10000);
   });
 }
 
@@ -67,11 +94,11 @@ export function PaymentPage() {
         throw new Error('Razorpay public key is missing. Please ensure RAZORPAY_KEY_ID is configured.');
       }
 
-      // 2. Load official Razorpay Checkout SDK script
-      const scriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      // 2. Ensure official Razorpay Checkout SDK script is loaded
+      const scriptLoaded = await loadRazorpayScript();
 
-      if (!scriptLoaded || !(window as any).Razorpay) {
-        throw new Error('Razorpay Checkout SDK failed to load. Please check your network connection.');
+      if (!scriptLoaded || typeof (window as any).Razorpay !== 'function') {
+        throw new Error('Razorpay Checkout SDK failed to load. Please check your network connection or adblocker.');
       }
 
       // 3. Configure Razorpay Standard Checkout options
@@ -138,7 +165,11 @@ export function PaymentPage() {
       };
 
       // 4. Instantiate & open Razorpay modal
-      const razorpayInstance = new (window as any).Razorpay(options);
+      const RazorpayConstructor = (window as any).Razorpay;
+      if (typeof RazorpayConstructor !== 'function') {
+        throw new Error('Razorpay Checkout SDK is not available as a constructor. Please refresh the page and try again.');
+      }
+      const razorpayInstance = new RazorpayConstructor(options);
 
       razorpayInstance.on('payment.failed', function (failureResponse: any) {
         console.error('[Razorpay Payment Failed]:', failureResponse?.error);
