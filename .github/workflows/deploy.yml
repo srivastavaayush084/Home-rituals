@@ -18,26 +18,40 @@ jobs:
           port: 22
           debug: true
           script: |
-            set -e
-            echo "=== Hostinger Deployment Started ==="
+            exec > /var/www/html/deploy.log 2>&1
+            echo "=== Deployment Start: $(date) ==="
             whoami
-            hostname
+            pwd
+            ls -la /root
 
-            cd /root/Home-rituals
+            REPO_DIR=""
+            if [ -d "/root/Home-rituals" ]; then
+              REPO_DIR="/root/Home-rituals"
+            elif [ -d "/root/Home-rituals-main" ]; then
+              REPO_DIR="/root/Home-rituals-main"
+            else
+              REPO_DIR=$(find /root -maxdepth 2 -name "Home-rituals*" -type d | head -n 1)
+            fi
+            echo "Found REPO_DIR: $REPO_DIR"
+
+            cd "$REPO_DIR"
+            git status
+            git remote -v
             git remote set-url origin https://github.com/srivastavaayush084/Home-rituals.git
             git fetch origin main
             git reset --hard origin/main
-            git clean -fd
 
-            cd "/root/Home-rituals/Home Rituals"
+            echo "=== Building Frontend ==="
+            cd "$REPO_DIR/Home Rituals"
             npm install
             npm run build
-            rm -rf /var/www/html/*
             cp -r dist/* /var/www/html/
 
-            cd /root/Home-rituals/server
+            echo "=== Building Backend ==="
+            cd "$REPO_DIR/server"
             npm install
             npm run build
-            pm2 restart home-rituals-api --update-env
+            pm2 restart home-rituals-api --update-env || pm2 start dist/index.js --name "home-rituals-api"
 
             systemctl reload nginx
+            echo "=== Deployment Finished Successfully: $(date) ==="
