@@ -40,8 +40,10 @@ export async function addToCart(req: AuthenticatedRequest, res: Response, next: 
       throw new BadRequestError('Quantity must be greater than zero');
     }
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
+    const prodIdStr = String(productId);
+
+    const product = await prisma.product.findFirst({
+      where: { id: prodIdStr, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
 
     if (!product) {
@@ -52,21 +54,31 @@ export async function addToCart(req: AuthenticatedRequest, res: Response, next: 
       throw new BadRequestError(`Insufficient stock. Only ${product.stock} units available.`);
     }
 
-    // Upsert cart item
-    const cartItem = await prisma.cartItem.upsert({
+    // Safely find existing cart item to avoid compound index issues in MongoDB
+    const existingItem = await prisma.cartItem.findFirst({
       where: {
-        userId_productId: { userId, productId },
-      },
-      update: {
-        quantity: { increment: quantity },
-      },
-      create: {
         userId,
-        productId,
-        quantity,
+        productId: prodIdStr,
       },
-      include: { product: true },
     });
+
+    let cartItem;
+    if (existingItem) {
+      cartItem = await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: existingItem.quantity + quantity },
+        include: { product: true },
+      });
+    } else {
+      cartItem = await prisma.cartItem.create({
+        data: {
+          userId,
+          productId: prodIdStr,
+          quantity,
+        },
+        include: { product: true },
+      });
+    }
 
     return sendSuccess(res, cartItem, 200, 'Product added to cart');
   } catch (error) {
@@ -84,9 +96,12 @@ export async function updateCartItem(req: AuthenticatedRequest, res: Response, n
       throw new BadRequestError('Quantity must be greater than zero');
     }
 
-    const cartItem = await prisma.cartItem.findUnique({
+    const prodIdStr = String(productId);
+
+    const cartItem = await prisma.cartItem.findFirst({
       where: {
-        userId_productId: { userId, productId },
+        userId,
+        OR: [{ productId: prodIdStr }, { id: prodIdStr }],
       },
       include: { product: true },
     });
@@ -100,9 +115,7 @@ export async function updateCartItem(req: AuthenticatedRequest, res: Response, n
     }
 
     const updated = await prisma.cartItem.update({
-      where: {
-        userId_productId: { userId, productId },
-      },
+      where: { id: cartItem.id },
       data: { quantity },
       include: { product: true },
     });
@@ -117,12 +130,20 @@ export async function removeFromCart(req: AuthenticatedRequest, res: Response, n
   try {
     const userId = req.user!.id;
     const { productId } = req.params;
+    const prodIdStr = String(productId);
 
-    await prisma.cartItem.delete({
+    const cartItem = await prisma.cartItem.findFirst({
       where: {
-        userId_productId: { userId, productId },
+        userId,
+        OR: [{ productId: prodIdStr }, { id: prodIdStr }],
       },
     });
+
+    if (cartItem) {
+      await prisma.cartItem.delete({
+        where: { id: cartItem.id },
+      });
+    }
 
     return sendSuccess(res, null, 200, 'Item removed from cart');
   } catch (error) {

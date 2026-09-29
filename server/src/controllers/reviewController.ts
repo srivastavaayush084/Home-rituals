@@ -71,8 +71,8 @@ export async function createReview(req: AuthenticatedRequest, res: Response, nex
     const { title, text, rating } = req.body;
 
     // Verify if product exists
-    const product = await prisma.product.findUnique({
-      where: { id: productId, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
+    const product = await prisma.product.findFirst({
+      where: { id: String(productId), OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
     });
     if (!product) {
       throw new NotFoundError('Product not found');
