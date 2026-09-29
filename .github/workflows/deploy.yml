@@ -18,11 +18,13 @@ jobs:
           port: 22
           debug: true
           script: |
+            set -e
             whoami
             hostname
 
             cd /root/Home-rituals
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
             cd "/root/Home-rituals/Home Rituals"
             npm install
