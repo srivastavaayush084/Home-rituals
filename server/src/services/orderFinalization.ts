@@ -1,4 +1,5 @@
 import { prisma } from '../utils/db';
+import { Prisma } from '@prisma/client';
 import { BadRequestError } from '../utils/response';
 import { sendEmail, emailTemplates } from './email';
 import { logger } from '../utils/logger';
@@ -53,7 +54,7 @@ export async function finalizePaidOrder({
   }
 
   // 2. Perform database updates in a single transaction
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // A. Fetch cart items
     const cartItems = await tx.cartItem.findMany({
       where: { userId },
