@@ -50,6 +50,7 @@ jobs:
             echo "=== Building Backend ==="
             cd "$REPO_DIR/server"
             npm install
+            npx prisma generate
             npm run build
             pm2 restart home-rituals-api --update-env || pm2 start dist/index.js --name "home-rituals-api"
 
