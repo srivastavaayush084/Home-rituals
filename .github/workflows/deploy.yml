@@ -19,12 +19,15 @@ jobs:
           debug: true
           script: |
             set -e
+            echo "=== Hostinger Deployment Started ==="
             whoami
             hostname
 
             cd /root/Home-rituals
+            git remote set-url origin https://github.com/srivastavaayush084/Home-rituals.git
             git fetch origin main
             git reset --hard origin/main
+            git clean -fd
 
             cd "/root/Home-rituals/Home Rituals"
             npm install
