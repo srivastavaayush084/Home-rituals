@@ -166,7 +166,7 @@ model Order {
   totalAmount        Float
   status             String      @default("Pending") // Pending, Confirmed, Packed, Shipped, Delivered, Cancelled, Returned, Refunded
   paymentStatus      String      @default("Pending") // Pending, Paid, Failed, Refunded
-  paymentGateway     String?     @default("Paytm")
+  paymentGateway     String?     @default("Razorpay")
   transactionId      String?
   gatewayOrderId     String?
   signature          String?

@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import {
   initiatePaymentDirect,
-  handlePaytmCallback,
   verifyPaymentDirect,
   handleWebhook,
 } from '../controllers/paymentController';
@@ -9,17 +8,15 @@ import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
-// Endpoint for initiating payment session
+// Official Razorpay API Endpoints
+router.post('/razorpay/create-order', requireAuth, initiatePaymentDirect);
+router.post('/razorpay/verify', requireAuth, verifyPaymentDirect);
+router.post('/razorpay/webhook', handleWebhook);
+
+// Backward-compatible generic routes
+router.post('/create-order', requireAuth, initiatePaymentDirect);
 router.post('/initiate', requireAuth, initiatePaymentDirect);
-
-// Public callback endpoint for Paytm server response (handles both POST form data and GET redirect fallback)
-router.post('/callback', handlePaytmCallback);
-router.get('/callback', handlePaytmCallback);
-
-// Verification endpoint for client confirmation
 router.post('/verify', requireAuth, verifyPaymentDirect);
-
-// Webhook / IPN endpoint for asynchronous Paytm notifications
 router.post('/webhook', handleWebhook);
 
 export default router;

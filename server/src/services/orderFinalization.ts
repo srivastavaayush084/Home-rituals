@@ -22,7 +22,7 @@ export async function finalizePaidOrder({
   transactionId,
   gatewayOrderId,
   signature,
-  paymentGateway = 'Paytm',
+  paymentGateway = 'Razorpay',
 }: FinalizePaidOrderParams) {
   // 1. Idempotency Check (Duplicate Payment Check)
   const existingOrder = await prisma.order.findFirst({

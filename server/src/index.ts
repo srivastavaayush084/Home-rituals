@@ -70,8 +70,14 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to all requests
 app.use('/api', apiLimiter);
 
-// Parse JSON and urlencoded requests
-app.use(express.json());
+// Parse JSON and urlencoded requests (capturing rawBody for webhook signature verification)
+app.use(
+  express.json({
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // Custom XSS Sanitizer middleware

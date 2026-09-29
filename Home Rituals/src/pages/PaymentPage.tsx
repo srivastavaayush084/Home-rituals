@@ -18,38 +18,8 @@ function loadScript(src: string): Promise<boolean> {
   });
 }
 
-/**
- * Submits standard Paytm Show Payment Page form as a reliable redirection fallback
- */
-function submitPaytmPaymentForm(paytmHost: string, mid: string, orderId: string, txnToken: string) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = `${paytmHost}/theia/api/v1/showPaymentPage?mid=${encodeURIComponent(mid)}&orderId=${encodeURIComponent(orderId)}`;
-
-  const midInput = document.createElement('input');
-  midInput.type = 'hidden';
-  midInput.name = 'mid';
-  midInput.value = mid;
-  form.appendChild(midInput);
-
-  const orderIdInput = document.createElement('input');
-  orderIdInput.type = 'hidden';
-  orderIdInput.name = 'orderId';
-  orderIdInput.value = orderId;
-  form.appendChild(orderIdInput);
-
-  const txnTokenInput = document.createElement('input');
-  txnTokenInput.type = 'hidden';
-  txnTokenInput.name = 'txnToken';
-  txnTokenInput.value = txnToken;
-  form.appendChild(txnTokenInput);
-
-  document.body.appendChild(form);
-  form.submit();
-}
-
 export function PaymentPage() {
-  const { cart, shipping } = useApp();
+  const { cart, shipping, user } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,7 +28,7 @@ export function PaymentPage() {
 
   const subtotal = cart.reduce((s, item) => s + item.product.price * item.quantity, 0);
 
-  // Check URL query parameters for callback error redirection
+  // Check URL query parameters for callback or cancellation errors
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const err = searchParams.get('error');
@@ -69,7 +39,7 @@ export function PaymentPage() {
 
   const placeOrder = async () => {
     if (!shipping) {
-      alert('Shipping details are missing!');
+      alert('Shipping details are missing! Please return to checkout.');
       return;
     }
 
@@ -77,61 +47,109 @@ export function PaymentPage() {
       setLoading(true);
       setErrorMessage(null);
 
-      // 1. Post to API to create the Paytm order & transaction token
-      const paytmOrder = await apiRequest<any>('/api/create-order', 'POST', {
+      // 1. Request backend to create Razorpay Order & return public Key ID
+      // Amount is calculated and verified strictly on the server
+      const rzpOrderResponse = await apiRequest<any>('/api/payments/razorpay/create-order', 'POST', {
         addressId: shipping.id,
       });
 
-      const orderId = paytmOrder.orderId || paytmOrder.order_id;
-      const txnToken = paytmOrder.txnToken;
-      const mid = paytmOrder.mid;
-      const amount = paytmOrder.amount;
-      const paytmHost = paytmOrder.paytmHost || 'https://securegw-stage.paytm.in';
+      const orderData = rzpOrderResponse.data || rzpOrderResponse;
+      const rzpOrderId = orderData.orderId || orderData.order_id;
+      const amountInPaise = orderData.amount;
+      const currency = orderData.currency || 'INR';
+      const keyId = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-      if (!txnToken) {
-        throw new Error('Transaction initiation succeeded but no transaction token was returned.');
+      if (!rzpOrderId) {
+        throw new Error('Order creation succeeded on server, but no Razorpay Order ID was returned.');
       }
 
-      // 2. Load Paytm CheckoutJS script for the specific Merchant ID
-      const checkoutScriptUrl = `${paytmHost}/merchantpgpui/checkoutjs/merchants/${mid}.js`;
-      const scriptLoaded = await loadScript(checkoutScriptUrl);
-
-      // 3. Trigger Paytm All-in-One Checkout JS if loaded, or fallback to standard form redirect
-      if (scriptLoaded && (window as any).Paytm && (window as any).Paytm.CheckoutJS) {
-        const checkoutConfig = {
-          root: '',
-          flow: 'DEFAULT',
-          data: {
-            orderId: orderId,
-            token: txnToken,
-            tokenType: 'TXN_TOKEN',
-            amount: String(amount),
-          },
-          merchant: {
-            mid: mid,
-            name: 'Home Rituals',
-            redirect: true,
-          },
-          handler: {
-            notifyCurrencyCode: function () {},
-            transactionStatus: function (paymentStatus: any) {
-              console.log('[Paytm] Transaction status event:', paymentStatus);
-            },
-          },
-        };
-
-        try {
-          await (window as any).Paytm.CheckoutJS.init(checkoutConfig);
-          (window as any).Paytm.CheckoutJS.invoke();
-        } catch (checkoutErr: any) {
-          console.warn('[Paytm] CheckoutJS init failed, falling back to showPaymentPage form redirect:', checkoutErr);
-          submitPaytmPaymentForm(paytmHost, mid, orderId, txnToken);
-        }
-      } else {
-        // Redirection fallback for environments where CDN script is blocked
-        submitPaytmPaymentForm(paytmHost, mid, orderId, txnToken);
+      if (!keyId) {
+        throw new Error('Razorpay public key is missing. Please ensure RAZORPAY_KEY_ID is configured.');
       }
+
+      // 2. Load official Razorpay Checkout SDK script
+      const scriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+
+      if (!scriptLoaded || !(window as any).Razorpay) {
+        throw new Error('Razorpay Checkout SDK failed to load. Please check your network connection.');
+      }
+
+      // 3. Configure Razorpay Standard Checkout options
+      const options: any = {
+        key: keyId,
+        amount: amountInPaise,
+        currency,
+        name: 'Home Rituals',
+        description: 'Luxury Home Hygiene & Care Essentials',
+        order_id: rzpOrderId,
+        prefill: {
+          name: orderData.prefill?.name || user?.name || shipping.fullName || '',
+          email: orderData.prefill?.email || user?.email || '',
+          contact: shipping.phone || orderData.prefill?.contact || user?.phone || '',
+        },
+        notes: {
+          shippingAddress: `${shipping.address1}, ${shipping.city}, ${shipping.state} - ${shipping.postalCode}`,
+        },
+        theme: {
+          color: '#44D62C',
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            console.log('[Razorpay Checkout] User dismissed the payment modal.');
+          },
+        },
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
+          try {
+            setLoading(true);
+            console.log('[Razorpay Checkout] Payment completed by customer. Verifying signature on server...');
+
+            // 4. Send payment credentials to backend for server-side cryptographic verification
+            const verifyResult = await apiRequest<any>('/api/payments/razorpay/verify', 'POST', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              addressId: shipping.id,
+            });
+
+            const confirmedOrder =
+              verifyResult?.order ||
+              verifyResult?.data?.order ||
+              verifyResult?.data ||
+              verifyResult;
+
+            const confirmedOrderId = confirmedOrder?.id;
+
+            if (confirmedOrderId) {
+              navigate(`/order-success/${confirmedOrderId}`);
+            } else {
+              navigate('/profile');
+            }
+          } catch (verifyErr: any) {
+            console.error('[Razorpay Verification Error]:', verifyErr);
+            setErrorMessage(verifyErr.message || 'Payment signature verification failed. Please contact support.');
+            setLoading(false);
+          }
+        },
+      };
+
+      // 4. Instantiate & open Razorpay modal
+      const razorpayInstance = new (window as any).Razorpay(options);
+
+      razorpayInstance.on('payment.failed', function (failureResponse: any) {
+        console.error('[Razorpay Payment Failed]:', failureResponse?.error);
+        const errorDesc = failureResponse?.error?.description || failureResponse?.error?.reason || 'Payment failed or was declined by bank.';
+        setErrorMessage(errorDesc);
+        setLoading(false);
+      });
+
+      razorpayInstance.open();
     } catch (error: any) {
+      console.error('[Checkout Error]:', error);
       setErrorMessage(error.message || 'Checkout failed. Please try again.');
       setLoading(false);
     }
@@ -143,7 +161,7 @@ export function PaymentPage() {
         Payment & summary
       </h1>
       <p className="mt-2 text-sm text-[#6f6f6f]">
-        Review your shipping details and order before proceeding to secure payment via Paytm.
+        Review your shipping details and order items before proceeding to secure payment via Razorpay.
       </p>
 
       {errorMessage && (
@@ -163,7 +181,7 @@ export function PaymentPage() {
               {shipping.landmark ? <div>Landmark: {shipping.landmark}</div> : null}
               <div>{shipping.city}, {shipping.state} {shipping.postalCode}</div>
               <div>{shipping.country}</div>
-              <div>{shipping.phone}</div>
+              <div>Phone: {shipping.phone}</div>
             </div>
           ) : (
             <div className="mt-2 text-sm text-[#6f6f6f]">No shipping details provided.</div>
@@ -171,28 +189,30 @@ export function PaymentPage() {
         </div>
 
         <div className="rounded-md border border-black/5 bg-white p-4">
-          <h2 className="font-semibold text-lg text-[#242424]">Order</h2>
+          <h2 className="font-semibold text-lg text-[#242424]">Order Summary</h2>
           <div className="mt-2 space-y-2 text-sm text-[#333]">
             {cart.map((item) => (
               <div key={item.productId} className="flex justify-between">
                 <div>{item.product.name} × {item.quantity}</div>
-                <div>₹{item.product.price * item.quantity}</div>
+                <div>₹{(item.product.price * item.quantity).toFixed(2)}</div>
               </div>
             ))}
             <div className="mt-4 border-t border-black/5 pt-2 flex justify-between font-semibold">
-              <span>Total</span>
-              <span>₹{subtotal}</span>
+              <span>Total Payable</span>
+              <span className="text-[#0B8F3C] text-lg">₹{subtotal.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        {/* Paytm Staging Notice */}
-        <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-xs text-sky-800 flex items-center justify-between gap-4">
+        {/* Razorpay Security Notice */}
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse"></span>
-            <span>Secured with <strong>Paytm Payment Gateway</strong> (Test/Staging Mode)</span>
+            <span className="h-2 w-2 rounded-full bg-[#44D62C] animate-pulse"></span>
+            <span>Secured with <strong>Razorpay Payment Gateway</strong> (UPI, Cards, NetBanking, Wallets)</span>
           </div>
-          <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-sky-200">Test Mode</span>
+          <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-700">
+            256-bit Encrypted
+          </span>
         </div>
 
         <div className="flex gap-3">
@@ -200,7 +220,7 @@ export function PaymentPage() {
             Back
           </Button>
           <Button className="px-6 py-3" onClick={placeOrder} disabled={loading || cart.length === 0}>
-            {loading ? 'Processing Order...' : 'Place order & Pay via Paytm'}
+            {loading ? 'Processing Order...' : 'Place order & Pay with Razorpay'}
           </Button>
         </div>
       </div>

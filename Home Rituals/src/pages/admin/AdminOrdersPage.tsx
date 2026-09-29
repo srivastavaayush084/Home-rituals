@@ -22,6 +22,10 @@ interface Order {
   postalCode: string;
   trackingNumber?: string;
   courierName?: string;
+  paymentGateway?: string;
+  transactionId?: string;
+  gatewayOrderId?: string;
+  signature?: string;
   createdAt: string;
   user?: { name: string; email: string };
   items: OrderItem[];
@@ -162,13 +166,18 @@ export const AdminOrdersPage: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 font-bold text-stone-900">₹{order.totalAmount}</td>
                     <td className="py-3 px-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${
-                          order.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {order.paymentStatus}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium w-fit ${
+                            order.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {order.paymentStatus}
+                        </span>
+                        <span className="text-[11px] text-stone-500 font-mono">
+                          {order.paymentGateway || 'Razorpay'}
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-900 text-white">
@@ -222,6 +231,32 @@ export const AdminOrdersPage: React.FC = () => {
                   {selectedOrder.city}, {selectedOrder.state} - {selectedOrder.postalCode}
                 </p>
                 <p className="text-stone-600 text-xs font-mono mt-1">Phone: {selectedOrder.phone}</p>
+              </div>
+
+              {/* Payment Details Section */}
+              <div className="bg-emerald-50/60 border border-emerald-100 p-4 rounded-xl space-y-1.5">
+                <p className="font-semibold text-emerald-950 flex items-center justify-between text-xs uppercase tracking-wider">
+                  <span>Payment Gateway</span>
+                  <span className="font-bold text-[#0B8F3C] normal-case">{selectedOrder.paymentGateway || 'Razorpay'}</span>
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-emerald-100">
+                  <div>
+                    <span className="text-stone-500">Payment ID:</span>
+                    <p className="font-mono text-stone-800 break-all">{selectedOrder.transactionId || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-stone-500">Razorpay Order ID:</span>
+                    <p className="font-mono text-stone-800 break-all">{selectedOrder.gatewayOrderId || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-stone-500">Payment Status:</span>
+                    <p className="font-medium text-emerald-800">{selectedOrder.paymentStatus}</p>
+                  </div>
+                  <div>
+                    <span className="text-stone-500">Date & Time:</span>
+                    <p className="text-stone-700">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
               </div>
 
               <div>

@@ -1,291 +1,390 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../utils/db';
-import { sendSuccess, BadRequestError } from '../utils/response';
+import { sendSuccess } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 import {
-  initiatePaytmTransaction,
-  verifyPaytmChecksum,
-  fetchPaytmTransactionStatus,
-  getPaytmConfig,
-} from '../services/paytm';
+  createRazorpayOrder,
+  verifyRazorpayPaymentSignature,
+  verifyRazorpayWebhookSignature,
+  fetchRazorpayPayment,
+  getRazorpayConfig,
+} from '../services/razorpay';
 import { finalizePaidOrder } from '../services/orderFinalization';
 import { logger } from '../utils/logger';
 
 /**
- * Initiates a Paytm payment session based on the user's cart content.
- * Validates stock and calculates the payable amount strictly on the server.
+ * Initiates a Razorpay payment order.
+ * Supports both:
+ * 1. E-commerce cart checkout: validates stock & computes amount strictly on the server from DB.
+ * 2. Direct amount specification: validates amount >= 100 paise.
  */
-export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
   try {
-    const userId = req.user!.id;
-    const { addressId } = req.body;
-
-    if (!addressId) {
-      throw new BadRequestError('Address ID is required');
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
+      });
     }
 
-    const config = getPaytmConfig();
-    if (!config.isConfigured && !config.isMockMode) {
-      logger.error('Paytm credentials missing in environment configurations.');
+    const { addressId, amount, currency, receipt: customReceipt } = req.body;
+
+    const config = getRazorpayConfig();
+    if (!config.isConfigured) {
+      logger.error('[Razorpay] Configuration error: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing.');
       return res.status(500).json({
         success: false,
         error: {
-          message: 'Payment gateway configuration error: Paytm staging credentials (PAYTM_MID, PAYTM_MERCHANT_KEY) are missing.',
+          message: 'Payment gateway configuration error: Razorpay credentials are not configured.',
           code: 'PAYMENT_GATEWAY_CONFIG_ERROR',
         },
       });
     }
 
-    // 1. Fetch user's cart from database
-    const cartItems = await prisma.cartItem.findMany({
-      where: { userId },
-      include: { product: true },
-    });
+    let payablePaise = 0;
+    let payableRupees = 0;
 
-    if (cartItems.length === 0) {
-      throw new BadRequestError('Your cart is empty');
-    }
+    // Scenario A: Direct amount provided (e.g. developer test console or custom amount)
+    if (amount !== undefined && amount !== null) {
+      const parsedAmount = Number(amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Amount must be a positive number', code: 'INVALID_AMOUNT' },
+        });
+      }
 
-    // 2. Validate stock and calculate amount server-side
-    let totalAmount = 0;
+      // If integer >= 100 without decimals or explicitly marked as paise, treat as paise
+      payablePaise = req.body.isPaise || (Number.isInteger(parsedAmount) && parsedAmount >= 100 && !addressId)
+        ? parsedAmount
+        : Math.round(parsedAmount * 100);
 
-    for (const item of cartItems) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
+      if (payablePaise < 100) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Minimum amount must be at least 100 paise (₹1.00)', code: 'AMOUNT_TOO_LOW' },
+        });
+      }
+      payableRupees = payablePaise / 100;
+    } else {
+      // Scenario B: E-commerce cart checkout (validates cart & inventory server-side)
+      if (!addressId) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Address ID or amount is required', code: 'MISSING_REQUIRED_FIELD' },
+        });
+      }
+
+      const cartItems = await prisma.cartItem.findMany({
+        where: { userId },
+        include: { product: true },
       });
 
-      if (!product || product.deletedAt) {
-        throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
+      if (cartItems.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Your cart is empty', code: 'EMPTY_CART' },
+        });
       }
 
-      if (product.stock < item.quantity) {
-        throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
+      let totalAmount = 0;
+      for (const item of cartItems) {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product || product.deletedAt) {
+          return res.status(400).json({
+            success: false,
+            error: { message: `Product "${item.product?.name || 'Item'}" is no longer available`, code: 'PRODUCT_UNAVAILABLE' },
+          });
+        }
+
+        if (product.stock < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            error: { message: `Insufficient stock for "${product.name}". Only ${product.stock} available.`, code: 'INSUFFICIENT_STOCK' },
+          });
+        }
+
+        const price = product.discountPrice || product.price;
+        totalAmount += price * item.quantity;
       }
 
-      const price = product.discountPrice || product.price;
-      totalAmount += price * item.quantity;
+      payableRupees = totalAmount;
+      payablePaise = Math.round(totalAmount * 100);
+
+      if (payablePaise < 100) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Transaction amount must be at least 100 paise (₹1.00)', code: 'AMOUNT_TOO_LOW' },
+        });
+      }
     }
 
-    // 3. Retrieve user profile for customer metadata
+    // Retrieve user profile for customer metadata
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { phone: true, email: true },
+      select: { name: true, phone: true, email: true },
     });
 
-    // 4. Generate unique gateway order reference
-    const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    const receipt = customReceipt || `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const notes: Record<string, string> = {
+      userId,
+      ...(addressId ? { addressId: String(addressId) } : {}),
+    };
 
-    // Append metadata to callbackUrl so the server knows the user and shipping address upon callback
-    const callbackWithMeta = `${config.callbackUrl}?userId=${encodeURIComponent(userId)}&addressId=${encodeURIComponent(addressId)}`;
-
-    // 5. Initiate Paytm transaction via official S2S API
-    const paytmResult = await initiatePaytmTransaction({
-      orderId,
-      amount: totalAmount,
-      customerId: userId,
-      customerPhone: user?.phone || undefined,
-      customerEmail: user?.email || undefined,
-      callbackUrl: callbackWithMeta,
+    // Create Razorpay order via official SDK
+    const rzpOrder = await createRazorpayOrder({
+      amount: payableRupees,
+      amountInPaise: payablePaise,
+      currency: currency || 'INR',
+      receipt,
+      notes,
     });
 
-    logger.info(`Paytm transaction initiated: ${orderId} for User: ${userId}, Amount: ₹${totalAmount}`);
+    logger.info(`[Razorpay] Order created: ${rzpOrder.orderId} for User: ${userId}, Amount: ${rzpOrder.amount} paise`);
 
-    return sendSuccess(res, {
-      order_id: paytmResult.orderId,
-      orderId: paytmResult.orderId,
-      txnToken: paytmResult.txnToken,
-      amount: paytmResult.amount,
-      currency: paytmResult.currency || 'INR',
-      mid: paytmResult.mid,
-      isStaging: paytmResult.isStaging,
-      paytmHost: paytmResult.paytmHost,
-      callbackUrl: paytmResult.callbackUrl,
+    return res.status(200).json({
+      success: true,
+      order_id: rzpOrder.orderId,
+      orderId: rzpOrder.orderId,
+      amount: rzpOrder.amount, // in paise
+      currency: rzpOrder.currency,
+      receipt: rzpOrder.receipt,
+      keyId: rzpOrder.keyId,
+      key_id: rzpOrder.keyId,
+      data: {
+        orderId: rzpOrder.orderId,
+        order_id: rzpOrder.orderId,
+        amount: rzpOrder.amount,
+        amountInRupees: payableRupees,
+        currency: rzpOrder.currency,
+        receipt: rzpOrder.receipt,
+        keyId: rzpOrder.keyId,
+        key_id: rzpOrder.keyId,
+        environment: config.environment,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.phone || '',
+        },
+      },
     });
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    logger.error('[Razorpay Order Error]:', error);
+    return res.status(500).json({
+      success: false,
+      error: {
+        message: error?.message || 'Failed to create Razorpay order',
+        code: 'RAZORPAY_ORDER_CREATION_FAILED',
+      },
+    });
   }
 }
 
 /**
- * Handles Paytm POST callback (application/x-www-form-urlencoded).
- * Verifies checksum, performs S2S status check, finalizes order, and redirects.
+ * Endpoint to verify Razorpay payment signatures: POST /api/verify-payment.
+ * Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
+ * Compares generated signature with razorpay_signature.
+ * Returns success only if signatures match.
  */
-export async function handlePaytmCallback(req: Request, res: Response, next: NextFunction) {
+export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
   try {
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-    const paytmParams: Record<string, any> = { ...req.body };
-
-    const orderId = String(paytmParams.ORDERID || req.query.orderId || '');
-    const txnId = String(paytmParams.TXNID || '');
-    const status = String(paytmParams.STATUS || '');
-    const respCode = String(paytmParams.RESPCODE || '');
-    const respMsg = String(paytmParams.RESPMSG || 'Transaction processed');
-    const checksum = String(paytmParams.CHECKSUMHASH || '');
-
-    const userId = String(req.query.userId || paytmParams.MERC_UNQ_REF || '');
-    const addressId = String(req.query.addressId || '');
-
-    logger.info(`[Paytm Callback] Received for Order: ${orderId}, Status: ${status}, RespCode: ${respCode}, TxnId: ${txnId}`);
-
-    if (!orderId) {
-      logger.error('[Paytm Callback] Missing ORDERID in callback payload');
-      return res.redirect(`${clientUrl}/payment?error=${encodeURIComponent('Missing order reference in payment response')}`);
-    }
-
-    // 1. Verify Checksum signature if present
-    if (checksum) {
-      const isChecksumValid = await verifyPaytmChecksum(paytmParams, checksum);
-      if (!isChecksumValid) {
-        logger.error(`[Paytm Callback] Checksum verification failed for Order: ${orderId}`);
-        return res.redirect(`${clientUrl}/payment?error=${encodeURIComponent('Payment signature verification failed')}`);
-      }
-    }
-
-    // 2. Perform Server-to-Server (S2S) Status Verification
-    let statusResult;
-    try {
-      statusResult = await fetchPaytmTransactionStatus(orderId);
-    } catch (statusError: any) {
-      logger.error(`[Paytm Callback] S2S Status verification error for Order ${orderId}:`, statusError);
-      return res.redirect(`${clientUrl}/payment?error=${encodeURIComponent(statusError.message || 'Payment status verification failed')}`);
-    }
-
-    const s2sStatus = statusResult.resultInfo?.resultStatus;
-    const s2sCode = statusResult.resultInfo?.resultCode;
-    const finalTxnId = statusResult.txnId || txnId || `PTM_${Date.now()}`;
-
-    // 3. Confirm Transaction Success
-    if (s2sStatus === 'TXN_SUCCESS' && (s2sCode === '01' || respCode === '01')) {
-      if (!userId || !addressId) {
-        logger.warn(`[Paytm Callback] Missing userId or addressId context for Order ${orderId}. Checking existing order...`);
-        const existing = await prisma.order.findFirst({
-          where: {
-            OR: [{ gatewayOrderId: orderId }, { transactionId: finalTxnId }],
-          },
-        });
-        if (existing) {
-          return res.redirect(`${clientUrl}/order-success/${existing.id}`);
-        }
-        return res.redirect(`${clientUrl}/payment?error=${encodeURIComponent('Missing customer session context')}`);
-      }
-
-      // 4. Finalize paid order inside transaction
-      const finalization = await finalizePaidOrder({
-        userId,
-        addressId,
-        transactionId: finalTxnId,
-        gatewayOrderId: orderId,
-        signature: checksum || undefined,
-        paymentGateway: 'Paytm',
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
       });
-
-      const confirmedOrderId = finalization.order.id;
-      logger.info(`[Paytm Callback] Order ${confirmedOrderId} finalized successfully. Redirecting to success page.`);
-
-      return res.redirect(`${clientUrl}/order-success/${confirmedOrderId}`);
     }
 
-    // Transaction failed or was cancelled
-    logger.warn(`[Paytm Callback] Payment not successful for Order ${orderId}. Status: ${s2sStatus}, Msg: ${respMsg}`);
-    return res.redirect(`${clientUrl}/payment?error=${encodeURIComponent(respMsg || 'Payment cancelled or failed')}`);
-  } catch (error) {
-    logger.error('[Paytm Callback] Unhandled callback processing error:', error);
-    next(error);
-  }
-}
-
-/**
- * Programmatic verification endpoint for frontend clients to confirm payment status.
- */
-export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  try {
-    const userId = req.user!.id;
-    const orderId = req.body.orderId || req.body.order_id;
+    const razorpay_order_id = req.body.razorpay_order_id || req.body.orderId || req.body.order_id;
+    const razorpay_payment_id = req.body.razorpay_payment_id || req.body.paymentId || req.body.transactionId;
+    const razorpay_signature = req.body.razorpay_signature || req.body.signature;
     const addressId = req.body.addressId;
-    const checksum = req.body.checksum || req.body.CHECKSUMHASH;
 
-    if (!orderId) {
-      throw new BadRequestError('Order ID is required for verification');
-    }
-
-    // 1. Perform Server-to-Server (S2S) Status Verification
-    const statusResult = await fetchPaytmTransactionStatus(orderId);
-    const { resultStatus, resultCode, resultMsg } = statusResult.resultInfo;
-
-    if (resultStatus !== 'TXN_SUCCESS' || resultCode !== '01') {
-      logger.warn(`[Paytm Verify] Payment not successful for Order ${orderId}. Status: ${resultStatus}, Msg: ${resultMsg}`);
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({
         success: false,
         error: {
-          message: resultMsg || 'Payment verification failed or transaction is not successful',
-          code: 'PAYMENT_VERIFICATION_FAILED',
+          message: 'Missing required fields: razorpay_order_id, razorpay_payment_id, and razorpay_signature are required',
+          code: 'MISSING_VERIFICATION_FIELDS',
         },
       });
     }
 
-    // 2. Finalize order if addressId is present
+    logger.info(`[Razorpay Verify] Verifying signature for Order: ${razorpay_order_id}, Payment: ${razorpay_payment_id}`);
+
+    // 1. Verify cryptographic HMAC-SHA256 signature
+    const isSignatureValid = verifyRazorpayPaymentSignature({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    });
+
+    if (!isSignatureValid) {
+      logger.warn(`[Razorpay Verify] Cryptographic signature verification failed for Order: ${razorpay_order_id}`);
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Payment verification failed: Invalid signature.',
+          code: 'PAYMENT_SIGNATURE_INVALID',
+        },
+      });
+    }
+
+    // 2. Fetch payment details from Razorpay to confirm status
+    try {
+      const paymentDetails = await fetchRazorpayPayment(razorpay_payment_id);
+      if (paymentDetails.status !== 'captured' && paymentDetails.status !== 'authorized') {
+        logger.warn(`[Razorpay Verify] Payment ${razorpay_payment_id} status is ${paymentDetails.status}`);
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: `Payment status verification failed. Current status: ${paymentDetails.status}`,
+            code: 'PAYMENT_NOT_AUTHORIZED',
+          },
+        });
+      }
+    } catch (fetchError: any) {
+      logger.warn(`[Razorpay Verify] Could not fetch payment status from API (proceeding with verified signature):`, fetchError?.message);
+    }
+
+    // 3. Finalize order inside transactional boundary if addressId is present
     if (addressId) {
       const finalization = await finalizePaidOrder({
         userId,
-        addressId,
-        transactionId: statusResult.txnId || `PTM_${Date.now()}`,
-        gatewayOrderId: orderId,
-        signature: checksum || undefined,
-        paymentGateway: 'Paytm',
+        addressId: String(addressId),
+        transactionId: razorpay_payment_id,
+        gatewayOrderId: razorpay_order_id,
+        signature: razorpay_signature,
+        paymentGateway: 'Razorpay',
       });
 
       return sendSuccess(res, finalization);
     }
 
-    // Return status if already processed or just checking
+    // 4. If addressId is not in request (e.g. standalone test/verify call), check existing order or return verification success
     const existingOrder = await prisma.order.findFirst({
       where: {
-        OR: [{ gatewayOrderId: orderId }, { transactionId: statusResult.txnId }],
+        OR: [{ gatewayOrderId: razorpay_order_id }, { transactionId: razorpay_payment_id }],
       },
-      include: { items: true },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { id: true, name: true, image: true },
+            },
+          },
+        },
+      },
     });
 
-    return sendSuccess(res, {
+    return res.status(200).json({
+      success: true,
       verified: true,
-      status: resultStatus,
-      transactionId: statusResult.txnId,
-      order: existingOrder,
+      message: 'Payment signature verified successfully',
+      razorpay_order_id,
+      razorpay_payment_id,
+      order: existingOrder || null,
     });
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    logger.error('[Razorpay Verify Error]:', error);
+    return res.status(500).json({
+      success: false,
+      error: {
+        message: error?.message || 'Internal error during payment verification',
+        code: 'PAYMENT_VERIFICATION_ERROR',
+      },
+    });
   }
 }
 
 /**
- * Generic webhook / notification controller for Paytm IPN events.
+ * Handles incoming Razorpay Webhook events (e.g. payment.captured, order.paid, payment.failed).
+ * Validates the HMAC-SHA256 signature against the raw body buffer.
+ * Fully idempotent to handle duplicate webhook deliveries safely.
  */
 export async function handleWebhook(req: Request, res: Response, next: NextFunction) {
   try {
-    const paytmParams = req.body;
-    const checksum = paytmParams.CHECKSUMHASH;
-    const orderId = paytmParams.ORDERID;
+    const signature = req.headers['x-razorpay-signature'] as string;
+    const config = getRazorpayConfig();
 
-    if (!orderId || !checksum) {
-      return res.status(400).json({ success: false, error: 'Missing required webhook parameters' });
+    if (!signature) {
+      logger.warn('[Razorpay Webhook] Missing x-razorpay-signature header');
+      return res.status(400).json({ success: false, error: 'Missing webhook signature' });
     }
 
-    const isValid = await verifyPaytmChecksum(paytmParams, checksum);
+    // Retrieve raw body buffer for accurate signature validation
+    const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+    const isValid = verifyRazorpayWebhookSignature(rawBody, signature, config.webhookSecret);
+
     if (!isValid) {
-      logger.warn(`[Paytm Webhook] Invalid checksum for Order: ${orderId}`);
-      return res.status(400).json({ success: false, error: 'Invalid checksum' });
+      logger.warn('[Razorpay Webhook] Invalid webhook signature received');
+      return res.status(400).json({ success: false, error: 'Invalid webhook signature' });
     }
 
-    logger.info(`[Paytm Webhook] Verified event for Order: ${orderId}, Status: ${paytmParams.STATUS}`);
+    const event = req.body;
+    const eventType = event.event;
+    logger.info(`[Razorpay Webhook] Verified event: ${eventType} (ID: ${event.id || 'N/A'})`);
 
-    if (paytmParams.STATUS === 'TXN_SUCCESS') {
-      const statusResult = await fetchPaytmTransactionStatus(orderId);
-      if (statusResult.resultInfo?.resultStatus === 'TXN_SUCCESS') {
-        logger.info(`[Paytm Webhook] S2S status confirmed for Order: ${orderId}`);
+    // Handle payment.captured or order.paid
+    if (eventType === 'payment.captured' || eventType === 'order.paid') {
+      const paymentEntity = event.payload?.payment?.entity;
+      const orderEntity = event.payload?.order?.entity;
+
+      const paymentId = paymentEntity?.id;
+      const rzpOrderId = paymentEntity?.order_id || orderEntity?.id;
+      const notes = orderEntity?.notes || paymentEntity?.notes || {};
+
+      const userId = notes.userId;
+      const addressId = notes.addressId;
+
+      logger.info(`[Razorpay Webhook] Processing paid order: ${rzpOrderId}, Payment: ${paymentId}`);
+
+      if (paymentId && rzpOrderId) {
+        // Check if order was already finalized (e.g. by frontend verification)
+        const existing = await prisma.order.findFirst({
+          where: {
+            OR: [{ gatewayOrderId: rzpOrderId }, { transactionId: paymentId }],
+          },
+        });
+
+        if (existing) {
+          logger.info(`[Razorpay Webhook] Order ${existing.id} already finalized. Idempotent skip.`);
+          return res.status(200).json({ success: true, message: 'Order already finalized' });
+        }
+
+        // If user & address context are available in order notes, finalize the order
+        if (userId && addressId) {
+          try {
+            await finalizePaidOrder({
+              userId,
+              addressId,
+              transactionId: paymentId,
+              gatewayOrderId: rzpOrderId,
+              signature,
+              paymentGateway: 'Razorpay',
+            });
+            logger.info(`[Razorpay Webhook] Order finalized via webhook for Order: ${rzpOrderId}`);
+          } catch (finalizeError) {
+            logger.error('[Razorpay Webhook] Error finalising order in webhook:', finalizeError);
+          }
+        } else {
+          logger.warn(`[Razorpay Webhook] Missing userId or addressId in notes for Order ${rzpOrderId}`);
+        }
       }
+    } else if (eventType === 'payment.failed') {
+      const paymentEntity = event.payload?.payment?.entity;
+      logger.warn(`[Razorpay Webhook] Payment failed: ${paymentEntity?.id}, Reason: ${paymentEntity?.error_description}`);
     }
 
+    // Acknowledge receipt of webhook to Razorpay
     return res.status(200).json({ success: true });
   } catch (error) {
+    logger.error('[Razorpay Webhook] Unhandled webhook processing error:', error);
     next(error);
   }
 }

@@ -115,11 +115,11 @@ export const emailTemplates = {
     </div>
   `,
 
-  getPaymentSuccessHtml: (orderId: string | number, paymentId: string, amount: number) => `
+  getPaymentSuccessHtml: (orderId: string | number, paymentId: string, amount: number, gateway: string = 'Razorpay') => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e8efe7; border-radius: 12px;">
       <h2 style="color: #0B8F3C;">Payment Successful</h2>
       <p>Your payment of <strong>₹${amount}</strong> for Order <strong>#${orderId}</strong> has been successfully processed.</p>
-      <p><strong>Payment Gateway:</strong> Paytm</p>
+      <p><strong>Payment Gateway:</strong> ${gateway}</p>
       <p><strong>Transaction ID:</strong> ${paymentId}</p>
       <p>Your order is now being processed and packed by our team. We'll update you as soon as it ships!</p>
       <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />

@@ -7,7 +7,7 @@ Production-ready, highly secure Node.js, Express, TypeScript, and Prisma backend
 - **Authentication**: JWT authentication with forgot/reset password tokens and role-based permissions (`ADMIN` / `USER`).
 - **Standardized API Responses**: All endpoints return uniform JSON envelopes.
 - **Inventory Control**: Concurrency-safe stock checks and adjustments inside DB transactions.
-- **Paytm Payment Gateway**: Seamless Test/Staging and Production checkout, checksum validation, and S2S transaction status verification.
+- **Razorpay Payment Gateway**: Seamless Sandbox/Test and Live/Production checkout, cryptographic HMAC-SHA256 signature verification, and idempotent webhook handling.
 - **Media Storage**: Cloudinary uploader with automated deletion of stale image assets.
 - **Email Notifications**: Branded transactional emails powered by Nodemailer.
 - **Soft Delete**: Soft deletion support on products, categories, and blogs.
@@ -41,7 +41,7 @@ Ensure you configure:
 - `JWT_SECRET`: Secure token signer key.
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`: Default credentials seeded on launch.
 - `CLOUDINARY_*` keys (Media storage).
-- `PAYTM_*` keys (Payment gateway credentials).
+- `RAZORPAY_*` keys (Payment gateway credentials).
 - `EMAIL_*` SMTP configurations.
 
 ### 3. Run Database Migrations
@@ -82,7 +82,7 @@ This backend is designed with configurations fully environment-driven, enabling 
 ### Steps for Deployment
 
 1. **Database Setup**: Set up a managed PostgreSQL database (e.g. Supabase, AWS RDS, Neon, or Railway PG). Copy the connection URL.
-2. **Environment Variables**: Set the respective variables in your platform's management console (CORS settings, Cloudinary, SMTP, Paytm).
+2. **Environment Variables**: Set the respective variables in your platform's management console (CORS settings, Cloudinary, SMTP, Razorpay).
 3. **Build Script**: Ensure the platform runs:
    ```bash
    npm run build
