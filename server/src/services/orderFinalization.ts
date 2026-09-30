@@ -14,6 +14,13 @@ interface FinalizePaidOrderParams {
   paymentGateway?: string;
 }
 
+interface FinalizeOrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+  name: string;
+}
+
 /**
  * Handles transactional order creation, stock deduction, and cart clearance.
  * Ensures idempotency by checking if the payment/order has already been processed.
@@ -77,7 +84,7 @@ export async function finalizePaidOrder({
 
     // C. Validate stock & calculate prices
     let totalAmount = 0;
-    const itemsToCreate = [];
+    const itemsToCreate: FinalizeOrderItem[] = [];
 
     for (const item of cartItems) {
       const product = await tx.product.findUnique({
@@ -177,7 +184,7 @@ export async function finalizePaidOrder({
     try {
       invoiceBuffer = await generateInvoicePDFBuffer({
         ...order,
-        items: itemsToCreate.map((i) => ({
+        items: itemsToCreate.map((i: FinalizeOrderItem) => ({
           ...i,
           product: { id: i.productId, name: i.name },
         })),
