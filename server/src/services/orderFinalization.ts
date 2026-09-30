@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { BadRequestError } from '../utils/response';
 import { sendEmail, emailTemplates } from './email';
 import { logger } from '../utils/logger';
+import { generateInvoiceNumber, generateInvoicePDFBuffer } from './invoiceService';
 
 interface FinalizePaidOrderParams {
   userId: string;
@@ -115,7 +116,10 @@ export async function finalizePaidOrder({
       });
     }
 
-    // E. Create Order in database
+    // E. Generate invoice number & create Order in database
+    const invoiceNumber = await generateInvoiceNumber(tx);
+    const invoiceDate = new Date();
+
     const order = await tx.order.create({
       data: {
         userId,
@@ -135,6 +139,9 @@ export async function finalizePaidOrder({
         transactionId,
         gatewayOrderId,
         signature: signature || null,
+        invoiceNumber,
+        invoiceDate,
+        invoiceGeneratedAt: invoiceDate,
       },
     });
 
@@ -162,16 +169,40 @@ export async function finalizePaidOrder({
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true },
+      select: { email: true, name: true },
     });
 
+    // Generate Invoice PDF for email attachment
+    let invoiceBuffer: Buffer | null = null;
+    try {
+      invoiceBuffer = await generateInvoicePDFBuffer({
+        ...order,
+        items: itemsToCreate.map((i) => ({
+          ...i,
+          product: { id: i.productId, name: i.name },
+        })),
+        user,
+      });
+    } catch (invErr) {
+      logger.error('Error generating invoice PDF for order email:', invErr);
+    }
+
     if (user?.email) {
-      // Send Order Confirmation to Customer
+      const attachments = invoiceBuffer ? [
+        {
+          filename: `Invoice-${order.invoiceNumber || order.id}.pdf`,
+          content: invoiceBuffer,
+          contentType: 'application/pdf',
+        },
+      ] : undefined;
+
+      // Send Order Confirmation to Customer with Invoice
       await sendEmail({
         to: user.email,
-        subject: `Order Confirmed! - #${order.id}`,
+        subject: `Order Confirmed! - #${order.id} (Invoice Attached)`,
         html: emailTemplates.getOrderConfirmationHtml(order.id, order.totalAmount, itemsToCreate),
-        text: `Hello ${order.fullName},\n\nWe have received payment of ₹${order.totalAmount} for order #${order.id}.`,
+        text: `Hello ${order.fullName},\n\nWe have received payment of Rs. ${order.totalAmount} for order #${order.id}. Your official tax invoice is attached.\n\nThank you for choosing Home Rituals!`,
+        attachments,
       });
     }
 

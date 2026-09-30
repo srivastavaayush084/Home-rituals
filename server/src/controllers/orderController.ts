@@ -5,6 +5,7 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { createRazorpayOrder } from '../services/razorpay';
 import { sendEmail, emailTemplates } from '../services/email';
 import { logger } from '../utils/logger';
+import { generateInvoiceNumber, generateInvoicePDFBuffer } from '../services/invoiceService';
 
 export async function createOrder(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -379,3 +380,75 @@ export async function cancelOrder(req: AuthenticatedRequest, res: Response, next
     next(error);
   }
 }
+
+export async function downloadOrderInvoice(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+
+    const order = await prisma.order.findUnique({
+      where: { id } as any,
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { id: true, name: true, image: true, price: true },
+            },
+          },
+        },
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    }) as any;
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    // Verify user owns the order, or is an admin
+    if (String(order.userId) !== String(req.user!.id) && req.user!.role !== 'ADMIN') {
+      throw new ForbiddenError('You do not have access to view or download this invoice');
+    }
+
+    // Ensure order is paid/confirmed/delivered
+    const allowedPayment = order.paymentStatus === 'Paid' || order.status === 'Confirmed' || order.status === 'Delivered' || order.status === 'Shipped';
+    if (!allowedPayment) {
+      throw new BadRequestError('Invoice is only available for paid or confirmed orders');
+    }
+
+    // Auto-generate invoice number if missing (legacy orders)
+    let invoiceNumber = order.invoiceNumber;
+    let invoiceDate = order.invoiceDate;
+
+    if (!invoiceNumber) {
+      invoiceNumber = await generateInvoiceNumber();
+      invoiceDate = new Date();
+      await prisma.order.update({
+        where: { id: order.id } as any,
+        data: {
+          invoiceNumber,
+          invoiceDate,
+          invoiceGeneratedAt: invoiceDate,
+        } as any,
+      });
+      order.invoiceNumber = invoiceNumber;
+      order.invoiceDate = invoiceDate;
+    }
+
+    // Generate PDF buffer
+    const pdfBuffer = await generateInvoicePDFBuffer(order);
+
+    const safeFilename = `HomeRituals-Invoice-${invoiceNumber}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+
+    logger.info(`Invoice downloaded for Order #${order.id} (${invoiceNumber}) by user ${req.user!.id}`);
+    return res.end(pdfBuffer);
+  } catch (error) {
+    next(error);
+  }
+}
+

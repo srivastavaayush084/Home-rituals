@@ -82,3 +82,38 @@ export async function apiUploadRequest<T>(
 
   return result.data as T;
 }
+
+export async function downloadInvoicePdf(orderId: string, customFilename?: string): Promise<void> {
+  const token = localStorage.getItem('home-rituals-token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/invoice`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    let errorMsg = 'Failed to download invoice';
+    try {
+      const json = await response.json();
+      errorMsg = json.error?.message || json.message || errorMsg;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = customFilename || `HomeRituals-Invoice-${orderId}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+

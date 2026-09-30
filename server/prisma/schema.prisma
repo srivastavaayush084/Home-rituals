@@ -177,6 +177,10 @@ model Order {
   cancelledAt        DateTime?
   returnedAt         DateTime?
   refundedAt         DateTime?
+  invoiceNumber      String?     @unique
+  invoiceDate        DateTime?
+  invoiceUrl         String?
+  invoiceGeneratedAt DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   items              OrderItem[]

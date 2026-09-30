@@ -17,9 +17,10 @@ import {
   ShoppingBag,
   X,
   Sparkles,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { apiRequest } from '../utils/apiClient';
+import { apiRequest, downloadInvoicePdf } from '../utils/apiClient';
 import { ProductCard } from '../components/ui/ProductCard';
 
 interface OrderItem {
@@ -37,6 +38,8 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  invoiceNumber?: string | null;
+  invoiceDate?: string | null;
   totalAmount: number;
   status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
   paymentStatus: 'Pending' | 'Paid' | 'Failed';
@@ -57,6 +60,18 @@ export function ProfilePage() {
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
+
+  const handleDownloadInvoice = async (orderId: string, invoiceNumber?: string | null) => {
+    try {
+      setDownloadingOrderId(orderId);
+      await downloadInvoicePdf(orderId, `HomeRituals-Invoice-${invoiceNumber || orderId}.pdf`);
+    } catch (err: any) {
+      alert(err.message || 'Failed to download invoice. Please try again.');
+    } finally {
+      setDownloadingOrderId(null);
+    }
+  };
 
   // Address Modal State
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -369,7 +384,14 @@ export function ProfilePage() {
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-100 gap-2">
                           <div>
-                            <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">Order ID</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">Order ID</span>
+                              {ord.invoiceNumber && (
+                                <span className="text-[11px] font-mono font-medium text-[#0B8F3C] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                  {ord.invoiceNumber}
+                                </span>
+                              )}
+                            </div>
                             <h3 className="text-base font-bold text-stone-900">#{ord.id.slice(-8).toUpperCase()}</h3>
                             <p className="text-xs text-stone-500 mt-0.5">
                               Placed on {new Date(ord.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -434,18 +456,41 @@ export function ProfilePage() {
                             )}
                           </div>
 
-                          <button
-                            onClick={() => {
-                              ord.items?.forEach((it) => {
-                                if (it.product) {
-                                  addToCart(it.product as any, it.quantity);
-                                }
-                              });
-                            }}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111] hover:text-[#44D62C] transition self-start sm:self-auto"
-                          >
-                            Reorder All Items <ChevronRight className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            {(ord.status === 'Confirmed' || ord.status === 'Delivered' || ord.status === 'Shipped' || ord.paymentStatus === 'Paid') && (
+                              <button
+                                onClick={() => handleDownloadInvoice(ord.id, ord.invoiceNumber)}
+                                disabled={downloadingOrderId === ord.id}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-200 bg-stone-50 hover:bg-emerald-50 hover:border-emerald-200 hover:text-[#0B8F3C] text-xs font-semibold text-stone-700 transition shadow-2xs disabled:opacity-50"
+                                title="Download official branded PDF invoice"
+                              >
+                                {downloadingOrderId === ord.id ? (
+                                  <>
+                                    <div className="w-3.5 h-3.5 border-2 border-[#0B8F3C] border-t-transparent rounded-full animate-spin" />
+                                    <span>Generating...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText className="w-3.5 h-3.5 text-[#0B8F3C]" />
+                                    <span>Download Invoice</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => {
+                                ord.items?.forEach((it) => {
+                                  if (it.product) {
+                                    addToCart(it.product as any, it.quantity);
+                                  }
+                                });
+                              }}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111] hover:text-[#44D62C] transition self-start sm:self-auto"
+                            >
+                              Reorder All Items <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

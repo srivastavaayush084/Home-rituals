@@ -24,7 +24,25 @@ if (host && user && pass) {
   logger.info('SMTP configurations not fully provided. Email service will run in MOCK mode (logging to console).');
 }
 
-export async function sendEmail({ to, subject, html, text }: { to: string; subject: string; html: string; text: string }): Promise<void> {
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+}
+
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+  attachments,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  attachments?: EmailAttachment[];
+}): Promise<void> {
   if (transporter) {
     try {
       await transporter.sendMail({
@@ -33,8 +51,9 @@ export async function sendEmail({ to, subject, html, text }: { to: string; subje
         subject,
         text,
         html,
+        attachments,
       });
-      logger.info(`Email successfully sent to ${to}: "${subject}"`);
+      logger.info(`Email successfully sent to ${to}: "${subject}"${attachments?.length ? ` with ${attachments.length} attachment(s)` : ''}`);
     } catch (error) {
       logger.error(`Error sending email to ${to}:`, error);
     }
@@ -45,6 +64,7 @@ export async function sendEmail({ to, subject, html, text }: { to: string; subje
 [MOCK EMAIL SENT]
 To: ${to}
 Subject: ${subject}
+Attachments: ${attachments?.map(a => a.filename).join(', ') || 'None'}
 Text Content: ${text}
 HTML Content: (Omitted, check log files or code if needed)
 ========================================

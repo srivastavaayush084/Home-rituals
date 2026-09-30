@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { apiRequest } from '../utils/apiClient';
+import { apiRequest, downloadInvoicePdf } from '../utils/apiClient';
 import { Button } from '../components/ui/Button';
 
 interface OrderItem {
@@ -16,6 +16,7 @@ interface OrderItem {
 
 interface OrderDetails {
   id: string;
+  invoiceNumber?: string | null;
   fullName: string;
   address1: string;
   address2?: string | null;
@@ -37,6 +38,22 @@ export function OrderSuccessPage() {
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    try {
+      setDownloadingInvoice(true);
+      setDownloadError(null);
+      await downloadInvoicePdf(order.id, `HomeRituals-Invoice-${order.invoiceNumber || order.id}.pdf`);
+    } catch (err: any) {
+      console.error('Invoice download failed:', err);
+      setDownloadError(err.message || 'Failed to download invoice. Please try again.');
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchOrderDetails() {
@@ -124,6 +141,12 @@ export function OrderSuccessPage() {
                 <span className="text-[#6f6f6f]">Order Number:</span>
                 <span className="font-mono font-medium text-black">#{order.id}</span>
               </div>
+              {order.invoiceNumber && (
+                <div className="flex justify-between">
+                  <span className="text-[#6f6f6f]">Invoice Number:</span>
+                  <span className="font-mono font-medium text-[#0B8F3C]">{order.invoiceNumber}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-[#6f6f6f]">Status:</span>
                 <span className="inline-flex items-center rounded-full bg-[#44D62C]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0B8F3C]">
@@ -189,10 +212,51 @@ export function OrderSuccessPage() {
             </div>
           </div>
 
+          {/* Invoice Card */}
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-emerald-200 text-[#0B8F3C] shadow-xs">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[#1c2c22] text-sm">Official Tax Invoice</h3>
+                <p className="text-xs text-[#55695b]">Ready for instant download & printing</p>
+              </div>
+            </div>
+            
+            {downloadError && (
+              <p className="mt-3 text-xs text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
+                {downloadError}
+              </p>
+            )}
+
+            <button
+              onClick={handleDownloadInvoice}
+              disabled={downloadingInvoice}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0B8F3C] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#097330] transition disabled:opacity-50"
+            >
+              {downloadingInvoice ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Generating Invoice PDF...
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download Invoice (PDF)
+                </>
+              )}
+            </button>
+          </div>
+
           <div className="rounded-2xl border border-black/5 bg-[#fdfefc] p-6 text-center border-dashed">
             <h3 className="font-semibold text-[#0B8F3C] text-sm uppercase tracking-wider">Next steps</h3>
             <p className="mt-2 text-xs text-[#6f6f6f] leading-relaxed">
-              We have dispatched your order confirmation email. Once our logistics team prepares the package, we'll notify you with courier tracking information.
+              We have dispatched your order confirmation email along with your tax invoice. Once our logistics team prepares the package, we'll notify you with courier tracking information.
             </p>
           </div>
         </div>
@@ -200,6 +264,25 @@ export function OrderSuccessPage() {
 
       {/* Button Actions */}
       <div className="mt-12 flex flex-col sm:flex-row justify-center gap-3">
+        <button
+          onClick={handleDownloadInvoice}
+          disabled={downloadingInvoice}
+          className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-[#1c2c22] hover:bg-[#283f31] text-white font-medium text-sm transition shadow-sm disabled:opacity-50"
+        >
+          {downloadingInvoice ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Generating PDF...
+            </>
+          ) : (
+            <>
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Invoice
+            </>
+          )}
+        </button>
         <Link to="/shop" className="w-full sm:w-auto">
           <Button className="w-full px-8 py-3 rounded-full">
             Continue Shopping
