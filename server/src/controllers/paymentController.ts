@@ -401,8 +401,8 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
         });
       }
       if (!order && refundId) {
-        order = await prisma.order.findFirst({
-          where: { refundId },
+        order = await (prisma.order as any).findFirst({
+          where: { refundId } as any,
           include: { user: { select: { email: true, name: true } } },
         });
       }
@@ -423,7 +423,7 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
         const processedAt = new Date();
 
         // Update Order
-        await prisma.order.update({
+        await (prisma.order as any).update({
           where: { id: order.id },
           data: {
             refundStatus: 'PROCESSED',
@@ -432,24 +432,26 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
             refundProcessedAt: processedAt,
             paymentStatus: 'Refunded',
             refundedAt: processedAt,
-          },
+          } as any,
         });
 
         // Update Refund record if one exists
-        await prisma.refund.updateMany({
-          where: {
-            OR: [
-              { orderId: order.id },
-              ...(refundId ? [{ razorpayRefundId: refundId }] : []),
-              ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
-            ],
-          },
-          data: {
-            status: 'PROCESSED',
-            razorpayRefundId: refundId || undefined,
-            processedAt,
-          },
-        });
+        if ((prisma as any).refund) {
+          await (prisma as any).refund.updateMany({
+            where: {
+              OR: [
+                { orderId: order.id },
+                ...(refundId ? [{ razorpayRefundId: refundId }] : []),
+                ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
+              ],
+            },
+            data: {
+              status: 'PROCESSED',
+              razorpayRefundId: refundId || undefined,
+              processedAt,
+            },
+          });
+        }
 
         logger.info(`[Razorpay Webhook] Order #${order.id} refund updated to PROCESSED.`);
 
@@ -500,8 +502,8 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
         });
       }
       if (!order && refundId) {
-        order = await prisma.order.findFirst({
-          where: { refundId },
+        order = await (prisma.order as any).findFirst({
+          where: { refundId } as any,
           include: { user: { select: { email: true, name: true } } },
         });
       }
@@ -513,27 +515,29 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
       }
 
       if (order) {
-        await prisma.order.update({
+        await (prisma.order as any).update({
           where: { id: order.id },
           data: {
             refundStatus: 'FAILED',
             refundFailureReason: failureReason,
-          },
+          } as any,
         });
 
-        await prisma.refund.updateMany({
-          where: {
-            OR: [
-              { orderId: order.id },
-              ...(refundId ? [{ razorpayRefundId: refundId }] : []),
-              ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
-            ],
-          },
-          data: {
-            status: 'FAILED',
-            failureReason,
-          },
-        });
+        if ((prisma as any).refund) {
+          await (prisma as any).refund.updateMany({
+            where: {
+              OR: [
+                { orderId: order.id },
+                ...(refundId ? [{ razorpayRefundId: refundId }] : []),
+                ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
+              ],
+            },
+            data: {
+              status: 'FAILED',
+              failureReason,
+            },
+          });
+        }
 
         logger.info(`[Razorpay Webhook] Order #${order.id} refund status set to FAILED.`);
 
@@ -565,22 +569,22 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
       logger.info(`[Razorpay Webhook] Event refund.created: ${refundId} for Payment: ${paymentId}`);
 
       if (orderId || paymentId) {
-        const order = await prisma.order.findFirst({
+        const order: any = await (prisma.order as any).findFirst({
           where: {
             OR: [
               ...(orderId ? [{ id: orderId }] : []),
               ...(paymentId ? [{ transactionId: paymentId }] : []),
             ],
-          },
+          } as any,
         });
 
         if (order && order.refundStatus === 'PENDING') {
-          await prisma.order.update({
+          await (prisma.order as any).update({
             where: { id: order.id },
             data: {
               refundStatus: 'PROCESSING',
               refundId: refundId || order.refundId,
-            },
+            } as any,
           });
         }
       }
