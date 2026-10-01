@@ -285,7 +285,7 @@ export const emailTemplates = {
         </div>
 
         <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
-          If you have any questions regarding your cancellation or refund, please reply directly to this email or reach us at <strong>care@homerituals.com</strong>.
+          If you have any questions regarding your cancellation or refund, please reply directly to this email or reach us at <strong>info@homerituals.co</strong>.
         </p>
 
         <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
@@ -348,7 +348,7 @@ export const emailTemplates = {
       </div>
 
       <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
-        Thank you for choosing Home Rituals. For any support or inquiries, please contact <strong>care@homerituals.com</strong>.
+        Thank you for choosing Home Rituals. For any support or inquiries, please contact <strong>info@homerituals.co</strong>.
       </p>
 
       <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
@@ -390,7 +390,7 @@ export const emailTemplates = {
       </div>
 
       <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
-        If you have questions, please reach out to us at <strong>care@homerituals.com</strong> with your Order ID #${orderId}.
+        If you have questions, please reach out to us at <strong>info@homerituals.co</strong> with your Order ID #${orderId}.
       </p>
 
       <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />

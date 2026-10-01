@@ -552,7 +552,7 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
                 customerName: order.fullName || order.user?.name || 'Valued Customer',
                 refundAmount: order.refundAmount || order.totalAmount,
               }),
-              text: `Hello ${order.fullName},\n\nYour order #${order.id} was cancelled, but there was an issue processing your automated refund. Our team is processing it manually. Contact: care@homerituals.com`,
+              text: `Hello ${order.fullName},\n\nYour order #${order.id} was cancelled, but there was an issue processing your automated refund. Our team is processing it manually. Contact: info@homerituals.co`,
             });
           } catch (emailErr) {
             logger.error(`[Razorpay Webhook] Failed to send refund failed email for Order #${order.id}:`, emailErr);

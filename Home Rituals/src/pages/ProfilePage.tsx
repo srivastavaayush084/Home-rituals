@@ -607,10 +607,10 @@ export function ProfilePage() {
                         Need help with your order cancellation or refund?
                       </span>
                       <a
-                        href="mailto:care@homerituals.com"
+                        href="mailto:info@homerituals.co"
                         className="font-semibold text-[#0B8F3C] hover:underline"
                       >
-                        Contact Home Rituals Support (care@homerituals.com)
+                        Contact Home Rituals Support (info@homerituals.co)
                       </a>
                     </div>
 
