@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, AlertCircle, AlertTriangle, RefreshCw, ShieldCheck, ArrowRight } from 'lucide-react';
+import { X, AlertCircle, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
 import { cancelOrderRequest } from '../../utils/apiClient';
 
 export const CANCELLATION_REASONS = [
@@ -154,22 +154,7 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
             </div>
           </div>
 
-          {/* Refund Notice Banner */}
-          {isOnlinePaid ? (
-            <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 flex items-start gap-3">
-              <ShieldCheck className="w-5 h-5 text-[#0B8F3C] shrink-0 mt-0.5" />
-              <div className="text-xs text-emerald-900 leading-relaxed">
-                <p className="font-bold text-emerald-950 mb-0.5">Automated Razorpay Refund</p>
-                <p>
-                  A full refund of <strong>₹{order.totalAmount}</strong> will be initiated back to your original payment method via Razorpay. It typically reflects in your bank account or card within 5 to 7 business days.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-stone-100 border border-stone-200 rounded-2xl p-3.5 text-xs text-stone-600 leading-relaxed">
-              <strong>Cash on Delivery (COD):</strong> No online payment was charged for this order, so no refund is required.
-            </div>
-          )}
+
 
           {/* Cancellation Reason Dropdown */}
           <div className="space-y-1.5">
