@@ -99,7 +99,8 @@ VITE_RAZORPAY_KEY_ID=rzp_test_your_key_id
 |---|---|---|---|
 | `POST` | `/api/payments/razorpay/create-order` | Yes | Validates cart, stock, and calculates amount; creates order on Razorpay |
 | `POST` | `/api/payments/razorpay/verify` | Yes | Verifies HMAC-SHA256 signature, validates payment, finalizes order |
-| `POST` | `/api/payments/razorpay/webhook` | No (Signature Verified) | Asynchronous webhook handler for Razorpay events (`payment.captured`, `order.paid`) |
+| `POST` | `/api/payments/razorpay/webhook` | No (HMAC Verified) | Asynchronous webhook handler for Razorpay events (`payment.captured`, `order.paid`, `refund.processed`, `refund.failed`, `refund.created`) |
+| `POST` | `/api/orders/:id/cancel` | Yes (Owner/Admin) | Cancels order, returns stock, initiates Razorpay refund for online payments, sends cancellation email |
 | `POST` | `/api/create-order` | Yes | Backward-compatible alias for `/api/payments/razorpay/create-order` |
 | `POST` | `/api/verify-payment` | Yes | Backward-compatible alias for `/api/payments/razorpay/verify` |
 
@@ -118,31 +119,93 @@ VITE_RAZORPAY_KEY_ID=rzp_test_your_key_id
    - `order.paid`
    - `payment.captured`
    - `payment.failed`
+   - `refund.processed` *(Required for automated refund reconciliation)*
+   - `refund.failed` *(Required for automated refund failure alerts)*
+   - `refund.created`
 6. Click **Create Webhook**.
 
 ---
 
-## 6. Testing Procedure (Test Mode)
+## 6. Order Cancellation & Razorpay Refund System
 
-### Using the Developer Testing Console:
-1. Start backend and frontend.
-2. Sign in to your account.
-3. Visit `http://localhost:5173/razorpay-demo`.
-4. Enter test amount (e.g. ₹5.00) and click **Pay with Razorpay Test Mode**.
-5. Observe the live 4-step execution log:
-   - Step 1: Parameters preparation
-   - Step 2: Backend order creation (`/api/payments/razorpay/create-order`)
-   - Step 3: Razorpay Checkout modal launch
-   - Step 4: Cryptographic signature verification (`/api/payments/razorpay/verify`)
+### Architecture & Cancellation Lifecycle
 
-### Test Instruments for Razorpay Sandbox:
-- **UPI**: Enter `success@razorpay` or any dummy VPA.
-- **Card**: Number `4111 1111 1111 1111`, any future expiry date (e.g. `12/28`), any CVV (`123`), OTP: `123456`.
-- **NetBanking**: Select any bank and choose **Success** in the mock bank portal.
+```
+CUSTOMER                            FRONTEND                     BACKEND                          RAZORPAY GATEWAY
+   │                                   │                            │                                    │
+   │── 1. Clicks "Cancel Order" ──────>│                            │                                    │
+   │   (Selects reason & optional note)│                            │                                    │
+   │                                   │── 2. POST /orders/:id/cancel ──>│                               │
+   │                                   │      { reason, comment }   │                                    │
+   │                                   │                            │── 3. Authenticate user             │
+   │                                   │                            │── 4. Verify ownership & rules      │
+   │                                   │                            │── 5. Return stock to inventory     │
+   │                                   │                            │── 6. Check payment status          │
+   │                                   │                            │                                    │
+   │                                   │                            ├── COD / Unpaid:                    │
+   │                                   │                            │   Set Status = CANCELLED           │
+   │                                   │                            │   Refund = NOT_APPLICABLE          │
+   │                                   │                            │                                    │
+   │                                   │                            └── Online Paid (Razorpay):          │
+   │                                   │                                ├── Calculate eligible refund    │
+   │                                   │                                ├── Create Refund audit record   │
+   │                                   │                                ├── Call rzp.payments.refund() ─>│
+   │                                   │                                │   (paise converted)            │
+   │                                   │                                │<── Return refund ID & status ──│
+   │                                   │                                ├── Status = CANCELLED           │
+   │                                   │                                ├── Refund = PROCESSING          │
+   │                                   │                                └── Send cancellation email      │
+   │                                   │<── 7. Return 200 OK ───────│                                    │
+   │<── 8. Display Cancelled & ────────│      { order, refund }                                          │
+   │       Refund Status                                                                                 │
+   │                                                                                                     │
+   │                                                                                                     │
+   │   ASYNCHRONOUS RECONCILIATION VIA WEBHOOK                                                           │
+   │                                                                │<── 9. POST /webhook ───────────────│
+   │                                                                │       event: refund.processed      │
+   │                                                                │── 10. Verify HMAC signature        │
+   │                                                                │── 11. Mark Refund PROCESSED        │
+   │                                                                │── 12. Mark Payment REFUNDED        │
+   │                                                                │── 13. Send Refund Processed Email ─│
+   │<── 14. Customer receives Refund Processed Email ───────────────│                                    │
+```
+
+### State Machine Model
+
+| Entity | Possible States | Transition Trigger |
+|---|---|---|
+| **Order Status** | `Pending` → `Confirmed` → `Processing` → `Cancelled` | Customer cancellation or Admin update |
+| **Payment Status** | `Pending` → `Paid` → `Refunded` | Payment capture & Webhook `refund.processed` |
+| **Refund Status** | `NOT_APPLICABLE` \| `PENDING` → `PROCESSING` → `PROCESSED` \| `FAILED` | Cancellation API & Webhook reconciliation |
+
+### Centralized Backend Source of Truth: `canCancelOrder()`
+- **Cancellable**: `Pending`, `Confirmed`, `Processing`
+- **Non-Cancellable**: `Packed`, `Shipped`, `Delivered`, `Cancelled`, `Returned`, `Refunded`
+
+### Prevention of Duplicate Refunds & Race Conditions
+1. Backend enforces server-side calculation of `eligibleRefundAmount`: original order total minus any previous successful or processing refunds.
+2. If already refunded or refund is actively processing, subsequent calls are rejected or return the existing refund state.
+3. Database transactions restore inventory stock safely.
+4. Email delivery failures are isolated and never roll back a successful order cancellation or refund.
 
 ---
 
-## 7. Production Migration Steps
+## 7. Testing Procedure (Test Mode)
+
+### Automated Tests
+Run the comprehensive test suite verifying cancellation business rules, refund calculation, Zod validation, and webhook signature verification:
+```bash
+cd server
+npm run test
+```
+
+### Testing Instruments:
+- **Card**: Number `4111 1111 1111 1111`, any future expiry date, CVV `123`, OTP `123456`.
+- **UPI**: `success@razorpay`
+
+---
+
+## 8. Production Migration Steps
 
 When you are ready to process real transactions:
 
@@ -156,4 +219,6 @@ When you are ready to process real transactions:
    ```
 3. Update production Webhook URL in Razorpay Dashboard pointing to:
    `https://YOUR-DOMAIN/api/payments/razorpay/webhook`
-4. Test with a real transaction (e.g. ₹1.00) to confirm end-to-end receipt, signature validation, and email dispatch.
+   Subscribed events: `order.paid`, `payment.captured`, `payment.failed`, `refund.processed`, `refund.failed`, `refund.created`.
+4. Perform production smoke test with a real transaction (e.g. ₹1.00) to confirm end-to-end receipt, signature validation, cancellation, and refund initiation.
+

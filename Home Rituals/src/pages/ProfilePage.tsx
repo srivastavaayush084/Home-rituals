@@ -16,12 +16,17 @@ import {
   ShieldCheck,
   ShoppingBag,
   X,
-  Sparkles,
   FileText,
+  Sparkles,
+  XCircle,
+  AlertTriangle,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { apiRequest, downloadInvoicePdf } from '../utils/apiClient';
 import { ProductCard } from '../components/ui/ProductCard';
+import { CancelOrderModal } from '../components/ui/CancelOrderModal';
 
 interface OrderItem {
   id: string;
@@ -41,18 +46,32 @@ interface Order {
   invoiceNumber?: string | null;
   invoiceDate?: string | null;
   totalAmount: number;
-  status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
-  paymentStatus: 'Pending' | 'Paid' | 'Failed';
-  paymentMethod: string;
+  status: string;
+  paymentStatus: string;
+  paymentMethod?: string;
+  paymentGateway?: string;
+  transactionId?: string;
+  gatewayOrderId?: string;
   trackingNumber?: string;
   carrier?: string;
+  courierName?: string;
   createdAt: string;
-  shippingAddress: any;
+  shippingAddress?: any;
   items: OrderItem[];
+  cancelledAt?: string | null;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
+  cancellationComment?: string | null;
+  refundStatus?: string | null;
+  refundAmount?: number | null;
+  refundId?: string | null;
+  refundInitiatedAt?: string | null;
+  refundProcessedAt?: string | null;
+  refundFailureReason?: string | null;
 }
 
 export function ProfilePage() {
-  const { user, logout, addresses, fetchAddresses, createAddress, products, wishlistIds, toggleWishlist, addToCart } = useApp();
+  const { user, logout, addresses, fetchAddresses, createAddress, products, wishlistIds, toggleWishlist, addToCart, showToast } = useApp();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'account' | 'wishlist'>('orders');
@@ -61,6 +80,16 @@ export function ProfilePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+
+  const handleCancellationSuccess = (cancelledOrder: any, message?: string) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === cancelledOrder.id ? { ...o, ...cancelledOrder } : o))
+    );
+    if (message && showToast) {
+      showToast(message);
+    }
+  };
 
   const handleDownloadInvoice = async (orderId: string, invoiceNumber?: string | null) => {
     try {
@@ -401,7 +430,9 @@ export function ProfilePage() {
                           <div className="flex items-center gap-3">
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                                ord.status === 'Delivered'
+                                ord.status === 'Cancelled'
+                                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                  : ord.status === 'Delivered'
                                   ? 'bg-green-100 text-green-800'
                                   : ord.status === 'Shipped'
                                   ? 'bg-blue-100 text-blue-800'
@@ -415,6 +446,68 @@ export function ProfilePage() {
                             <span className="text-lg font-bold text-stone-900">₹{ord.totalAmount}</span>
                           </div>
                         </div>
+
+                        {/* Cancellation and Refund Details for Cancelled Orders */}
+                        {ord.status === 'Cancelled' && (
+                          <div className="my-3 p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn">
+                            <div>
+                              <div className="flex items-center gap-1.5 text-rose-900 font-semibold">
+                                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                                <span>Order Cancelled</span>
+                                {ord.cancelledAt && (
+                                  <span className="text-stone-500 font-normal">
+                                    • {new Date(ord.cancelledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                  </span>
+                                )}
+                              </div>
+                              {ord.cancellationReason && (
+                                <p className="text-stone-600 mt-1">
+                                  Reason: <span className="font-medium text-stone-800">{ord.cancellationReason}</span>
+                                  {ord.cancellationComment ? ` ("${ord.cancellationComment}")` : ''}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Refund Status */}
+                            <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+                              {ord.refundStatus && ord.refundStatus !== 'NOT_APPLICABLE' ? (
+                                <div
+                                  className={`px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 ${
+                                    ord.refundStatus === 'PROCESSED'
+                                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                      : ord.refundStatus === 'FAILED'
+                                      ? 'bg-rose-100 text-rose-900 border-rose-300'
+                                      : 'bg-blue-50 text-blue-800 border-blue-200'
+                                  }`}
+                                >
+                                  {ord.refundStatus === 'PROCESSED' ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0B8F3C]" />
+                                  ) : ord.refundStatus === 'FAILED' ? (
+                                    <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                                  ) : (
+                                    <RefreshCw className="w-3.5 h-3.5 text-blue-600 animate-spin" />
+                                  )}
+                                  <span>
+                                    {ord.refundStatus === 'PROCESSED'
+                                      ? `Refund Completed: ₹${ord.refundAmount || ord.totalAmount}`
+                                      : ord.refundStatus === 'FAILED'
+                                      ? 'Refund Pending Support Review'
+                                      : `Refund Processing: ₹${ord.refundAmount || ord.totalAmount}`}
+                                  </span>
+                                  {ord.refundId && (
+                                    <span className="font-mono text-[10px] bg-white/80 px-1.5 py-0.5 rounded border border-black/10">
+                                      {ord.refundId}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-stone-500 text-[11px] italic bg-stone-100 px-2.5 py-1 rounded-full">
+                                  COD / Unpaid • No refund required
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Order Items List */}
                         <div className="py-4 space-y-3">
@@ -446,17 +539,29 @@ export function ProfilePage() {
                             {ord.trackingNumber ? (
                               <p className="flex items-center gap-1.5 text-stone-700 font-medium">
                                 <Truck className="w-4 h-4 text-blue-600" />
-                                {ord.carrier || 'Courier'}: <span className="font-mono">{ord.trackingNumber}</span>
+                                {ord.carrier || ord.courierName || 'Courier'}: <span className="font-mono">{ord.trackingNumber}</span>
                               </p>
                             ) : (
                               <p className="flex items-center gap-1.5">
                                 <Clock className="w-4 h-4 text-stone-400" />
-                                Payment Method: <span className="font-semibold text-stone-700">{ord.paymentMethod}</span>
+                                Payment Method: <span className="font-semibold text-stone-700">{ord.paymentMethod || ord.paymentGateway || 'Razorpay'}</span>
                               </p>
                             )}
                           </div>
 
                           <div className="flex items-center gap-3 flex-wrap">
+                            {/* Cancel Order Action */}
+                            {(ord.status === 'Pending' || ord.status === 'Confirmed') && (
+                              <button
+                                onClick={() => setOrderToCancel(ord)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 text-xs font-semibold text-rose-700 transition shadow-2xs"
+                                title="Cancel this order"
+                              >
+                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                <span>Cancel Order</span>
+                              </button>
+                            )}
+
                             {(ord.status === 'Confirmed' || ord.status === 'Delivered' || ord.status === 'Shipped' || ord.paymentStatus === 'Paid') && (
                               <button
                                 onClick={() => handleDownloadInvoice(ord.id, ord.invoiceNumber)}
@@ -494,6 +599,28 @@ export function ProfilePage() {
                         </div>
                       </div>
                     ))}
+
+                    {/* Support Help Banner */}
+                    <div className="mt-6 bg-stone-50 border border-stone-200/90 rounded-2xl p-4 text-xs text-stone-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                      <span className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-stone-400" />
+                        Need help with your order cancellation or refund?
+                      </span>
+                      <a
+                        href="mailto:care@homerituals.com"
+                        className="font-semibold text-[#0B8F3C] hover:underline"
+                      >
+                        Contact Home Rituals Support (care@homerituals.com)
+                      </a>
+                    </div>
+
+                    {/* Cancel Order Modal */}
+                    <CancelOrderModal
+                      isOpen={Boolean(orderToCancel)}
+                      onClose={() => setOrderToCancel(null)}
+                      order={orderToCancel}
+                      onSuccess={handleCancellationSuccess}
+                    />
                   </div>
                 )}
               </div>

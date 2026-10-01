@@ -6,6 +6,7 @@ import { createRazorpayOrder } from '../services/razorpay';
 import { sendEmail, emailTemplates } from '../services/email';
 import { logger } from '../utils/logger';
 import { generateInvoiceNumber, generateInvoicePDFBuffer } from '../services/invoiceService';
+import { executeOrderCancellation } from '../services/orderCancellationService';
 
 export async function createOrder(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -170,6 +171,7 @@ export async function listUserOrders(req: AuthenticatedRequest, res: Response, n
               },
             },
           },
+          refunds: true,
         },
       }) as any,
       prisma.order.count({ where: { userId } as any }),
@@ -197,6 +199,7 @@ export async function getOrderById(req: AuthenticatedRequest, res: Response, nex
             },
           },
         },
+        refunds: true,
       },
     }) as any;
 
@@ -220,11 +223,14 @@ export async function listAllOrders(req: AuthenticatedRequest, res: Response, ne
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.max(1, Number(req.query.limit) || 10);
     const skip = (page - 1) * limit;
-    const { status } = req.query;
+    const { status, refundStatus } = req.query;
 
     const where: any = {};
-    if (status) {
+    if (status && status !== 'all') {
       where.status = String(status);
+    }
+    if (refundStatus && refundStatus !== 'all') {
+      where.refundStatus = String(refundStatus);
     }
 
     const [orders, total] = await prisma.$transaction([
@@ -240,6 +246,7 @@ export async function listAllOrders(req: AuthenticatedRequest, res: Response, ne
               product: { select: { id: true, name: true } },
             },
           },
+          refunds: true,
         },
       }) as any,
       prisma.order.count({ where }),
@@ -327,55 +334,31 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
 export async function cancelOrder(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.id;
+    const userRole = req.user!.role;
     const { id } = req.params;
+    const { reason, comment } = req.body;
 
-    const order: any = await prisma.order.findFirst({
-      where: { id, userId } as any,
-      include: { items: true },
+    const result = await executeOrderCancellation({
+      orderId: id,
+      userId,
+      userRole,
+      reason: reason || 'Changed my mind',
+      comment,
+      cancelledBy: userRole === 'ADMIN' ? 'ADMIN' : 'CUSTOMER',
     });
 
-    if (!order) {
-      throw new NotFoundError('Order not found');
-    }
-
-    // Can only cancel pending or confirmed orders
-    if (order.status !== 'Pending' && order.status !== 'Confirmed') {
-      throw new BadRequestError('This order cannot be cancelled as it is already being processed or shipped');
-    }
-
-    // Return stock to inventory and mark order cancelled
-    const updated = await prisma.$transaction(async (tx: any) => {
-      for (const item of order.items) {
-        await tx.product.update({
-          where: { id: item.productId } as any,
-          data: {
-            stock: { increment: item.quantity },
-            stockStatus: 'In Stock',
-          },
-        });
+    let message = 'Order cancelled successfully';
+    if (result.isOnlinePaid) {
+      if (result.refundStatus === 'PROCESSED') {
+        message = `Order cancelled. Refund of ₹${result.refundAmount} has been processed successfully.`;
+      } else if (result.refundStatus === 'PROCESSING' || result.refundStatus === 'PENDING') {
+        message = `Order cancelled. Refund of ₹${result.refundAmount} has been initiated via Razorpay.`;
+      } else if (result.refundStatus === 'FAILED') {
+        message = 'Order cancelled. Refund could not be initiated automatically and will be processed manually by support.';
       }
-
-      return await tx.order.update({
-        where: { id } as any,
-        data: {
-          status: 'Cancelled',
-          cancelledAt: new Date(),
-        },
-      });
-    });
-
-    // Send cancel notification email
-    if (req.user!.email) {
-      await sendEmail({
-        to: req.user!.email,
-        subject: `Order Cancelled - #${order.id}`,
-        html: emailTemplates.getOrderStatusUpdateHtml(order.id, 'Cancelled'),
-        text: `Hello ${order.fullName},\n\nYour order #${order.id} has been cancelled successfully.`,
-      });
     }
 
-    logger.info(`Order #${id} cancelled by customer ID: ${userId}`);
-    return sendSuccess(res, updated, 200, 'Order cancelled successfully');
+    return sendSuccess(res, result.order, 200, message);
   } catch (error) {
     next(error);
   }

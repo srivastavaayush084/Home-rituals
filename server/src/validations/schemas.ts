@@ -142,6 +142,12 @@ export const orderSchemas = {
       trackingNumber: z.string().optional(),
     }),
   }),
+  cancel: z.object({
+    body: z.object({
+      reason: z.string().min(1, 'Cancellation reason is required'),
+      comment: z.string().max(500, 'Comment cannot exceed 500 characters').optional().nullable(),
+    }),
+  }),
 };
 
 export const blogSchemas = {

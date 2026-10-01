@@ -29,6 +29,16 @@ interface Order {
   createdAt: string;
   user?: { name: string; email: string };
   items: OrderItem[];
+  cancelledAt?: string | null;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
+  cancellationComment?: string | null;
+  refundStatus?: string | null;
+  refundAmount?: number | null;
+  refundId?: string | null;
+  refundInitiatedAt?: string | null;
+  refundProcessedAt?: string | null;
+  refundFailureReason?: string | null;
 }
 
 export const AdminOrdersPage: React.FC = () => {
@@ -49,7 +59,7 @@ export const AdminOrdersPage: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<any>('/api/orders');
+      const data = await apiRequest<any>('/api/orders/all');
       setOrders(Array.isArray(data) ? data : (data?.data || data?.orders || data?.items || []));
     } catch (err) {
       console.error(err);
@@ -90,11 +100,28 @@ export const AdminOrdersPage: React.FC = () => {
   };
 
   const filteredOrders = orders.filter((o) => {
-    const matchesStatus = statusFilter === 'all' || o.status === statusFilter;
+    let matchesStatus = true;
+    if (statusFilter === 'all') {
+      matchesStatus = true;
+    } else if (statusFilter === 'refund_pending') {
+      matchesStatus = o.refundStatus === 'PENDING';
+    } else if (statusFilter === 'refund_processing') {
+      matchesStatus = o.refundStatus === 'PROCESSING';
+    } else if (statusFilter === 'refund_processed') {
+      matchesStatus = o.refundStatus === 'PROCESSED';
+    } else if (statusFilter === 'refund_failed') {
+      matchesStatus = o.refundStatus === 'FAILED';
+    } else {
+      matchesStatus = o.status === statusFilter;
+    }
+
     const matchesSearch =
       String(o.id).includes(search) ||
       o.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      (o.user?.email && o.user.email.toLowerCase().includes(search.toLowerCase()));
+      (o.user?.email && o.user.email.toLowerCase().includes(search.toLowerCase())) ||
+      (o.refundId && o.refundId.toLowerCase().includes(search.toLowerCase())) ||
+      (o.cancellationReason && o.cancellationReason.toLowerCase().includes(search.toLowerCase()));
+
     return matchesStatus && matchesSearch;
   });
 
@@ -102,7 +129,7 @@ export const AdminOrdersPage: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-serif font-bold text-stone-900">Orders Manager</h1>
-        <p className="text-stone-600 text-sm mt-0.5">Track fulfillment, update order status, and inspect customer purchases.</p>
+        <p className="text-stone-600 text-sm mt-0.5">Track fulfillment, inspect cancellations, monitor refunds, and inspect purchases.</p>
       </div>
 
       {/* Filter and Search Bar */}
@@ -111,7 +138,7 @@ export const AdminOrdersPage: React.FC = () => {
           <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search order ID, customer name, email..."
+            placeholder="Search order ID, customer name, refund ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -119,7 +146,7 @@ export const AdminOrdersPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <label className="text-xs font-semibold text-stone-500 uppercase">Fulfillment Status:</label>
+          <label className="text-xs font-semibold text-stone-500 uppercase">Filter Status:</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -132,6 +159,10 @@ export const AdminOrdersPage: React.FC = () => {
             <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>
             <option value="Cancelled">Cancelled</option>
+            <option value="refund_pending">Refund: Pending</option>
+            <option value="refund_processing">Refund: Processing</option>
+            <option value="refund_processed">Refund: Completed</option>
+            <option value="refund_failed">Refund: Failed</option>
           </select>
         </div>
       </div>
@@ -169,20 +200,56 @@ export const AdminOrdersPage: React.FC = () => {
                       <div className="flex flex-col gap-0.5">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium w-fit ${
-                            order.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            order.paymentStatus === 'Paid'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : order.paymentStatus === 'Refunded'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-amber-100 text-amber-800'
                           }`}
                         >
                           {order.paymentStatus}
                         </span>
+                        {order.refundStatus && order.refundStatus !== 'NOT_APPLICABLE' && (
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase w-fit ${
+                              order.refundStatus === 'PROCESSED'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : order.refundStatus === 'FAILED'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-blue-50 text-blue-700 border border-blue-200'
+                            }`}
+                          >
+                            Refund: {order.refundStatus}
+                          </span>
+                        )}
                         <span className="text-[11px] text-stone-500 font-mono">
                           {order.paymentGateway || 'Razorpay'}
                         </span>
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-900 text-white">
-                        {order.status}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            order.status === 'Cancelled'
+                              ? 'bg-rose-100 text-rose-800 border border-rose-200 font-bold'
+                              : order.status === 'Delivered'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : order.status === 'Shipped'
+                              ? 'bg-blue-100 text-blue-800'
+                              : order.status === 'Confirmed'
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-stone-900 text-white'
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                        {order.cancellationReason && (
+                          <span className="text-[10px] text-stone-500 truncate max-w-[130px]" title={order.cancellationReason}>
+                            {order.cancellationReason}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-xs font-mono text-stone-600">
                       {order.trackingNumber ? `${order.courierName || 'Courier'}: ${order.trackingNumber}` : '—'}
@@ -222,7 +289,7 @@ export const AdminOrdersPage: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4 text-sm">
+            <div className="p-6 space-y-4 text-sm max-h-[85vh] overflow-y-auto">
               <div className="bg-stone-50 p-4 rounded-xl space-y-1">
                 <p className="font-semibold text-stone-900">Shipping Address:</p>
                 <p className="text-stone-700">{selectedOrder.fullName}</p>
@@ -232,6 +299,77 @@ export const AdminOrdersPage: React.FC = () => {
                 </p>
                 <p className="text-stone-600 text-xs font-mono mt-1">Phone: {selectedOrder.phone}</p>
               </div>
+
+              {/* Cancellation & Refund Audit Section */}
+              {(selectedOrder.status === 'Cancelled' || selectedOrder.refundStatus) && (
+                <div className="bg-rose-50/60 border border-rose-200/80 p-4 rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-rose-200/60 font-semibold text-rose-950">
+                    <span className="uppercase tracking-wider">Cancellation & Refund Audit</span>
+                    <span className="px-2 py-0.5 rounded bg-rose-200/60 text-rose-900 font-bold uppercase text-[10px]">
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-stone-700">
+                    <div>
+                      <span className="text-stone-500">Cancelled At:</span>
+                      <p className="font-medium text-stone-800">
+                        {selectedOrder.cancelledAt ? new Date(selectedOrder.cancelledAt).toLocaleString() : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-stone-500">Cancelled By:</span>
+                      <p className="font-medium text-stone-800">{selectedOrder.cancelledBy || 'CUSTOMER'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-stone-500">Reason:</span>
+                      <p className="font-medium text-stone-900">{selectedOrder.cancellationReason || '—'}</p>
+                      {selectedOrder.cancellationComment && (
+                        <p className="text-stone-600 italic mt-0.5">"{selectedOrder.cancellationComment}"</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Refund Data */}
+                  <div className="pt-2 border-t border-rose-200/60 grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="text-stone-500">Refund Status:</span>
+                      <p
+                        className={`font-bold ${
+                          selectedOrder.refundStatus === 'PROCESSED'
+                            ? 'text-emerald-700'
+                            : selectedOrder.refundStatus === 'FAILED'
+                            ? 'text-rose-700'
+                            : 'text-blue-700'
+                        }`}
+                      >
+                        {selectedOrder.refundStatus || 'NOT_APPLICABLE'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-stone-500">Refund Amount:</span>
+                      <p className="font-bold text-stone-900">
+                        {selectedOrder.refundAmount ? `₹${selectedOrder.refundAmount}` : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-stone-500">Razorpay Refund ID:</span>
+                      <p className="font-mono text-stone-800 break-all">{selectedOrder.refundId || '—'}</p>
+                    </div>
+                    <div>
+                      <span className="text-stone-500">Refund Processed At:</span>
+                      <p className="text-stone-700">
+                        {selectedOrder.refundProcessedAt ? new Date(selectedOrder.refundProcessedAt).toLocaleString() : '—'}
+                      </p>
+                    </div>
+                    {selectedOrder.refundFailureReason && (
+                      <div className="col-span-2 bg-rose-100/80 p-2 rounded text-rose-900">
+                        <span className="font-bold">Failure Reason:</span> {selectedOrder.refundFailureReason}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Payment Details Section */}
               <div className="bg-emerald-50/60 border border-emerald-100 p-4 rounded-xl space-y-1.5">

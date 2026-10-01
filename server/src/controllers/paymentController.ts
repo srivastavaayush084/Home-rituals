@@ -11,6 +11,7 @@ import {
 } from '../services/razorpay';
 import { finalizePaidOrder } from '../services/orderFinalization';
 import { logger } from '../utils/logger';
+import { sendEmail, emailTemplates } from '../services/email';
 
 /**
  * Initiates a Razorpay payment order.
@@ -379,6 +380,210 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
     } else if (eventType === 'payment.failed') {
       const paymentEntity = event.payload?.payment?.entity;
       logger.warn(`[Razorpay Webhook] Payment failed: ${paymentEntity?.id}, Reason: ${paymentEntity?.error_description}`);
+    } else if (eventType === 'refund.processed') {
+      const refundEntity = event.payload?.refund?.entity;
+      const refundId = refundEntity?.id;
+      const paymentId = refundEntity?.payment_id;
+      const notes = refundEntity?.notes || {};
+      const orderId = notes.orderId;
+      const refundAmount = (refundEntity?.amount || 0) / 100;
+
+      logger.info(
+        `[Razorpay Webhook] Processing refund.processed: ${refundId}, Payment: ${paymentId}, Order: ${orderId || 'N/A'}, Amount: ₹${refundAmount}`
+      );
+
+      // Find order by orderId, refundId, or paymentId
+      let order: any = null;
+      if (orderId) {
+        order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { user: { select: { email: true, name: true } } },
+        });
+      }
+      if (!order && refundId) {
+        order = await prisma.order.findFirst({
+          where: { refundId },
+          include: { user: { select: { email: true, name: true } } },
+        });
+      }
+      if (!order && paymentId) {
+        order = await prisma.order.findFirst({
+          where: { transactionId: paymentId },
+          include: { user: { select: { email: true, name: true } } },
+        });
+      }
+
+      if (order) {
+        // Idempotency check: if already processed, skip
+        if (order.refundStatus === 'PROCESSED') {
+          logger.info(`[Razorpay Webhook] Order #${order.id} refund already marked PROCESSED. Skipping.`);
+          return res.status(200).json({ success: true, message: 'Refund already processed' });
+        }
+
+        const processedAt = new Date();
+
+        // Update Order
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            refundStatus: 'PROCESSED',
+            refundId: refundId || order.refundId,
+            refundAmount: refundAmount || order.refundAmount,
+            refundProcessedAt: processedAt,
+            paymentStatus: 'Refunded',
+            refundedAt: processedAt,
+          },
+        });
+
+        // Update Refund record if one exists
+        await prisma.refund.updateMany({
+          where: {
+            OR: [
+              { orderId: order.id },
+              ...(refundId ? [{ razorpayRefundId: refundId }] : []),
+              ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
+            ],
+          },
+          data: {
+            status: 'PROCESSED',
+            razorpayRefundId: refundId || undefined,
+            processedAt,
+          },
+        });
+
+        logger.info(`[Razorpay Webhook] Order #${order.id} refund updated to PROCESSED.`);
+
+        // Send Refund Completed Email to Customer
+        const customerEmail = order.user?.email;
+        if (customerEmail) {
+          try {
+            await sendEmail({
+              to: customerEmail,
+              subject: `Your Refund for Home Rituals Order #${order.id} Has Been Processed`,
+              html: emailTemplates.getRefundProcessedHtml({
+                orderId: order.id,
+                customerName: order.fullName || order.user?.name || 'Valued Customer',
+                refundAmount: refundAmount || order.totalAmount,
+                refundId: refundId || 'N/A',
+                processedDate: processedAt.toLocaleDateString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                }),
+                paymentMethod: order.paymentGateway || 'Razorpay',
+              }),
+              text: `Hello ${order.fullName},\n\nYour refund of ₹${refundAmount || order.totalAmount} for Order #${order.id} has been processed.\nRefund ID: ${refundId}\n\nThank you,\nHome Rituals Team`,
+            });
+            logger.info(`[Razorpay Webhook] Refund processed email sent to ${customerEmail}`);
+          } catch (emailErr) {
+            logger.error(`[Razorpay Webhook] Failed to send refund processed email for Order #${order.id}:`, emailErr);
+          }
+        }
+      } else {
+        logger.warn(`[Razorpay Webhook] Could not find matching order for refund ${refundId} / payment ${paymentId}`);
+      }
+    } else if (eventType === 'refund.failed') {
+      const refundEntity = event.payload?.refund?.entity;
+      const refundId = refundEntity?.id;
+      const paymentId = refundEntity?.payment_id;
+      const notes = refundEntity?.notes || {};
+      const orderId = notes.orderId;
+      const failureReason = refundEntity?.error_description || refundEntity?.error_code || 'Razorpay refund failed';
+
+      logger.warn(`[Razorpay Webhook] Processing refund.failed: ${refundId}, Payment: ${paymentId}, Reason: ${failureReason}`);
+
+      let order: any = null;
+      if (orderId) {
+        order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { user: { select: { email: true, name: true } } },
+        });
+      }
+      if (!order && refundId) {
+        order = await prisma.order.findFirst({
+          where: { refundId },
+          include: { user: { select: { email: true, name: true } } },
+        });
+      }
+      if (!order && paymentId) {
+        order = await prisma.order.findFirst({
+          where: { transactionId: paymentId },
+          include: { user: { select: { email: true, name: true } } },
+        });
+      }
+
+      if (order) {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            refundStatus: 'FAILED',
+            refundFailureReason: failureReason,
+          },
+        });
+
+        await prisma.refund.updateMany({
+          where: {
+            OR: [
+              { orderId: order.id },
+              ...(refundId ? [{ razorpayRefundId: refundId }] : []),
+              ...(paymentId ? [{ razorpayPaymentId: paymentId }] : []),
+            ],
+          },
+          data: {
+            status: 'FAILED',
+            failureReason,
+          },
+        });
+
+        logger.info(`[Razorpay Webhook] Order #${order.id} refund status set to FAILED.`);
+
+        const customerEmail = order.user?.email;
+        if (customerEmail) {
+          try {
+            await sendEmail({
+              to: customerEmail,
+              subject: `Action Required: Refund Update for Home Rituals Order #${order.id}`,
+              html: emailTemplates.getRefundFailedHtml({
+                orderId: order.id,
+                customerName: order.fullName || order.user?.name || 'Valued Customer',
+                refundAmount: order.refundAmount || order.totalAmount,
+              }),
+              text: `Hello ${order.fullName},\n\nYour order #${order.id} was cancelled, but there was an issue processing your automated refund. Our team is processing it manually. Contact: care@homerituals.com`,
+            });
+          } catch (emailErr) {
+            logger.error(`[Razorpay Webhook] Failed to send refund failed email for Order #${order.id}:`, emailErr);
+          }
+        }
+      }
+    } else if (eventType === 'refund.created') {
+      const refundEntity = event.payload?.refund?.entity;
+      const refundId = refundEntity?.id;
+      const paymentId = refundEntity?.payment_id;
+      const notes = refundEntity?.notes || {};
+      const orderId = notes.orderId;
+
+      logger.info(`[Razorpay Webhook] Event refund.created: ${refundId} for Payment: ${paymentId}`);
+
+      if (orderId || paymentId) {
+        const order = await prisma.order.findFirst({
+          where: {
+            OR: [
+              ...(orderId ? [{ id: orderId }] : []),
+              ...(paymentId ? [{ transactionId: paymentId }] : []),
+            ],
+          },
+        });
+
+        if (order && order.refundStatus === 'PENDING') {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              refundStatus: 'PROCESSING',
+              refundId: refundId || order.refundId,
+            },
+          });
+        }
+      }
     }
 
     // Acknowledge receipt of webhook to Razorpay

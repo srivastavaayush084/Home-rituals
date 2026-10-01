@@ -53,6 +53,7 @@ interface AppContextValue {
   refreshCart: () => Promise<void>;
   toggleWishlist: (productId: number) => void;
   toastMessage: string | null;
+  showToast: (message: string) => void;
   clearToast: () => void;
   isCartOpen: boolean;
   openCart: () => void;
@@ -414,6 +415,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshCart: fetchCartFromServer,
     toggleWishlist,
     toastMessage,
+    showToast: (msg: string) => setToastMessage(msg),
     clearToast: () => setToastMessage(null),
     isCartOpen,
     openCart: () => setIsCartOpen(true),

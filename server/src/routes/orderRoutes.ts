@@ -23,6 +23,6 @@ router.get('/all', requireAdmin, listAllOrders);
 router.get('/:id', getOrderById);
 router.get('/:id/invoice', downloadOrderInvoice);
 router.put('/:id/status', requireAdmin, validateRequest(orderSchemas.updateStatus), updateOrderStatus);
-router.post('/:id/cancel', cancelOrder);
+router.post('/:id/cancel', validateRequest(orderSchemas.cancel), cancelOrder);
 
 export default router;

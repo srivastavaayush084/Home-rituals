@@ -29,6 +29,7 @@ model User {
   cartItems          CartItem[]
   orders             Order[]
   addresses          Address[]
+  refunds            Refund[]
 }
 
 model Category {
@@ -175,6 +176,15 @@ model Order {
   shippedAt          DateTime?
   deliveredAt        DateTime?
   cancelledAt        DateTime?
+  cancelledBy        String?     // CUSTOMER, ADMIN, SYSTEM
+  cancellationReason String?
+  cancellationComment String?
+  refundStatus       String?     @default("NOT_APPLICABLE") // NOT_APPLICABLE, PENDING, PROCESSING, PROCESSED, FAILED
+  refundAmount       Float?
+  refundId           String?
+  refundInitiatedAt  DateTime?
+  refundProcessedAt  DateTime?
+  refundFailureReason String?
   returnedAt         DateTime?
   refundedAt         DateTime?
   invoiceNumber      String?     @unique
@@ -184,12 +194,42 @@ model Order {
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   items              OrderItem[]
+  refunds            Refund[]
 
   @@index([userId])
   @@index([status])
+  @@index([refundStatus])
   @@index([createdAt])
   @@index([gatewayOrderId])
   @@index([transactionId])
+  @@index([refundId])
+}
+
+model Refund {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId            String    @db.ObjectId
+  order              Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId             String    @db.ObjectId
+  user               User      @relation(fields: [userId], references: [id])
+  paymentGateway     String    @default("Razorpay")
+  razorpayPaymentId  String
+  razorpayRefundId   String?
+  amount             Float
+  currency           String    @default("INR")
+  status             String    @default("PENDING") // PENDING, PROCESSING, PROCESSED, FAILED
+  reason             String?
+  failureReason      String?
+  initiatedAt        DateTime  @default(now())
+  processedAt        DateTime?
+  idempotencyKey     String?   @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([razorpayRefundId])
+  @@index([razorpayPaymentId])
+  @@index([status])
 }
 
 model OrderItem {

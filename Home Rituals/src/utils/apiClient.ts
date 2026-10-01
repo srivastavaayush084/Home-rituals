@@ -117,3 +117,11 @@ export async function downloadInvoicePdf(orderId: string, customFilename?: strin
   document.body.removeChild(a);
 }
 
+export async function cancelOrderRequest(
+  orderId: string,
+  payload: { reason: string; comment?: string }
+): Promise<any> {
+  return await apiRequest(`/api/orders/${orderId}/cancel`, 'POST', payload);
+}
+
+

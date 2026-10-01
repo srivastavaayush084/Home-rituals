@@ -183,4 +183,221 @@ export const emailTemplates = {
       <p style="font-size: 12px; color: #888;">&copy; Home Rituals. All rights reserved.</p>
     </div>
   `,
+
+  getOrderCancelledHtml: ({
+    orderId,
+    customerName,
+    cancellationDate,
+    cancellationReason,
+    items,
+    totalAmount,
+    paymentMethod,
+    refundStatus,
+    refundAmount,
+    refundId,
+  }: {
+    orderId: string | number;
+    customerName: string;
+    cancellationDate: string;
+    cancellationReason: string;
+    items: { name: string; quantity: number; price: number }[];
+    totalAmount: number;
+    paymentMethod: string;
+    refundStatus: string;
+    refundAmount?: number;
+    refundId?: string | null;
+  }) => {
+    const isOnlinePaid = paymentMethod.toLowerCase().includes('razorpay') || refundStatus !== 'NOT_APPLICABLE';
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+        <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+          <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+          <span style="display: inline-block; background-color: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+            Order Cancelled
+          </span>
+        </div>
+
+        <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+          Hello <strong>${customerName}</strong>,
+        </p>
+        <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+          Your order <strong>#${orderId}</strong> has been cancelled as requested.
+        </p>
+
+        <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <h3 style="color: #1f2937; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0;">Cancellation Details</h3>
+          <p style="margin: 4px 0; font-size: 13px; color: #4b5563;"><strong>Cancellation Date:</strong> ${cancellationDate}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #4b5563;"><strong>Reason:</strong> ${cancellationReason}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #4b5563;"><strong>Payment Method:</strong> ${paymentMethod}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #4b5563;"><strong>Order Total:</strong> ₹${totalAmount.toFixed(2)}</p>
+        </div>
+
+        ${
+          isOnlinePaid && refundAmount
+            ? `
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+            <h3 style="color: #166534; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;">Refund Information</h3>
+            <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Refund Amount:</strong> ₹${refundAmount.toFixed(2)}</p>
+            <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Refund Status:</strong> ${refundStatus}</p>
+            ${refundId ? `<p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Refund Reference ID:</strong> <span style="font-family: monospace;">${refundId}</span></p>` : ''}
+            <p style="margin: 8px 0 0 0; font-size: 12px; color: #166534; line-height: 1.5;">
+              The refund has been initiated to your original payment method. Depending on your bank or payment provider, it typically reflects in your account within 5 to 7 business days.
+            </p>
+          </div>
+        `
+            : `
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 13px; color: #4b5563;">
+              <strong>Payment Status:</strong> As this order was Cash on Delivery (COD) / unpaid, no payment refund is required.
+            </p>
+          </div>
+        `
+        }
+
+        <h3 style="color: #1f2937; font-size: 14px; margin: 0 0 10px 0;">Cancelled Items</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+          <thead>
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <th style="text-align: left; padding: 8px 4px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Item</th>
+              <th style="text-align: center; padding: 8px 4px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Qty</th>
+              <th style="text-align: right; padding: 8px 4px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items
+              .map(
+                (item) => `
+              <tr style="border-bottom: 1px solid #f3f4f6;">
+                <td style="padding: 10px 4px; font-size: 13px; color: #374151;">${item.name}</td>
+                <td style="padding: 10px 4px; font-size: 13px; color: #374151; text-align: center;">${item.quantity}</td>
+                <td style="padding: 10px 4px; font-size: 13px; color: #374151; text-align: right;">₹${(item.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="https://homerituals.co/profile" style="background-color: #0B8F3C; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 24px; font-weight: bold; font-size: 14px; display: inline-block;">
+            View Your Orders
+          </a>
+        </div>
+
+        <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
+          If you have any questions regarding your cancellation or refund, please reply directly to this email or reach us at <strong>care@homerituals.com</strong>.
+        </p>
+
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+        <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+          &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+        </p>
+      </div>
+    `;
+  },
+
+  getRefundProcessedHtml: ({
+    orderId,
+    customerName,
+    refundAmount,
+    refundId,
+    processedDate,
+    paymentMethod,
+  }: {
+    orderId: string | number;
+    customerName: string;
+    refundAmount: number;
+    refundId: string;
+    processedDate: string;
+    paymentMethod: string;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          Refund Processed
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        We are pleased to inform you that your refund for Order <strong>#${orderId}</strong> has been successfully processed by Razorpay.
+      </p>
+
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <h3 style="color: #166534; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0;">Refund Summary</h3>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Order Number:</strong> #${orderId}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Refund Amount:</strong> ₹${refundAmount.toFixed(2)}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Razorpay Refund ID:</strong> <span style="font-family: monospace;">${refundId}</span></p>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Processed Date:</strong> ${processedDate}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Payment Method:</strong> ${paymentMethod}</p>
+      </div>
+
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+        <p style="margin: 0; font-size: 13px; color: #334155; line-height: 1.5;">
+          Your refund has been successfully released by our payment gateway. The amount will be credited back to your original source account according to your bank or card issuer's clearing cycle (usually within 5 to 7 business days).
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://homerituals.co/profile" style="background-color: #0B8F3C; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 24px; font-weight: bold; font-size: 14px; display: inline-block;">
+          View Account
+        </a>
+      </div>
+
+      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
+        Thank you for choosing Home Rituals. For any support or inquiries, please contact <strong>care@homerituals.com</strong>.
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
+
+  getRefundFailedHtml: ({
+    orderId,
+    customerName,
+    refundAmount,
+  }: {
+    orderId: string | number;
+    customerName: string;
+    refundAmount: number;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          Refund Notice
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        Your order <strong>#${orderId}</strong> was successfully cancelled. However, we encountered an unexpected delay while processing your automatic refund of <strong>₹${refundAmount.toFixed(2)}</strong> through the payment gateway.
+      </p>
+
+      <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <h3 style="color: #92400e; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 6px 0;">What Happens Next?</h3>
+        <p style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.5;">
+          Our finance team has been automatically alerted and will manually process your refund directly to your original payment account. You do not need to take any additional steps.
+        </p>
+      </div>
+
+      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
+        If you have questions, please reach out to us at <strong>care@homerituals.com</strong> with your Order ID #${orderId}.
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
 };
+
