@@ -52,7 +52,7 @@ interface StepLog {
 
 export function RazorpayDemoPage() {
   const navigate = useNavigate();
-  const { token, user, addresses, fetchAddresses } = useApp();
+  const { token, user, addresses, fetchAddresses, isAuthLoading } = useApp();
 
   const [amount, setAmount] = useState<number>(5.00); // ₹5.00
   const [description, setDescription] = useState<string>('Test Hygiene Essentials Order');
@@ -70,6 +70,7 @@ export function RazorpayDemoPage() {
 
   // Redirect to login if user is not authenticated
   useEffect(() => {
+    if (isAuthLoading) return;
     if (!token) {
       setError('You must be logged in to access the payment demo. Redirecting...');
       const timer = setTimeout(() => {
@@ -78,7 +79,7 @@ export function RazorpayDemoPage() {
       return () => clearTimeout(timer);
     }
     fetchAddresses();
-  }, [token, navigate]);
+  }, [token, isAuthLoading, navigate]);
 
   const updateStep = (index: number, status: 'pending' | 'active' | 'success' | 'failed', message?: string) => {
     setSteps(prev => prev.map((s, i) => i === index ? { ...s, status, message } : s));

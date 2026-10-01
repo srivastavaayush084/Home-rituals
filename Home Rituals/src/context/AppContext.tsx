@@ -34,6 +34,7 @@ interface AppContextValue {
   // Auth state
   user: UserPayload | null;
   token: string | null;
+  isAuthLoading: boolean;
   login: (emailOrPhone: string, password: string) => Promise<void>;
   register: (email: string | null, phone: string | null, password: string, name: string) => Promise<void>;
   logout: () => void;
@@ -85,8 +86,26 @@ const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   // Auth State
-  const [user, setUser] = useState<UserPayload | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('home-rituals-token'));
+  const [user, setUser] = useState<UserPayload | null>(() => {
+    try {
+      const stored = localStorage.getItem('home-rituals-user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('home-rituals-token');
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(() => {
+    const hasToken = Boolean(localStorage.getItem('home-rituals-token'));
+    const hasUser = Boolean(localStorage.getItem('home-rituals-user'));
+    return hasToken && !hasUser;
+  });
 
   // Products State
   const [products, setProducts] = useState<Product[]>(staticProducts);
@@ -133,13 +152,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // 2. Fetch User Profile if token exists
   useEffect(() => {
     async function fetchProfile() {
-      if (!token) return;
+      if (!token) {
+        setIsAuthLoading(false);
+        return;
+      }
       try {
+        setIsAuthLoading(true);
         const data = await apiRequest<UserPayload>('/api/auth/me');
         setUser(data);
+        localStorage.setItem('home-rituals-user', JSON.stringify(data));
       } catch (err) {
         console.error('Invalid token, logging out', err);
         logout();
+      } finally {
+        setIsAuthLoading(false);
       }
     }
     fetchProfile();
@@ -262,8 +288,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const login = async (emailOrPhone: string, password: string) => {
     const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/login', 'POST', { emailOrPhone, password });
     localStorage.setItem('home-rituals-token', data.token);
+    localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
+    setIsAuthLoading(false);
     setToastMessage('Signed in successfully');
     
     // Merge guest cart to server cart upon login
@@ -281,15 +309,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const register = async (email: string | null, phone: string | null, password: string, name: string) => {
     const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/register', 'POST', { email, phone, password, name });
     localStorage.setItem('home-rituals-token', data.token);
+    localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
+    setIsAuthLoading(false);
     setToastMessage('Account registered successfully');
   };
 
   const logout = () => {
     localStorage.removeItem('home-rituals-token');
+    localStorage.removeItem('home-rituals-user');
     setToken(null);
     setUser(null);
+    setIsAuthLoading(false);
     setCart([]);
     setWishlistIds([]);
     setAddresses([]);
@@ -400,6 +432,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(() => ({
     user,
     token,
+    isAuthLoading,
     login,
     register,
     logout,
@@ -439,7 +472,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setShipping,
     clearShipping,
   }), [
-    user, token, products, isLoadingProducts, cart, wishlistIds, isCartOpen,
+    user, token, isAuthLoading, products, isLoadingProducts, cart, wishlistIds, isCartOpen,
     isWishlistOpen, isSearchOpen, searchQuery, filteredProducts, quickViewProduct,
     addresses, shipping, fetchCartFromServer
   ]);

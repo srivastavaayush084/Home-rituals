@@ -17,8 +17,17 @@ import {
 import { useApp } from '../../context/AppContext';
 
 export const AdminLayout: React.FC = () => {
-  const { user, logout } = useApp();
+  const { user, isAuthLoading, logout } = useApp();
   const navigate = useNavigate();
+
+  // Show loader while checking auth on refresh
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stone-800" />
+      </div>
+    );
+  }
 
   // Guard against non-admin users
   if (!user || user.role !== 'ADMIN') {

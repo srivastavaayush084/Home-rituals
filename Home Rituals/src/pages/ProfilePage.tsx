@@ -71,7 +71,7 @@ interface Order {
 }
 
 export function ProfilePage() {
-  const { user, logout, addresses, fetchAddresses, createAddress, products, wishlistIds, toggleWishlist, addToCart, showToast } = useApp();
+  const { user, token, isAuthLoading, logout, addresses, fetchAddresses, createAddress, products, wishlistIds, toggleWishlist, addToCart, showToast } = useApp();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'account' | 'wishlist'>('orders');
@@ -131,15 +131,16 @@ export function ProfilePage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Redirect if guest
+  // Redirect if guest (only when not loading and no token)
   useEffect(() => {
-    if (!user) {
+    if (isAuthLoading) return;
+    if (!token && !user) {
       navigate('/login');
-    } else {
+    } else if (user) {
       setName(user.name);
       setPhone(user.phone || '');
     }
-  }, [user, navigate]);
+  }, [user, token, isAuthLoading, navigate]);
 
   // Load orders
   useEffect(() => {
@@ -265,6 +266,17 @@ export function ProfilePage() {
   };
 
   const wishlistProducts = products.filter((p) => wishlistIds.some((id: any) => String(id) === String(p.id)));
+
+  if (isAuthLoading || (!user && token)) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-300 border-t-[#0B8F3C]" />
+          <p className="text-sm text-stone-500">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 

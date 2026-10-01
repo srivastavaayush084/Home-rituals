@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/Button';
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { register } = useApp();
+  const { user, register } = useApp();
   const [name, setName] = useState('');
   const [regType, setRegType] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
@@ -22,6 +22,14 @@ export function RegisterPage() {
     !requestedFrom.startsWith('//')
       ? requestedFrom
       : '/';
+
+  // Automatically redirect away if already signed in
+  useEffect(() => {
+    if (user) {
+      const destination = from === '/register' || from === '/login' ? '/profile' : from;
+      navigate(destination, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

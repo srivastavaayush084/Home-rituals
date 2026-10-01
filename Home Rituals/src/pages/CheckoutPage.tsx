@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const { user, addresses, createAddress, setShipping, token } = useApp();
+  const { user, addresses, createAddress, setShipping, token, isAuthLoading } = useApp();
   
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
@@ -28,10 +28,10 @@ export function CheckoutPage() {
 
   // If not logged in, prompt user to sign in
   useEffect(() => {
-    if (!token) {
+    if (!token && !isAuthLoading) {
       navigate('/login');
     }
-  }, [token, navigate]);
+  }, [token, isAuthLoading, navigate]);
 
   // Set default selected address on load
   useEffect(() => {
