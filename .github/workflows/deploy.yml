@@ -21,11 +21,12 @@ jobs:
             server/package-lock.json
             Home Rituals/package-lock.json
 
-      - name: Install & Build Backend
+      - name: Install, Test & Build Backend
         run: |
           cd server
           npm ci
           npx prisma generate
+          npm test
           npm run build
 
       - name: Install & Build Frontend
@@ -93,5 +94,9 @@ jobs:
 
             echo "=== Reloading Web Server ==="
             systemctl reload nginx || sudo systemctl reload nginx
+
+            echo "=== Verifying Service Health Check ==="
+            sleep 3
+            curl -f http://localhost:5000/api/health || (echo "DEPLOYMENT FAILED: Post-deployment health check failed!" && exit 1)
 
             echo "=== Deployment Finished Successfully: $(date) ==="

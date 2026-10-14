@@ -51,7 +51,19 @@ function redactSensitive(obj: any): any {
 }
 
 const redactFilter = winston.format((info) => {
-  return redactSensitive(info);
+  if (info.message && typeof info.message === 'object') {
+    info.message = redactSensitive(info.message);
+  }
+  for (const key of Object.keys(info)) {
+    if (key !== 'level' && key !== 'timestamp' && key !== 'message') {
+      if (SENSITIVE_KEYS.some((k) => key.toLowerCase().includes(k))) {
+        info[key] = '[REDACTED]';
+      } else if (typeof info[key] === 'object' && info[key] !== null) {
+        info[key] = redactSensitive(info[key]);
+      }
+    }
+  }
+  return info;
 });
 
 // Define formats

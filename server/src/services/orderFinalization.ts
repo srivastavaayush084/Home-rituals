@@ -6,8 +6,8 @@ import { logger } from '../utils/logger';
 import { generateInvoiceNumber, generateInvoicePDFBuffer } from './invoiceService';
 
 interface FinalizePaidOrderParams {
-  userId: string;
-  addressId: string;
+  userId?: string;
+  addressId?: string;
   transactionId: string;
   gatewayOrderId: string;
   signature?: string;
@@ -24,6 +24,7 @@ interface FinalizeOrderItem {
 
 /**
  * Handles transactional order creation, stock deduction, and cart clearance.
+ * Uses immutable CheckoutSession snapshots to guarantee integrity against mutable carts.
  * Ensures idempotency by checking if the payment/order has already been processed,
  * enforcing database uniqueness constraints, and handling concurrent races gracefully.
  */
@@ -56,6 +57,10 @@ export async function finalizePaidOrder({
   });
 
   if (existingOrder) {
+    if (userId && existingOrder.userId !== userId) {
+      logger.warn(`[Order Finalization] Customer mismatch for existing order: order user ${existingOrder.userId} vs request user ${userId}`);
+      throw new BadRequestError('Payment identifier conflict: order belongs to another customer account');
+    }
     logger.info(`Duplicate payment callback received. Already processed Order ID: ${existingOrder.id}`);
     return {
       success: true,
@@ -64,100 +69,72 @@ export async function finalizePaidOrder({
     };
   }
 
-  // 2. Perform database updates in a single transaction with concurrency safety
+  // 2. Retrieve authoritative CheckoutSession snapshot if available
+  const checkoutSession = await prisma.checkoutSession.findUnique({
+    where: { gatewayOrderId },
+  });
+
+  let effectiveUserId = userId || checkoutSession?.userId;
+  if (!effectiveUserId) {
+    throw new BadRequestError('Customer identification missing for this order finalization');
+  }
+
+  // Customer ownership validation against snapshot
+  if (checkoutSession && userId && checkoutSession.userId !== userId) {
+    logger.warn(`[Order Finalization] CheckoutSession ${gatewayOrderId} user ${checkoutSession.userId} does not match request user ${userId}`);
+    throw new BadRequestError('This checkout session belongs to another customer');
+  }
+
+  if (checkoutSession) {
+    if (checkoutSession.status === 'CANCELLED') {
+      throw new BadRequestError('Checkout session has been cancelled');
+    }
+    if (checkoutSession.status === 'EXPIRED' || (checkoutSession.expiresAt && checkoutSession.expiresAt < new Date())) {
+      throw new BadRequestError('Checkout session has expired');
+    }
+    if (expectedAmountPaise !== undefined && checkoutSession.amountInPaise !== expectedAmountPaise) {
+      logger.error(`[Order Finalization] Amount mismatch: gateway charged ${expectedAmountPaise} paise, session snapshot expected ${checkoutSession.amountInPaise} paise.`);
+      throw new BadRequestError('The order amount does not match the payment amount. Please contact support.');
+    }
+  }
+
+  // 3. Perform database updates in a single transaction with concurrency safety
   let result;
   try {
     result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // A. Fetch cart items
-      const cartItems = await tx.cartItem.findMany({
-        where: { userId },
-        include: { product: true },
-      });
-
-      if (cartItems.length === 0) {
-        throw new BadRequestError('Your cart is empty');
-      }
-
-      // B. Fetch shipping address
-      const address = await tx.address.findFirst({
-        where: { id: addressId, userId },
-      });
-
-      if (!address) {
-        throw new BadRequestError('Shipping address not found');
-      }
-
-      // C. Validate stock & calculate prices
+      let itemsToCreate: FinalizeOrderItem[] = [];
+      let shippingAddress: any;
       let totalAmount = 0;
-      const itemsToCreate: FinalizeOrderItem[] = [];
 
-      for (const item of cartItems) {
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
+      if (checkoutSession) {
+        // Authoritative path: read from immutable session snapshot
+        itemsToCreate = (checkoutSession.itemsSnapshot as unknown as FinalizeOrderItem[]) || [];
+        shippingAddress = checkoutSession.addressSnapshot as any;
+        totalAmount = checkoutSession.totalAmount;
+
+        if (itemsToCreate.length === 0) {
+          throw new BadRequestError('No items found in checkout session snapshot');
+        }
+      } else {
+        // Fallback path (e.g. developer direct testing or legacy orders without session)
+        const cartItems = await tx.cartItem.findMany({
+          where: { userId: effectiveUserId },
+          include: { product: true },
         });
 
-        if (!product || product.deletedAt) {
-          throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
+        if (cartItems.length === 0) {
+          throw new BadRequestError('Your cart is empty');
         }
 
-        if (product.stock < item.quantity) {
-          throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
-        }
-
-        const price = product.discountPrice || product.price;
-        totalAmount += price * item.quantity;
-
-        itemsToCreate.push({
-          productId: item.productId,
-          quantity: item.quantity,
-          price,
-          name: product.name,
-        });
-      }
-
-      // Verify computed total matches gateway charged amount if provided
-      const computedPaise = Math.round(totalAmount * 100);
-      if (expectedAmountPaise !== undefined && computedPaise !== expectedAmountPaise) {
-        logger.error(`[Order Finalization] Amount mismatch: gateway paid ${expectedAmountPaise} paise, cart calculated ${computedPaise} paise.`);
-        throw new BadRequestError('The order amount does not match the payment amount. Please contact support.');
-      }
-
-      // D. Deduct inventory stock atomically (concurrency-safe against race conditions)
-      for (const item of itemsToCreate) {
-        const updateResult = await tx.product.updateMany({
-          where: {
-            id: item.productId,
-            stock: { gte: item.quantity },
-          },
-          data: {
-            stock: { decrement: item.quantity },
-          },
+        const address = await tx.address.findFirst({
+          where: { id: addressId, userId: effectiveUserId },
         });
 
-        if (updateResult.count === 0) {
-          throw new BadRequestError(`Insufficient stock for "${item.name}". The item may have just sold out.`);
+        if (!address) {
+          throw new BadRequestError('Shipping address not found');
         }
 
-        // Update stockStatus if depleted
-        const productAfter = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: { stock: true },
-        });
-        if (productAfter && productAfter.stock <= 0) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { stockStatus: 'Out of Stock' },
-          });
-        }
-      }
-
-      // E. Generate invoice number & create Order in database
-      const invoiceNumber = await generateInvoiceNumber(tx);
-      const invoiceDate = new Date();
-
-      const order = await tx.order.create({
-        data: {
-          userId,
+        shippingAddress = {
           fullName: address.fullName,
           address1: address.address1,
           address2: address.address2,
@@ -167,6 +144,86 @@ export async function finalizePaidOrder({
           country: address.country,
           landmark: address.landmark,
           phone: address.phone,
+        };
+
+        for (const item of cartItems) {
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+          });
+
+          if (!product || product.deletedAt) {
+            throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
+          }
+
+          if (product.stock < item.quantity) {
+            throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
+          }
+
+          const price = product.discountPrice || product.price;
+          totalAmount += price * item.quantity;
+
+          itemsToCreate.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            price,
+            name: product.name,
+          });
+        }
+
+        const computedPaise = Math.round(totalAmount * 100);
+        if (expectedAmountPaise !== undefined && computedPaise !== expectedAmountPaise) {
+          logger.error(`[Order Finalization] Amount mismatch: gateway paid ${expectedAmountPaise} paise, cart calculated ${computedPaise} paise.`);
+          throw new BadRequestError('The order amount does not match the payment amount. Please contact support.');
+        }
+      }
+
+      // Deduct inventory stock atomically (concurrency-safe against race conditions)
+      for (const item of itemsToCreate) {
+        if (item.productId) {
+          const updateResult = await tx.product.updateMany({
+            where: {
+              id: item.productId,
+              stock: { gte: item.quantity },
+            },
+            data: {
+              stock: { decrement: item.quantity },
+            },
+          });
+
+          if (updateResult.count === 0) {
+            throw new BadRequestError(`Insufficient stock for "${item.name}". The item may have just sold out.`);
+          }
+
+          // Update stockStatus if depleted
+          const productAfter = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true },
+          });
+          if (productAfter && productAfter.stock <= 0) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stockStatus: 'Out of Stock' },
+            });
+          }
+        }
+      }
+
+      // Generate invoice number & create Order in database
+      const invoiceNumber = await generateInvoiceNumber(tx);
+      const invoiceDate = new Date();
+
+      const order = await tx.order.create({
+        data: {
+          userId: effectiveUserId,
+          fullName: shippingAddress.fullName,
+          address1: shippingAddress.address1,
+          address2: shippingAddress.address2 || null,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country || 'India',
+          landmark: shippingAddress.landmark || null,
+          phone: shippingAddress.phone,
           totalAmount,
           status: 'Confirmed',
           paymentStatus: 'Paid',
@@ -180,7 +237,7 @@ export async function finalizePaidOrder({
         },
       });
 
-      // F. Create OrderItems
+      // Create OrderItems
       await tx.orderItem.createMany({
         data: itemsToCreate.map((item) => ({
           orderId: order.id,
@@ -190,17 +247,28 @@ export async function finalizePaidOrder({
         })),
       });
 
-      // G. Clear cart
+      // Mark checkout session as completed if session exists
+      if (checkoutSession) {
+        await tx.checkoutSession.update({
+          where: { id: checkoutSession.id },
+          data: {
+            status: 'COMPLETED',
+            orderId: order.id,
+          },
+        });
+      }
+
+      // Clear user cart
       await tx.cartItem.deleteMany({
-        where: { userId },
+        where: { userId: effectiveUserId },
       });
 
       return { order, itemsToCreate };
     });
   } catch (error: any) {
-    // If unique constraint violation occurs due to concurrent callback, retrieve existing order gracefully
+    // If unique constraint violation occurs (P2002), verify if this order was already processed concurrently
     if (error?.code === 'P2002' || error?.message?.includes('Unique constraint')) {
-      logger.info(`Concurrent order finalization detected for gatewayOrderId: ${gatewayOrderId}. Retrieving existing order.`);
+      logger.info(`Unique constraint encountered during finalization of gatewayOrderId: ${gatewayOrderId}. Checking if order was already finalized.`);
       const existing = await prisma.order.findFirst({
         where: {
           OR: [{ transactionId }, { gatewayOrderId }],
@@ -213,13 +281,20 @@ export async function finalizePaidOrder({
           },
         },
       });
-      if (existing) {
+      if (existing && (existing.gatewayOrderId === gatewayOrderId || existing.transactionId === transactionId)) {
+        if (effectiveUserId && existing.userId !== effectiveUserId) {
+          logger.warn(`[Order Finalization] User mismatch on concurrent resolution: order owner ${existing.userId} vs request user ${effectiveUserId}`);
+          throw new BadRequestError('Payment identifier conflict: order belongs to another account');
+        }
         return {
           success: true,
           alreadyProcessed: true,
           order: existing,
         };
       }
+      // If P2002 happened on an unrelated unique field (e.g. invoiceNumber or sku), rethrow so it is NOT masked!
+      logger.error(`[Order Finalization] P2002 constraint error did NOT match gateway order. Rethrowing.`);
+      throw error;
     }
     throw error;
   }

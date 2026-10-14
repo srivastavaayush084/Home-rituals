@@ -13,7 +13,7 @@
     "prisma:studio": "prisma studio",
     "seed": "ts-node-dev prisma/seed.ts",
     "fix-indexes": "ts-node-dev --transpile-only src/scripts/fixIndexes.ts",
-    "test": "ts-node-dev --transpile-only src/scripts/testCancellationSystem.ts"
+    "test": "ts-node src/scripts/testCancellationSystem.ts && ts-node src/scripts/testPhase6Verification.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

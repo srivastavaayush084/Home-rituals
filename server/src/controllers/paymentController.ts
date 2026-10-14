@@ -46,6 +46,9 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
     let payablePaise = 0;
     let payableRupees = 0;
 
+    let itemsSnapshot: any[] = [];
+    let addressSnapshot: any = null;
+
     // Scenario A: Direct amount provided (e.g. developer test console or custom amount)
     if (amount !== undefined && amount !== null) {
       if (process.env.NODE_ENV === 'production') {
@@ -78,14 +81,38 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
         });
       }
       payableRupees = payablePaise / 100;
+      itemsSnapshot = [{ productId: '', name: 'Custom Checkout', price: payableRupees, quantity: 1 }];
     } else {
       // Scenario B: E-commerce cart checkout (validates cart & inventory server-side)
       if (!addressId) {
         return res.status(400).json({
           success: false,
-          error: { message: 'Address ID or amount is required', code: 'MISSING_REQUIRED_FIELD' },
+          error: { message: 'Address ID is required for checkout', code: 'MISSING_REQUIRED_FIELD' },
         });
       }
+
+      const address = await prisma.address.findFirst({
+        where: { id: addressId, userId },
+      });
+
+      if (!address) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Shipping address not found', code: 'ADDRESS_NOT_FOUND' },
+        });
+      }
+
+      addressSnapshot = {
+        fullName: address.fullName,
+        address1: address.address1,
+        address2: address.address2,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country,
+        landmark: address.landmark,
+        phone: address.phone,
+      };
 
       const cartItems = await prisma.cartItem.findMany({
         where: { userId },
@@ -121,6 +148,13 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
 
         const price = product.discountPrice || product.price;
         totalAmount += price * item.quantity;
+
+        itemsSnapshot.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          price,
+          name: product.name,
+        });
       }
 
       payableRupees = totalAmount;
@@ -155,7 +189,35 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       notes,
     });
 
-    logger.info(`[Razorpay] Order created: ${rzpOrder.orderId} for User: ${userId}, Amount: ${rzpOrder.amount} paise`);
+    // Persist immutable CheckoutSession snapshot
+    await prisma.checkoutSession.create({
+      data: {
+        userId,
+        gatewayOrderId: rzpOrder.orderId,
+        receipt: rzpOrder.receipt,
+        currency: rzpOrder.currency || 'INR',
+        amountInPaise: payablePaise,
+        subtotal: payableRupees,
+        tax: 0,
+        shipping: 0,
+        discount: 0,
+        totalAmount: payableRupees,
+        status: 'PENDING',
+        itemsSnapshot: itemsSnapshot as any,
+        addressSnapshot: (addressSnapshot || {
+          fullName: user?.name || 'Customer',
+          address1: 'Direct Checkout',
+          city: 'N/A',
+          state: 'N/A',
+          postalCode: '000000',
+          country: 'India',
+          phone: user?.phone || '0000000000',
+        }) as any,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
+      },
+    });
+
+    logger.info(`[Razorpay] Order and immutable CheckoutSession created: ${rzpOrder.orderId} for User: ${userId}, Amount: ${rzpOrder.amount} paise`);
 
     return res.status(200).json({
       success: true,
@@ -308,11 +370,11 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
       });
     }
 
-    // 3. Finalize order inside transactional boundary if addressId is present
-    if (addressId) {
+    // 3. Finalize order inside transactional boundary using immutable checkout snapshot or addressId
+    try {
       const finalization = await finalizePaidOrder({
         userId,
-        addressId: String(addressId),
+        addressId: addressId ? String(addressId) : undefined,
         transactionId: razorpay_payment_id,
         gatewayOrderId: razorpay_order_id,
         signature: razorpay_signature,
@@ -321,32 +383,51 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
       });
 
       return sendSuccess(res, finalization);
-    }
-
-    // 4. If addressId is not in request (e.g. standalone test/verify call), check existing order or return verification success
-    const existingOrder = await prisma.order.findFirst({
-      where: {
-        OR: [{ gatewayOrderId: razorpay_order_id }, { transactionId: razorpay_payment_id }],
-      },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: { id: true, name: true, image: true },
+    } catch (finalizationError: any) {
+      if (
+        finalizationError.statusCode === 400 ||
+        finalizationError.name === 'BadRequestError' ||
+        finalizationError.code === 'BAD_REQUEST'
+      ) {
+        // If developer testing without a cart or checkout session and no address was provided
+        if (
+          !addressId &&
+          (finalizationError.message?.includes('Customer identification missing') ||
+            finalizationError.message?.includes('Your cart is empty') ||
+            finalizationError.message?.includes('Shipping address not found') ||
+            finalizationError.message?.includes('No items found'))
+        ) {
+          const existingOrder = await prisma.order.findFirst({
+            where: {
+              OR: [{ gatewayOrderId: razorpay_order_id }, { transactionId: razorpay_payment_id }],
             },
-          },
-        },
-      },
-    });
+            include: {
+              items: {
+                include: { product: { select: { id: true, name: true, image: true } } },
+              },
+            },
+          });
 
-    return res.status(200).json({
-      success: true,
-      verified: true,
-      message: 'Payment signature verified successfully',
-      razorpay_order_id,
-      razorpay_payment_id,
-      order: existingOrder || null,
-    });
+          return res.status(200).json({
+            success: true,
+            verified: true,
+            message: 'Payment signature verified successfully',
+            razorpay_order_id,
+            razorpay_payment_id,
+            order: existingOrder || null,
+          });
+        }
+
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: finalizationError.message || 'Payment finalization failed',
+            code: finalizationError.code || 'PAYMENT_FINALIZATION_FAILED',
+          },
+        });
+      }
+      throw finalizationError;
+    }
   } catch (error: any) {
     logger.error('[Razorpay Verify Error]:', error);
     return res.status(500).json({
@@ -652,5 +733,146 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
   } catch (error) {
     logger.error('[Razorpay Webhook] Unhandled webhook processing error:', error);
     next(error);
+  }
+}
+
+/**
+ * Reconciles an ambiguous or pending payment directly with the Razorpay gateway.
+ * POST /api/payments/razorpay/reconcile
+ */
+export async function reconcilePaymentController(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+  try {
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
+      });
+    }
+
+    const { gatewayOrderId, paymentId } = req.body;
+    if (!gatewayOrderId && !paymentId) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Either gatewayOrderId or paymentId is required for reconciliation', code: 'MISSING_IDENTIFIER' },
+      });
+    }
+
+    // 1. Check if Order already exists
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        OR: [
+          ...(gatewayOrderId ? [{ gatewayOrderId }] : []),
+          ...(paymentId ? [{ transactionId: paymentId }] : []),
+        ],
+      },
+      include: {
+        items: { include: { product: { select: { id: true, name: true } } } },
+      },
+    });
+
+    if (existingOrder) {
+      // Validate customer ownership or admin role
+      if (existingOrder.userId !== userId && userRole !== 'ADMIN') {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'You do not have permission to reconcile this order', code: 'FORBIDDEN' },
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        reconciled: true,
+        order: existingOrder,
+        message: 'Order is already confirmed and reconciled.',
+      });
+    }
+
+    // 2. Fetch payment details from Razorpay
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Payment ID is required to fetch payment status from gateway for unfulfilled orders',
+          code: 'PAYMENT_ID_REQUIRED',
+        },
+      });
+    }
+
+    let paymentDetails: any;
+    try {
+      paymentDetails = await fetchRazorpayPayment(paymentId);
+    } catch (fetchErr: any) {
+      logger.error(`[Reconciliation] Failed to fetch payment ${paymentId} from Razorpay:`, fetchErr?.message);
+      return res.status(502).json({
+        success: false,
+        error: { message: 'Payment gateway lookup failed or timed out during reconciliation', code: 'GATEWAY_ERROR' },
+      });
+    }
+
+    if (!paymentDetails) {
+      return res.status(502).json({
+        success: false,
+        error: { message: 'Payment details could not be retrieved from Razorpay', code: 'GATEWAY_ERROR' },
+      });
+    }
+
+    // Strict validation: Only captured status triggers fulfillment
+    if (paymentDetails.status !== 'captured') {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: `Payment status is '${paymentDetails.status}'. Only captured payments can be reconciled into orders.`,
+          code: 'PAYMENT_NOT_CAPTURED',
+          status: paymentDetails.status,
+        },
+      });
+    }
+
+    if (paymentDetails.currency?.toUpperCase() !== 'INR') {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Currency mismatch during reconciliation', code: 'CURRENCY_MISMATCH' },
+      });
+    }
+
+    const orderIdToFinalize = gatewayOrderId || paymentDetails.order_id;
+    if (!orderIdToFinalize) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Gateway order ID could not be determined for this payment', code: 'MISSING_ORDER_ID' },
+      });
+    }
+
+    if (gatewayOrderId && paymentDetails.order_id && paymentDetails.order_id !== gatewayOrderId) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Gateway Order ID does not match payment entity', code: 'ORDER_MISMATCH' },
+      });
+    }
+
+    // 3. Finalize using canonical service
+    const finalization = await finalizePaidOrder({
+      userId,
+      transactionId: paymentId,
+      gatewayOrderId: orderIdToFinalize,
+      paymentGateway: 'Razorpay',
+      expectedAmountPaise: paymentDetails.amount,
+    });
+
+    return sendSuccess(res, {
+      reconciled: true,
+      ...finalization,
+    }, 200, 'Payment successfully reconciled and order fulfilled');
+  } catch (error: any) {
+    logger.error('[Razorpay Reconciliation Error]:', error);
+    return res.status(error?.statusCode || 500).json({
+      success: false,
+      error: {
+        message: error?.message || 'Payment reconciliation failed',
+        code: error?.code || 'RECONCILIATION_FAILED',
+      },
+    });
   }
 }

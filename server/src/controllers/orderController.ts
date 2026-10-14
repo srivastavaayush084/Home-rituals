@@ -2,152 +2,18 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../utils/db';
 import { sendSuccess, sendPaginated, BadRequestError, NotFoundError, ForbiddenError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { createRazorpayOrder } from '../services/razorpay';
 import { sendEmail, emailTemplates } from '../services/email';
 import { logger } from '../utils/logger';
 import { generateInvoiceNumber, generateInvoicePDFBuffer } from '../services/invoiceService';
 import { executeOrderCancellation } from '../services/orderCancellationService';
+import { initiatePaymentDirect } from './paymentController';
 
+/**
+ * Creates/initiates an order. Delegated to canonical initiatePaymentDirect to ensure
+ * atomic CheckoutSession snapshots and prevent pre-payment stock deduction leaks.
+ */
 export async function createOrder(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  try {
-    const userId = req.user!.id;
-    const { addressId } = req.body;
-
-    // Use transaction to ensure inventory safety and consistency
-    const result = await prisma.$transaction(async (tx: any) => {
-      // 1. Get user's cart
-      const cartItems = await tx.cartItem.findMany({
-        where: { userId } as any,
-        include: { product: true },
-      });
-
-      if (cartItems.length === 0) {
-        throw new BadRequestError('Your cart is empty');
-      }
-
-      // 2. Validate inventory stock and calculate totals
-      let totalAmount = 0;
-      const itemsToCreate = [];
-
-      for (const item of cartItems) {
-        const product = await tx.product.findUnique({
-          where: { id: item.productId } as any,
-        });
-
-        if (!product || product.deletedAt) {
-          throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
-        }
-
-        if (product.stock < item.quantity) {
-          throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
-        }
-
-        // Calculate item price (use discount price if present, else standard price)
-        const price = product.discountPrice || product.price;
-        totalAmount += price * item.quantity;
-
-        itemsToCreate.push({
-          productId: item.productId,
-          quantity: item.quantity,
-          price,
-          name: product.name,
-        });
-      }
-
-      // 3. Reserve inventory stock
-      for (const item of itemsToCreate) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } as any });
-        const newStock = product!.stock - item.quantity;
-        await tx.product.update({
-          where: { id: item.productId } as any,
-          data: {
-            stock: newStock,
-            stockStatus: newStock > 0 ? 'In Stock' : 'Out of Stock',
-          },
-        });
-      }
-
-      // 4. Retrieve shipping address
-      const address = await tx.address.findFirst({
-        where: { id: addressId, userId } as any,
-      });
-
-      if (!address) {
-        throw new BadRequestError('Shipping address not found');
-      }
-
-      // 5. Create Order
-      const order = await tx.order.create({
-        data: {
-          userId,
-          fullName: address.fullName,
-          address1: address.address1,
-          address2: address.address2,
-          city: address.city,
-          state: address.state,
-          postalCode: address.postalCode,
-          country: address.country,
-          landmark: address.landmark,
-          phone: address.phone,
-          totalAmount,
-          status: 'Pending',
-          paymentStatus: 'Pending',
-        } as any,
-      });
-
-      // 6. Create OrderItems
-      await tx.orderItem.createMany({
-        data: itemsToCreate.map((item) => ({
-          orderId: order.id,
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.price,
-        })) as any,
-      });
-
-      // 7. Clear user's cart
-      await tx.cartItem.deleteMany({ where: { userId } as any });
-
-      return { order, itemsToCreate };
-    });
-
-    const { order, itemsToCreate } = result;
-
-    // 8. Integrate with Razorpay
-    let razorpayOrder;
-    try {
-      razorpayOrder = await createRazorpayOrder({
-        amount: order.totalAmount,
-        receipt: `ord_${order.id}`,
-        notes: {
-          orderId: order.id.toString(),
-          userId,
-        },
-      });
-
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { gatewayOrderId: razorpayOrder.orderId, paymentGateway: 'Razorpay' },
-      });
-    } catch (rzpError: any) {
-      logger.warn(`[Razorpay] Order ${order.id} created but Razorpay order creation failed:`, rzpError);
-    }
-
-    // 9. Send email notification
-    if (req.user!.email) {
-      await sendEmail({
-        to: req.user!.email,
-        subject: `Order Created! - #${order.id}`,
-        html: emailTemplates.getOrderConfirmationHtml(order.id, order.totalAmount, itemsToCreate),
-        text: `Hello ${order.fullName},\n\nYour order #${order.id} has been created. Total amount: ₹${order.totalAmount}.`,
-      });
-    }
-
-    logger.info(`Order placed successfully: #${order.id} for user ID: ${userId}`);
-    return sendSuccess(res, { order, razorpayOrder }, 201, 'Order created successfully');
-  } catch (error) {
-    next(error);
-  }
+  return initiatePaymentDirect(req, res, next);
 }
 
 export async function listUserOrders(req: AuthenticatedRequest, res: Response, next: NextFunction) {

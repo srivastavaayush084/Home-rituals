@@ -28,6 +28,7 @@ model User {
   wishlistItems      WishlistItem[]
   cartItems          CartItem[]
   orders             Order[]
+  checkoutSessions   CheckoutSession[]
   addresses          Address[]
   refunds            Refund[]
 }
@@ -281,5 +282,31 @@ model Banner {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model CheckoutSession {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gatewayOrderId  String   @unique
+  receipt         String?
+  currency        String   @default("INR")
+  amountInPaise   Int
+  subtotal        Float
+  tax             Float    @default(0)
+  shipping        Float    @default(0)
+  discount        Float    @default(0)
+  totalAmount     Float
+  status          String   @default("PENDING") // PENDING, COMPLETED, EXPIRED, CANCELLED
+  itemsSnapshot   Json     // Array of { productId: string, quantity: number, price: number, name: string }
+  addressSnapshot Json     // Address object snapshot { fullName, address1, address2, city, state, postalCode, country, landmark, phone }
+  orderId         String?  @db.ObjectId
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
