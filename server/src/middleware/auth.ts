@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/db';
 import { UnauthorizedError, ForbiddenError } from '../utils/response';
 
+import { getJwtSecret } from '../utils/jwt';
+
 export interface UserPayload {
   id: string;
   email: string | null;
@@ -14,8 +16,6 @@ export interface UserPayload {
 export interface AuthenticatedRequest extends Request {
   user?: UserPayload;
 }
-
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtsecretkeyshouldbechangedinproduction';
 
 /**
  * Middleware to extract and verify JWT token from Authorization header
@@ -33,7 +33,7 @@ export async function authenticateToken(
       return next();
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as UserPayload;
     
     // Validate that the user still exists in database
     const user = await prisma.user.findUnique({

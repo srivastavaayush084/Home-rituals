@@ -168,8 +168,8 @@ model Order {
   status             String      @default("Pending") // Pending, Confirmed, Packed, Shipped, Delivered, Cancelled, Returned, Refunded
   paymentStatus      String      @default("Pending") // Pending, Paid, Failed, Refunded
   paymentGateway     String?     @default("Razorpay")
-  transactionId      String?
-  gatewayOrderId     String?
+  transactionId      String?     @unique
+  gatewayOrderId     String?     @unique
   signature          String?
   trackingNumber     String?
   courierName        String?
@@ -200,8 +200,6 @@ model Order {
   @@index([status])
   @@index([refundStatus])
   @@index([createdAt])
-  @@index([gatewayOrderId])
-  @@index([transactionId])
   @@index([refundId])
 }
 

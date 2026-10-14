@@ -21,12 +21,46 @@ const colors = {
 
 winston.addColors(colors);
 
+const SENSITIVE_KEYS = [
+  'password',
+  'passwordhash',
+  'token',
+  'refreshtoken',
+  'secret',
+  'authorization',
+  'keysecret',
+  'webhooksecret',
+  'apikey',
+];
+
+function redactSensitive(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(redactSensitive);
+
+  const sanitized: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (SENSITIVE_KEYS.some((k) => key.toLowerCase().includes(k))) {
+      sanitized[key] = '[REDACTED]';
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = redactSensitive(value);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+}
+
+const redactFilter = winston.format((info) => {
+  return redactSensitive(info);
+});
+
 // Define formats
 const format = winston.format.combine(
+  redactFilter(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
   winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
+    (info) => `${info.timestamp} ${info.level}: ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`
   )
 );
 

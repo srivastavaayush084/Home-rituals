@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Clock3, Sparkles } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { apiRequest } from '../utils/apiClient';
 
 export function BlogArticlePage() {
@@ -94,12 +95,13 @@ export function BlogArticlePage() {
               {contentArray.map((item: any, index: number) => {
                 if (typeof item === 'string') {
                   if (item.includes('<')) {
+                    const cleanHtml = DOMPurify.sanitize(item);
                     if (item.startsWith('<h')) {
                       return (
                         <div
                           key={index}
                           className="markdown-heading"
-                          dangerouslySetInnerHTML={{ __html: item }}
+                          dangerouslySetInnerHTML={{ __html: cleanHtml }}
                         />
                       );
                     }
@@ -108,24 +110,25 @@ export function BlogArticlePage() {
                         <div
                           key={index}
                           className="markdown-list-container"
-                          dangerouslySetInnerHTML={{ __html: item }}
+                          dangerouslySetInnerHTML={{ __html: cleanHtml }}
                         />
                       );
                     }
                     return (
                       <p
                         key={index}
-                        dangerouslySetInnerHTML={{ __html: item }}
+                        dangerouslySetInnerHTML={{ __html: cleanHtml }}
                       />
                     );
                   }
                   return <p key={index}>{item}</p>;
                 } else if (item && item.type === 'table') {
+                  const cleanTableHtml = DOMPurify.sanitize(item.html || '');
                   return (
                     <div
                       key={index}
                       className="markdown-table-container"
-                      dangerouslySetInnerHTML={{ __html: item.html }}
+                      dangerouslySetInnerHTML={{ __html: cleanTableHtml }}
                     />
                   );
                 }

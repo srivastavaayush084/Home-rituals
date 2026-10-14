@@ -1,6 +1,6 @@
 # Home Rituals API Backend
 
-Production-ready, highly secure Node.js, Express, TypeScript, and Prisma backend with PostgreSQL database support.
+Production-ready, highly secure Node.js, Express, TypeScript, and Prisma backend with MongoDB database support.
 
 ## Core Features
 
@@ -37,20 +37,20 @@ cp .env.example .env
 ```
 
 Ensure you configure:
-- `DATABASE_URL`: PostgreSQL connection string.
-- `JWT_SECRET`: Secure token signer key.
-- `ADMIN_EMAIL`, `ADMIN_PASSWORD`: Default credentials seeded on launch.
+- `DATABASE_URL`: MongoDB connection string (e.g. `mongodb://localhost:27017/homerituals` or MongoDB Atlas URI `mongodb+srv://...`).
+- `JWT_SECRET`: Secure token signer key (minimum 32 characters in production).
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`: Administrator credentials seeded on launch.
 - `CLOUDINARY_*` keys (Media storage).
 - `RAZORPAY_*` keys (Payment gateway credentials).
 - `EMAIL_*` SMTP configurations.
 
-### 3. Run Database Migrations
+### 3. Push Database Schema
 
-Generate your local PostgreSQL schema and build the client client:
+Generate Prisma client and push your schema to MongoDB:
 
 ```bash
-npx prisma generate
-npx prisma migrate dev --name init
+npm run prisma:generate
+npm run prisma:push
 ```
 
 ### 4. Seed Database
@@ -77,19 +77,20 @@ The server will spin up on `http://localhost:5000`. You can access:
 
 ## Deployment Guide
 
-This backend is designed with configurations fully environment-driven, enabling seamless deployment to platforms like **Heroku, Render, Railway, or Fly.io**.
+This backend is designed with configurations fully environment-driven, enabling seamless deployment to platforms like **Heroku, Render, Railway, VPS, or DigitalOcean**.
 
 ### Steps for Deployment
 
-1. **Database Setup**: Set up a managed PostgreSQL database (e.g. Supabase, AWS RDS, Neon, or Railway PG). Copy the connection URL.
+1. **Database Setup**: Set up a managed MongoDB replica set database (e.g. MongoDB Atlas, Railway MongoDB). Copy the connection URI.
 2. **Environment Variables**: Set the respective variables in your platform's management console (CORS settings, Cloudinary, SMTP, Razorpay).
 3. **Build Script**: Ensure the platform runs:
    ```bash
    npm run build
    ```
-   This will compile TS into JS under `dist/`.
+   This will run `prisma generate` and compile TypeScript into JavaScript under `dist/`.
 4. **Start Command**:
    ```bash
    npm start
    ```
-5. **Post-deployment Migrations**: Configure the platform to trigger database updates automatically by running `npx prisma migrate deploy` before launching the server.
+5. **Schema Synchronization**: When updating schema models on MongoDB, run `npx prisma db push` during deployment.
+

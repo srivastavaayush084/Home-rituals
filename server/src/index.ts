@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { logger } from './utils/logger';
-import { connectDB } from './utils/db';
+import { connectDB, prisma } from './utils/db';
 import { errorHandler } from './middleware/errorHandler';
 import { authenticateToken, requireAuth } from './middleware/auth';
 import { xssSanitizer } from './middleware/validator';
@@ -34,6 +34,10 @@ import adminRoutes from './routes/adminRoutes';
 import bannerRoutes from './routes/bannerRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import { initiatePaymentDirect, verifyPaymentDirect } from './controllers/paymentController';
+import { getJwtSecret } from './utils/jwt';
+
+// Validate critical security secrets on startup
+getJwtSecret();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -123,13 +127,29 @@ app.get('/', (_req, res) => {
   });
 });
 
-// Basic Health Check
-app.get('/api/health', (_req, res) => {
-  res.status(200).json({
+// Readiness & Health Check with Database Connectivity Validation
+app.get('/api/health', async (_req, res) => {
+  let dbStatus = 'CONNECTED';
+  try {
+    await prisma.user.findFirst({ select: { id: true } });
+  } catch (error: any) {
+    dbStatus = 'DISCONNECTED';
+    logger.error('[Health Check] Database unreachable:', error?.message);
+    return res.status(503).json({
+      success: false,
+      status: 'DEGRADED',
+      database: dbStatus,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  return res.status(200).json({
     success: true,
     status: 'UP',
+    database: dbStatus,
     uptime: process.uptime(),
-    timestamp: new Date(),
+    timestamp: new Date().toISOString(),
   });
 });
 

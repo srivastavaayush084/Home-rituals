@@ -4,10 +4,24 @@ import { ProductCard } from '../components/ui/ProductCard';
 import { useApp } from '../context/AppContext';
 
 export function ShopPage() {
-  const { products, addToCart, toggleWishlist, wishlistIds, isLoadingProducts } = useApp();
+  const { products, addToCart, toggleWishlist, wishlistIds, isLoadingProducts, isFallbackMode, refreshProducts } = useApp();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      {isFallbackMode && (
+        <div className="mb-6 flex items-center justify-between rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs text-amber-800 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-600 flex-shrink-0" />
+            <span>Displaying offline catalog preview. Connect to the API server for live inventory and pricing.</span>
+          </div>
+          <button
+            onClick={() => refreshProducts()}
+            className="ml-3 font-semibold underline hover:text-amber-950 transition-colors cursor-pointer"
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}

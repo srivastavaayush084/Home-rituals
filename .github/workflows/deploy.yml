@@ -5,24 +5,56 @@ on:
     branches: [main]
 
 jobs:
+  validate-and-build:
+    name: Build & Test Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            Home Rituals/package-lock.json
+
+      - name: Install & Build Backend
+        run: |
+          cd server
+          npm ci
+          npx prisma generate
+          npm run build
+
+      - name: Install & Build Frontend
+        run: |
+          cd "Home Rituals"
+          npm ci
+          npm run build
+
   deploy:
+    name: Deploy to Production VPS
+    needs: [validate-and-build]
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          debug: true
           script: |
-            exec > /var/www/html/deploy.log 2>&1
-            echo "=== Deployment Start: $(date) ==="
+            mkdir -p /var/log/home-rituals
+            LOG_FILE="/var/log/home-rituals/deploy-$(date +%Y%m%d-%H%M%S).log"
+            exec > "$LOG_FILE" 2>&1
+            chmod 600 "$LOG_FILE"
+            echo "=== Deployment Started: $(date) ==="
             whoami
             pwd
-            ls -la /root
 
             REPO_DIR=""
             if [ -d "/root/Home-rituals" ]; then
@@ -36,24 +68,34 @@ jobs:
 
             cd "$REPO_DIR"
             git status
-            git remote -v
             git remote set-url origin https://github.com/srivastavaayush084/Home-rituals.git
             git fetch origin main
             git reset --hard origin/main
 
-            echo "=== Building Frontend ==="
+            echo "=== Deploying Frontend ==="
             cd "$REPO_DIR/Home Rituals"
-            npm install
+            npm ci
             npm run build
             cp -r dist/* /var/www/html/
 
-            echo "=== Building Backend ==="
+            echo "=== Deploying Backend ==="
             cd "$REPO_DIR/server"
-            npm install
+            npm ci
             npx prisma generate
+            npx prisma db push
             npm run build
+
+            echo "=== Restarting Backend Services ==="
             pm2 restart home-rituals-api --update-env || pm2 start dist/index.js --name "home-rituals-api"
             pm2 save
+
+            echo "=== Running Post-Deployment Health Check ==="
+            sleep 3
+            curl -f http://127.0.0.1:5000/api/health || {
+              echo "CRITICAL: Health check failed! Checking PM2 logs..."
+              pm2 logs home-rituals-api --lines 30 --nostream
+              exit 1
+            }
 
             systemctl reload nginx
             echo "=== Deployment Finished Successfully: $(date) ==="

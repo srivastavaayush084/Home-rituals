@@ -48,6 +48,16 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
 
     // Scenario A: Direct amount provided (e.g. developer test console or custom amount)
     if (amount !== undefined && amount !== null) {
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({
+          success: false,
+          error: {
+            message: 'Direct amount payment initiation is disabled in production. Checkout must be initiated through the cart.',
+            code: 'FORBIDDEN_IN_PRODUCTION',
+          },
+        });
+      }
+
       const parsedAmount = Number(amount);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         return res.status(400).json({
@@ -236,21 +246,66 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
       });
     }
 
-    // 2. Fetch payment details from Razorpay to confirm status
+    // 2. Fetch payment details from Razorpay to confirm status (FAIL-CLOSED)
+    let paymentDetails: any;
     try {
-      const paymentDetails = await fetchRazorpayPayment(razorpay_payment_id);
-      if (paymentDetails.status !== 'captured' && paymentDetails.status !== 'authorized') {
-        logger.warn(`[Razorpay Verify] Payment ${razorpay_payment_id} status is ${paymentDetails.status}`);
+      paymentDetails = await fetchRazorpayPayment(razorpay_payment_id);
+    } catch (fetchError: any) {
+      logger.error(`[Razorpay Verify] Could not fetch payment status from API for payment ${razorpay_payment_id}:`, fetchError?.message);
+      return res.status(502).json({
+        success: false,
+        error: {
+          message: 'Payment gateway confirmation failed or timed out. Order cannot be finalized without confirmed capture. Please contact support.',
+          code: 'PAYMENT_GATEWAY_LOOKUP_FAILED',
+        },
+      });
+    }
+
+    // Verify order ID on payment entity matches razorpay_order_id
+    if (paymentDetails.order_id && paymentDetails.order_id !== razorpay_order_id) {
+      logger.warn(`[Razorpay Verify] Order ID mismatch: gateway reports ${paymentDetails.order_id}, client provided ${razorpay_order_id}`);
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Payment verification failed: Gateway Order ID mismatch.',
+          code: 'PAYMENT_ORDER_MISMATCH',
+        },
+      });
+    }
+
+    // Verify currency
+    if (paymentDetails.currency && paymentDetails.currency.toUpperCase() !== 'INR') {
+      logger.warn(`[Razorpay Verify] Currency mismatch: expected INR, received ${paymentDetails.currency}`);
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Payment verification failed: Currency mismatch.',
+          code: 'PAYMENT_CURRENCY_MISMATCH',
+        },
+      });
+    }
+
+    // Strict capture check: Only 'captured' status permits order fulfillment
+    if (paymentDetails.status !== 'captured') {
+      if (paymentDetails.status === 'authorized') {
+        logger.warn(`[Razorpay Verify] Payment ${razorpay_payment_id} is in 'authorized' status (not captured). Fulfilling is prevented.`);
         return res.status(400).json({
           success: false,
           error: {
-            message: `Payment status verification failed. Current status: ${paymentDetails.status}`,
-            code: 'PAYMENT_NOT_AUTHORIZED',
+            message: 'Payment is authorized but pending capture by the payment processor. Order cannot be finalized until captured.',
+            code: 'PAYMENT_AUTHORIZED_NOT_CAPTURED',
           },
         });
       }
-    } catch (fetchError: any) {
-      logger.warn(`[Razorpay Verify] Could not fetch payment status from API (proceeding with verified signature):`, fetchError?.message);
+
+      logger.warn(`[Razorpay Verify] Payment ${razorpay_payment_id} status is ${paymentDetails.status}`);
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: `Payment status verification failed. Current status: ${paymentDetails.status}`,
+          code: 'PAYMENT_NOT_CAPTURED',
+        },
+      });
     }
 
     // 3. Finalize order inside transactional boundary if addressId is present
@@ -262,6 +317,7 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
         gatewayOrderId: razorpay_order_id,
         signature: razorpay_signature,
         paymentGateway: 'Razorpay',
+        expectedAmountPaise: paymentDetails.amount,
       });
 
       return sendSuccess(res, finalization);
@@ -368,6 +424,7 @@ export async function handleWebhook(req: Request, res: Response, next: NextFunct
               gatewayOrderId: rzpOrderId,
               signature,
               paymentGateway: 'Razorpay',
+              expectedAmountPaise: paymentEntity?.amount,
             });
             logger.info(`[Razorpay Webhook] Order finalized via webhook for Order: ${rzpOrderId}`);
           } catch (finalizeError) {

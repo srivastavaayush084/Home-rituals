@@ -12,6 +12,7 @@ interface FinalizePaidOrderParams {
   gatewayOrderId: string;
   signature?: string;
   paymentGateway?: string;
+  expectedAmountPaise?: number;
 }
 
 interface FinalizeOrderItem {
@@ -23,7 +24,8 @@ interface FinalizeOrderItem {
 
 /**
  * Handles transactional order creation, stock deduction, and cart clearance.
- * Ensures idempotency by checking if the payment/order has already been processed.
+ * Ensures idempotency by checking if the payment/order has already been processed,
+ * enforcing database uniqueness constraints, and handling concurrent races gracefully.
  */
 export async function finalizePaidOrder({
   userId,
@@ -32,6 +34,7 @@ export async function finalizePaidOrder({
   gatewayOrderId,
   signature,
   paymentGateway = 'Razorpay',
+  expectedAmountPaise,
 }: FinalizePaidOrderParams) {
   // 1. Idempotency Check (Duplicate Payment Check)
   const existingOrder = await prisma.order.findFirst({
@@ -61,114 +64,165 @@ export async function finalizePaidOrder({
     };
   }
 
-  // 2. Perform database updates in a single transaction
-  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // A. Fetch cart items
-    const cartItems = await tx.cartItem.findMany({
-      where: { userId },
-      include: { product: true },
-    });
-
-    if (cartItems.length === 0) {
-      throw new BadRequestError('Your cart is empty');
-    }
-
-    // B. Fetch shipping address
-    const address = await tx.address.findFirst({
-      where: { id: addressId, userId },
-    });
-
-    if (!address) {
-      throw new BadRequestError('Shipping address not found');
-    }
-
-    // C. Validate stock & calculate prices
-    let totalAmount = 0;
-    const itemsToCreate: FinalizeOrderItem[] = [];
-
-    for (const item of cartItems) {
-      const product = await tx.product.findUnique({
-        where: { id: item.productId },
+  // 2. Perform database updates in a single transaction with concurrency safety
+  let result;
+  try {
+    result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // A. Fetch cart items
+      const cartItems = await tx.cartItem.findMany({
+        where: { userId },
+        include: { product: true },
       });
 
-      if (!product || product.deletedAt) {
-        throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
+      if (cartItems.length === 0) {
+        throw new BadRequestError('Your cart is empty');
       }
 
-      if (product.stock < item.quantity) {
-        throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
-      }
-
-      const price = product.discountPrice || product.price;
-      totalAmount += price * item.quantity;
-
-      itemsToCreate.push({
-        productId: item.productId,
-        quantity: item.quantity,
-        price,
-        name: product.name,
+      // B. Fetch shipping address
+      const address = await tx.address.findFirst({
+        where: { id: addressId, userId },
       });
-    }
 
-    // D. Deduct inventory stock
-    for (const item of itemsToCreate) {
-      const product = await tx.product.findUnique({ where: { id: item.productId } });
-      const newStock = product!.stock - item.quantity;
-      await tx.product.update({
-        where: { id: item.productId },
+      if (!address) {
+        throw new BadRequestError('Shipping address not found');
+      }
+
+      // C. Validate stock & calculate prices
+      let totalAmount = 0;
+      const itemsToCreate: FinalizeOrderItem[] = [];
+
+      for (const item of cartItems) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product || product.deletedAt) {
+          throw new BadRequestError(`Product "${item.product?.name || 'Item'}" is no longer available`);
+        }
+
+        if (product.stock < item.quantity) {
+          throw new BadRequestError(`Insufficient stock for "${product.name}". Only ${product.stock} available.`);
+        }
+
+        const price = product.discountPrice || product.price;
+        totalAmount += price * item.quantity;
+
+        itemsToCreate.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          price,
+          name: product.name,
+        });
+      }
+
+      // Verify computed total matches gateway charged amount if provided
+      const computedPaise = Math.round(totalAmount * 100);
+      if (expectedAmountPaise !== undefined && computedPaise !== expectedAmountPaise) {
+        logger.error(`[Order Finalization] Amount mismatch: gateway paid ${expectedAmountPaise} paise, cart calculated ${computedPaise} paise.`);
+        throw new BadRequestError('The order amount does not match the payment amount. Please contact support.');
+      }
+
+      // D. Deduct inventory stock atomically (concurrency-safe against race conditions)
+      for (const item of itemsToCreate) {
+        const updateResult = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stock: { gte: item.quantity },
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
+        });
+
+        if (updateResult.count === 0) {
+          throw new BadRequestError(`Insufficient stock for "${item.name}". The item may have just sold out.`);
+        }
+
+        // Update stockStatus if depleted
+        const productAfter = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { stock: true },
+        });
+        if (productAfter && productAfter.stock <= 0) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockStatus: 'Out of Stock' },
+          });
+        }
+      }
+
+      // E. Generate invoice number & create Order in database
+      const invoiceNumber = await generateInvoiceNumber(tx);
+      const invoiceDate = new Date();
+
+      const order = await tx.order.create({
         data: {
-          stock: newStock,
-          stockStatus: newStock > 0 ? 'In Stock' : 'Out of Stock',
+          userId,
+          fullName: address.fullName,
+          address1: address.address1,
+          address2: address.address2,
+          city: address.city,
+          state: address.state,
+          postalCode: address.postalCode,
+          country: address.country,
+          landmark: address.landmark,
+          phone: address.phone,
+          totalAmount,
+          status: 'Confirmed',
+          paymentStatus: 'Paid',
+          paymentGateway,
+          transactionId,
+          gatewayOrderId,
+          signature: signature || null,
+          invoiceNumber,
+          invoiceDate,
+          invoiceGeneratedAt: invoiceDate,
         },
       });
+
+      // F. Create OrderItems
+      await tx.orderItem.createMany({
+        data: itemsToCreate.map((item) => ({
+          orderId: order.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      });
+
+      // G. Clear cart
+      await tx.cartItem.deleteMany({
+        where: { userId },
+      });
+
+      return { order, itemsToCreate };
+    });
+  } catch (error: any) {
+    // If unique constraint violation occurs due to concurrent callback, retrieve existing order gracefully
+    if (error?.code === 'P2002' || error?.message?.includes('Unique constraint')) {
+      logger.info(`Concurrent order finalization detected for gatewayOrderId: ${gatewayOrderId}. Retrieving existing order.`);
+      const existing = await prisma.order.findFirst({
+        where: {
+          OR: [{ transactionId }, { gatewayOrderId }],
+        },
+        include: {
+          items: {
+            include: {
+              product: { select: { id: true, name: true } },
+            },
+          },
+        },
+      });
+      if (existing) {
+        return {
+          success: true,
+          alreadyProcessed: true,
+          order: existing,
+        };
+      }
     }
-
-    // E. Generate invoice number & create Order in database
-    const invoiceNumber = await generateInvoiceNumber(tx);
-    const invoiceDate = new Date();
-
-    const order = await tx.order.create({
-      data: {
-        userId,
-        fullName: address.fullName,
-        address1: address.address1,
-        address2: address.address2,
-        city: address.city,
-        state: address.state,
-        postalCode: address.postalCode,
-        country: address.country,
-        landmark: address.landmark,
-        phone: address.phone,
-        totalAmount,
-        status: 'Confirmed',
-        paymentStatus: 'Paid',
-        paymentGateway,
-        transactionId,
-        gatewayOrderId,
-        signature: signature || null,
-        invoiceNumber,
-        invoiceDate,
-        invoiceGeneratedAt: invoiceDate,
-      },
-    });
-
-    // F. Create OrderItems
-    await tx.orderItem.createMany({
-      data: itemsToCreate.map((item) => ({
-        orderId: order.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-    });
-
-    // G. Clear cart
-    await tx.cartItem.deleteMany({
-      where: { userId },
-    });
-
-    return { order, itemsToCreate };
-  });
+    throw error;
+  }
 
   const { order, itemsToCreate } = result;
 

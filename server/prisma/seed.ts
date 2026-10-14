@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import fs from 'fs';
 import path from 'path';
 import { PrismaClient, Role } from '@prisma/client';
@@ -55,23 +56,33 @@ async function main() {
 
   // 1. Create Default Admin User
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@homerituals.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPassword123!';
+  const adminPassword = process.env.ADMIN_PASSWORD;
   const adminName = process.env.ADMIN_NAME || 'Home Rituals Admin';
 
-  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
-  if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
-    const admin = await prisma.user.create({
-      data: {
-        email: adminEmail,
-        passwordHash,
-        name: adminName,
-        role: Role.ADMIN,
-      },
-    });
-    console.log(`Created default Administrator: ${admin.email}`);
+  if (!adminPassword) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL SECURITY ERROR: ADMIN_PASSWORD environment variable must be set to seed the database in production. Default passwords are strictly forbidden.');
+    }
+    console.warn('WARNING: ADMIN_PASSWORD is not set in environment. Skipping admin creation. Please set ADMIN_PASSWORD in your .env file.');
   } else {
-    console.log(`Administrator already exists: ${adminEmail}`);
+    if (adminPassword.length < 8) {
+      throw new Error('SECURITY ERROR: ADMIN_PASSWORD must be at least 8 characters long.');
+    }
+    const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (!existingAdmin) {
+      const passwordHash = await bcrypt.hash(adminPassword, 10);
+      const admin = await prisma.user.create({
+        data: {
+          email: adminEmail,
+          passwordHash,
+          name: adminName,
+          role: Role.ADMIN,
+        },
+      });
+      console.log(`Created default Administrator: ${admin.email}`);
+    } else {
+      console.log(`Administrator already exists: ${adminEmail}`);
+    }
   }
 
   // 2. Create Categories

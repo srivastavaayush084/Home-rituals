@@ -6,13 +6,13 @@ import { prisma } from '../utils/db';
 import { sendSuccess, ConflictError, BadRequestError, UnauthorizedError, NotFoundError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { sendEmail, emailTemplates } from '../services/email';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtsecretkeyshouldbechangedinproduction';
+import { getJwtSecret } from '../utils/jwt';
 
 function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string }) {
   const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
-  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+  const secret = getJwtSecret();
+  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
   return { accessToken, refreshToken };
 }
 
@@ -137,7 +137,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       throw new BadRequestError('Refresh token is required');
     }
 
-    const decoded = jwt.verify(refreshToken, JWT_SECRET) as any;
+    const decoded = jwt.verify(refreshToken, getJwtSecret()) as any;
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -184,19 +184,20 @@ export async function forgotPassword(req: AuthenticatedRequest, res: Response, n
       return sendSuccess(res, null, 200, 'If this email is registered, a password reset link has been sent');
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiry = new Date(Date.now() + 3600000); // 1 hour validity
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes validity
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetPasswordToken: token,
+        resetPasswordToken: hashedToken,
         resetPasswordExp: expiry,
       },
     });
 
     const clientUrl = req.headers.origin || req.get('origin') || 'http://localhost:5173';
-    const resetUrl = `${clientUrl}/reset-password?token=${token}`;
+    const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
 
     if (user.email) {
       await sendEmail({
@@ -217,9 +218,15 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
   try {
     const { token, newPassword } = req.body;
 
+    // Hash incoming token to match stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
     const user = await prisma.user.findFirst({
       where: {
-        resetPasswordToken: token,
+        OR: [
+          { resetPasswordToken: hashedToken },
+          { resetPasswordToken: token }, // Backward compatibility
+        ],
         resetPasswordExp: {
           gt: new Date(),
         },
@@ -232,12 +239,14 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
+    // Invalidate reset token and revoke active sessions
     await prisma.user.update({
       where: { id: user.id },
       data: {
         passwordHash,
         resetPasswordToken: null,
         resetPasswordExp: null,
+        refreshToken: null, // Invalidate all existing refresh sessions
       },
     });
 
@@ -335,7 +344,10 @@ export async function changePassword(req: AuthenticatedRequest, res: Response, n
     const passwordHash = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: userId },
-      data: { passwordHash },
+      data: {
+        passwordHash,
+        refreshToken: null, // Revoke sessions upon password change
+      },
     });
 
     return sendSuccess(res, null, 200, 'Password changed successfully');

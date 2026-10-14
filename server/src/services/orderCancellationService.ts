@@ -169,24 +169,12 @@ export async function executeOrderCancellation(params: CancelOrderParams) {
 
   // 6. Return stock and update Order status atomically
   await prisma.$transaction(async (tx) => {
-    // Return stock to inventory
-    for (const item of order.items) {
-      const product = await tx.product.findUnique({ where: { id: item.productId } });
-      if (product) {
-        const updatedStock = product.stock + item.quantity;
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: updatedStock,
-            stockStatus: updatedStock > 0 ? 'In Stock' : 'Out of Stock',
-          },
-        });
-      }
-    }
-
-    // Set order to Cancelled
-    await tx.order.update({
-      where: { id: orderId },
+    // Atomically transition status to Cancelled ONLY if it's currently in an eligible status
+    const updateResult = await tx.order.updateMany({
+      where: {
+        id: orderId,
+        status: { in: ['Pending', 'Confirmed', 'Processing', 'pending', 'confirmed', 'processing'] },
+      },
       data: {
         status: 'Cancelled',
         cancelledAt: cancellationTimestamp,
@@ -196,6 +184,21 @@ export async function executeOrderCancellation(params: CancelOrderParams) {
         refundStatus: isOnlinePaid ? 'PENDING' : 'NOT_APPLICABLE',
       },
     });
+
+    if (updateResult.count === 0) {
+      throw new BadRequestError('Order has already been cancelled or is no longer eligible for cancellation.');
+    }
+
+    // Return stock to inventory atomically
+    for (const item of order.items) {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: {
+          stock: { increment: item.quantity },
+          stockStatus: 'In Stock',
+        },
+      });
+    }
   });
 
   logger.info(`[ORDER_CANCELLED] Order #${orderId} marked CANCELLED. Inventory returned.`);

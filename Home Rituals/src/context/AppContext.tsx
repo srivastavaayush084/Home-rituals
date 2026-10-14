@@ -44,6 +44,9 @@ interface AppContextValue {
   // Products state
   products: Product[];
   isLoadingProducts: boolean;
+  productsError: string | null;
+  isFallbackMode: boolean;
+  refreshProducts: () => Promise<void>;
 
   // Cart & Wishlist state
   cart: CartItem[];
@@ -110,6 +113,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Products State
   const [products, setProducts] = useState<Product[]>(staticProducts);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [productsError, setProductsError] = useState<string | null>(null);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
 
   // Cart & Wishlist State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -128,24 +133,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [shipping, setShipping] = useState<Record<string, any> | null>(null);
 
   // 1. Fetch products from API on mount
-  useEffect(() => {
-    async function fetchProducts() {
-      setIsLoadingProducts(true);
-      try {
-        const data = await apiRequest<any>('/api/products?limit=50');
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } else if (data && Array.isArray(data.items)) {
-          setProducts(data.items);
-        } else if (data && Array.isArray(data.data)) {
-          setProducts(data.data);
-        }
-      } catch (err) {
-        console.warn('Failed to load products from API, falling back to static content', err);
-      } finally {
-        setIsLoadingProducts(false);
+  async function fetchProducts() {
+    setIsLoadingProducts(true);
+    try {
+      const data = await apiRequest<any>('/api/products?limit=50');
+      if (Array.isArray(data)) {
+        setProducts(data);
+        setIsFallbackMode(false);
+        setProductsError(null);
+      } else if (data && Array.isArray(data.items)) {
+        setProducts(data.items);
+        setIsFallbackMode(false);
+        setProductsError(null);
+      } else if (data && Array.isArray(data.data)) {
+        setProducts(data.data);
+        setIsFallbackMode(false);
+        setProductsError(null);
       }
+    } catch (err: any) {
+      console.warn('Failed to load products from API, falling back to static content', err);
+      setIsFallbackMode(true);
+      setProductsError(err?.message || 'Could not reach server catalog');
+    } finally {
+      setIsLoadingProducts(false);
     }
+  }
+
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -440,6 +454,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     resetPassword,
     products,
     isLoadingProducts,
+    productsError,
+    isFallbackMode,
+    refreshProducts: fetchProducts,
     cart,
     wishlistIds,
     addToCart,
@@ -472,7 +489,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setShipping,
     clearShipping,
   }), [
-    user, token, isAuthLoading, products, isLoadingProducts, cart, wishlistIds, isCartOpen,
+    user, token, isAuthLoading, products, isLoadingProducts, productsError, isFallbackMode, cart, wishlistIds, isCartOpen,
     isWishlistOpen, isSearchOpen, searchQuery, filteredProducts, quickViewProduct,
     addresses, shipping, fetchCartFromServer
   ]);
