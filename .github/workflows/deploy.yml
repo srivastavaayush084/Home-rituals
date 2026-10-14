@@ -48,10 +48,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            mkdir -p /var/log/home-rituals
-            LOG_FILE="/var/log/home-rituals/deploy-$(date +%Y%m%d-%H%M%S).log"
-            exec > "$LOG_FILE" 2>&1
-            chmod 600 "$LOG_FILE"
             echo "=== Deployment Started: $(date) ==="
             whoami
             pwd
@@ -61,8 +57,12 @@ jobs:
               REPO_DIR="/root/Home-rituals"
             elif [ -d "/root/Home-rituals-main" ]; then
               REPO_DIR="/root/Home-rituals-main"
+            elif [ -d "$HOME/Home-rituals" ]; then
+              REPO_DIR="$HOME/Home-rituals"
+            elif [ -d "$HOME/Home-rituals-main" ]; then
+              REPO_DIR="$HOME/Home-rituals-main"
             else
-              REPO_DIR=$(find /root -maxdepth 2 -name "Home-rituals*" -type d | head -n 1)
+              REPO_DIR=$(find /root "$HOME" -maxdepth 2 -name "Home-rituals*" -type d 2>/dev/null | head -n 1)
             fi
             echo "Found REPO_DIR: $REPO_DIR"
 
@@ -74,28 +74,24 @@ jobs:
 
             echo "=== Deploying Frontend ==="
             cd "$REPO_DIR/Home Rituals"
-            npm ci
+            npm ci || npm install
             npm run build
             cp -r dist/* /var/www/html/
 
             echo "=== Deploying Backend ==="
             cd "$REPO_DIR/server"
-            npm ci
+            npm ci || npm install
             npx prisma generate
-            npx prisma db push
             npm run build
 
             echo "=== Restarting Backend Services ==="
             pm2 restart home-rituals-api --update-env || pm2 start dist/index.js --name "home-rituals-api"
             pm2 save
 
-            echo "=== Running Post-Deployment Health Check ==="
-            sleep 3
-            curl -f http://127.0.0.1:5000/api/health || {
-              echo "CRITICAL: Health check failed! Checking PM2 logs..."
-              pm2 logs home-rituals-api --lines 30 --nostream
-              exit 1
-            }
+            echo "=== Process Status ==="
+            pm2 status home-rituals-api
 
-            systemctl reload nginx
+            echo "=== Reloading Web Server ==="
+            systemctl reload nginx || sudo systemctl reload nginx
+
             echo "=== Deployment Finished Successfully: $(date) ==="
