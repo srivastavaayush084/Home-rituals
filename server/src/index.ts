@@ -33,6 +33,7 @@ import newsletterRoutes from './routes/newsletterRoutes';
 import adminRoutes from './routes/adminRoutes';
 import bannerRoutes from './routes/bannerRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import whatsappRoutes from './routes/whatsappRoutes';
 import { initiatePaymentDirect, verifyPaymentDirect } from './controllers/paymentController';
 import { getJwtSecret } from './utils/jwt';
 
@@ -169,6 +170,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/banners', bannerRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Direct Checkout Routes
 app.post('/api/create-order', requireAuth, initiatePaymentDirect);

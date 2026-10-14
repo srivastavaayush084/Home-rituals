@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 import { generateInvoiceNumber, generateInvoicePDFBuffer } from '../services/invoiceService';
 import { executeOrderCancellation } from '../services/orderCancellationService';
 import { initiatePaymentDirect } from './paymentController';
+import { sendWhatsAppTrackingUpdate } from '../services/whatsappService';
 
 /**
  * Creates/initiates an order. Delegated to canonical initiatePaymentDirect to ensure
@@ -188,6 +189,23 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
         html: emailTemplates.getOrderStatusUpdateHtml(order.id, status, courierName, trackingNumber),
         text: `Hello,\n\nYour order #${order.id} status is now: ${status}.`,
       });
+    }
+
+    // Send WhatsApp tracking notification to customer
+    if (status === 'Shipped' && order.phone && (trackingNumber || order.trackingNumber)) {
+      try {
+        await sendWhatsAppTrackingUpdate({
+          phone: order.phone,
+          customerName: order.fullName,
+          orderId: order.id,
+          courierName: courierName || order.courierName || 'Standard Delivery',
+          trackingNumber: trackingNumber || order.trackingNumber || 'Available in account',
+          status: 'Shipped',
+        });
+        logger.info(`WhatsApp dispatch update sent for Order #${order.id} to ${order.phone}`);
+      } catch (waErr) {
+        logger.error(`Error sending WhatsApp tracking update for Order #${order.id}:`, waErr);
+      }
     }
 
     logger.info(`Order #${id} status updated to ${status} by admin`);

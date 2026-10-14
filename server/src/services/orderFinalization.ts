@@ -4,6 +4,7 @@ import { BadRequestError } from '../utils/response';
 import { sendEmail, emailTemplates } from './email';
 import { logger } from '../utils/logger';
 import { generateInvoiceNumber, generateInvoicePDFBuffer } from './invoiceService';
+import { sendWhatsAppOrderConfirmation } from './whatsappService';
 
 interface FinalizePaidOrderParams {
   userId?: string;
@@ -363,6 +364,27 @@ export async function finalizePaidOrder({
     });
   } catch (emailError) {
     logger.error('Error sending confirmation emails post-checkout:', emailError);
+  }
+
+  // Send Automated WhatsApp Order Confirmation
+  if (order.phone) {
+    try {
+      await sendWhatsAppOrderConfirmation({
+        phone: order.phone,
+        customerName: order.fullName,
+        orderId: order.id,
+        totalAmount: order.totalAmount,
+        items: itemsToCreate.map((i: FinalizeOrderItem) => ({
+          name: i.name,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+        address: `${order.city}, ${order.state}`,
+      });
+      logger.info(`WhatsApp order confirmation dispatched for Order #${order.id} to ${order.phone}`);
+    } catch (waError) {
+      logger.error(`Error sending WhatsApp confirmation for Order #${order.id}:`, waError);
+    }
   }
 
   logger.info(`Paid order finalized successfully: Order ID ${order.id}, Transaction ID ${transactionId} via ${paymentGateway}`);
