@@ -405,15 +405,27 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
                     transition={{ duration: 0.35, delay: 0.2 }}
                     className="text-left"
                   >
-                    <p className="text-[11px] uppercase tracking-[0.35em] text-[#c5a880] font-semibold mb-3">
-                      HOME RITUALS
-                    </p>
+                    <img
+                      src="/home-rituals-script-transparent.png"
+                      alt="Home Rituals"
+                      className="h-12 sm:h-14 lg:h-16 w-auto max-w-[220px] sm:max-w-[260px] object-contain mb-3 drop-shadow-[0_2px_12px_rgba(216,176,120,0.28)] select-none"
+                    />
                     <h1
-                      className="text-4xl lg:text-[46px] font-normal leading-[1.12] text-[#f7f4ee]"
-                      style={{ fontFamily: 'Playfair Display, serif' }}
+                      className="text-4xl lg:text-[48px] font-normal leading-[1.12] text-[#f7f4ee]"
+                      style={{ fontFamily: "'Playfair Display', serif" }}
                     >
                       Welcome <br />
-                      <span className="italic text-[#c5a880] font-normal">back.</span>
+                      <span
+                        className="italic font-medium text-[#d8b078] inline-block mt-0.5"
+                        style={{
+                          fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                          fontSize: '1.2em',
+                          letterSpacing: '0.01em',
+                          textShadow: '0 2px 14px rgba(216,176,120,0.22)',
+                        }}
+                      >
+                        back.
+                      </span>
                     </h1>
                     <p className="mt-4 text-[13px] lg:text-[14px] leading-relaxed text-[#9cb5a8] max-w-[280px]">
                       Your rituals, sacred spaces and soulful aromas are exactly where you left them.
@@ -428,15 +440,27 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
                     transition={{ duration: 0.35, delay: 0.2 }}
                     className="text-left"
                   >
-                    <p className="text-[11px] uppercase tracking-[0.35em] text-[#c5a880] font-semibold mb-3">
-                      HOME RITUALS
-                    </p>
+                    <img
+                      src="/home-rituals-script-transparent.png"
+                      alt="Home Rituals"
+                      className="h-12 sm:h-14 lg:h-16 w-auto max-w-[220px] sm:max-w-[260px] object-contain mb-3 drop-shadow-[0_2px_12px_rgba(216,176,120,0.28)] select-none"
+                    />
                     <h1
-                      className="text-4xl lg:text-[46px] font-normal leading-[1.12] text-[#f7f4ee]"
-                      style={{ fontFamily: 'Playfair Display, serif' }}
+                      className="text-4xl lg:text-[48px] font-normal leading-[1.12] text-[#f7f4ee]"
+                      style={{ fontFamily: "'Playfair Display', serif" }}
                     >
                       Start the <br />
-                      <span className="italic text-[#c5a880] font-normal">first page.</span>
+                      <span
+                        className="italic font-medium text-[#d8b078] inline-block mt-0.5"
+                        style={{
+                          fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                          fontSize: '1.2em',
+                          letterSpacing: '0.01em',
+                          textShadow: '0 2px 14px rgba(216,176,120,0.22)',
+                        }}
+                      >
+                        first page.
+                      </span>
                     </h1>
                     <p className="mt-4 text-[13px] lg:text-[14px] leading-relaxed text-[#9cb5a8] max-w-[280px]">
                       One account for every ritual, every board and every sacred space you own.
@@ -451,22 +475,42 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
         {/* MOBILE RESPONSIVE ADAPTATION (< 768px) */}
         <div className="md:hidden flex flex-col w-full">
           {/* Top Emerald Brand Banner */}
-          <div className="relative bg-gradient-to-br from-[#0e3025] via-[#09231b] to-[#051711] px-6 py-8 text-center overflow-hidden">
+          <div className="relative bg-gradient-to-br from-[#0e3025] via-[#09231b] to-[#051711] px-6 py-8 text-center overflow-hidden flex flex-col items-center">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(197,168,128,0.15)_0%,transparent_60%)] pointer-events-none" />
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[#c5a880] font-semibold mb-2">
-              HOME RITUALS
-            </p>
+            <img
+              src="/home-rituals-script-transparent.png"
+              alt="Home Rituals"
+              className="h-10 sm:h-12 w-auto max-w-[200px] object-contain mb-2 drop-shadow-[0_2px_10px_rgba(216,176,120,0.28)] select-none mx-auto"
+            />
             <h1
               className="text-3xl font-normal leading-tight text-[#f7f4ee]"
-              style={{ fontFamily: 'Playfair Display, serif' }}
+              style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {!isSignUp ? (
                 <>
-                  Welcome <span className="italic text-[#c5a880]">back.</span>
+                  Welcome{' '}
+                  <span
+                    className="italic font-medium text-[#d8b078]"
+                    style={{
+                      fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                      fontSize: '1.15em',
+                    }}
+                  >
+                    back.
+                  </span>
                 </>
               ) : (
                 <>
-                  Start the <span className="italic text-[#c5a880]">first page.</span>
+                  Start the{' '}
+                  <span
+                    className="italic font-medium text-[#d8b078]"
+                    style={{
+                      fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                      fontSize: '1.15em',
+                    }}
+                  >
+                    first page.
+                  </span>
                 </>
               )}
             </h1>
