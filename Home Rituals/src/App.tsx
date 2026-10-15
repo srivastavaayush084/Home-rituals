@@ -14,10 +14,9 @@ const CartPage = lazy(() => import('./pages/CartPage').then((module) => ({ defau
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then((module) => ({ default: module.CheckoutPage })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then((module) => ({ default: module.ContactPage })));
 const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
-const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+const AuthPage = lazy(() => import('./pages/AuthPage').then((module) => ({ default: module.AuthPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 const ProductPage = lazy(() => import('./pages/ProductPage').then((module) => ({ default: module.ProductPage })));
-const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })));
 const ShopPage = lazy(() => import('./pages/ShopPage').then((module) => ({ default: module.ShopPage })));
@@ -52,7 +51,7 @@ function App() {
   return (
     <BrowserRouter>
       <Preloader />
-      <Suspense fallback={<div className="min-h-screen" />}>
+      <Suspense fallback={<div className="min-h-screen bg-[#091f17]" />}>
         <Routes>
           {/* Admin Routes with distinct AdminLayout */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -95,8 +94,13 @@ function App() {
                   <Route path="/blog/:id" element={<BlogArticlePage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/account" element={<ProfilePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
+
+                  {/* Persistent shared layout route for /login and /register prevents unmounting */}
+                  <Route element={<AuthPage />}>
+                    <Route path="/login" element={null} />
+                    <Route path="/register" element={null} />
+                  </Route>
+
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="*" element={<NotFoundPage />} />

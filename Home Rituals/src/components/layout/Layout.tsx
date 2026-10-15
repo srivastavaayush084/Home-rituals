@@ -316,8 +316,16 @@ export function Layout({ children }: LayoutProps) {
         </section>
       ) : null}
 
+      {/* Persistent animation key for auth screens prevents full-page unmount and white flashes */}
       <AnimatePresence mode="wait">
-        <motion.main key={location.pathname} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.35, ease: 'easeOut' }}>
+        <motion.main
+          key={location.pathname === '/login' || location.pathname === '/register' ? 'auth-screen' : location.pathname}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          style={{ backgroundColor: location.pathname === '/login' || location.pathname === '/register' ? '#091f17' : undefined }}
+        >
           {children}
         </motion.main>
       </AnimatePresence>

@@ -103,9 +103,9 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
   };
 
   return (
-    <div className="mx-auto flex min-h-[85vh] w-full items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-[85vh] w-full flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8 bg-[#091f17] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#10382b] via-[#091f17] to-[#05130e]">
       {/* Outer Luxury Card Shell */}
-      <div className="relative w-full max-w-[960px] min-h-[580px] overflow-hidden rounded-[28px] sm:rounded-[34px] border border-[#e7ded0] bg-[#f6f1e8] shadow-[0_24px_64px_-12px_rgba(10,35,26,0.18)]">
+      <div className="relative w-full max-w-[960px] min-h-[580px] overflow-hidden rounded-[28px] sm:rounded-[34px] border border-[#2d4d3f]/40 bg-[#f6f1e8] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.45)]">
         
         {/* DESKTOP / TABLET SLIDING LAYOUT (>= 768px) */}
         <div className="hidden md:grid md:grid-cols-2 w-full min-h-[580px] relative">
@@ -380,6 +380,7 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
             }}
             className="absolute top-0 bottom-0 w-[56%] h-full z-20 pointer-events-none overflow-hidden bg-gradient-to-br from-[#0e3025] via-[#09231b] to-[#051711]"
             style={{
+              willChange: 'left, clip-path',
               filter: isSignUp
                 ? 'drop-shadow(12px 0 24px rgba(0,0,0,0.32))'
                 : 'drop-shadow(-12px 0 24px rgba(0,0,0,0.32))',
