@@ -7,7 +7,6 @@ import { Card } from '../components/ui/Card';
 import { ProductCard } from '../components/ui/ProductCard';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useApp } from '../context/AppContext';
-import heroImage from '../assets/hero.png';
 
 const concerns = [
   { title: 'Powerful Cleaning', text: 'Fast-acting formulas that remove dirt, odor, and grime with ease.', icon: Sparkles },
@@ -122,7 +121,7 @@ export function HomePage() {
           </div>
         </motion.div>
 
-        {/* Right Column (Beautified Visual Composition) */}
+        {/* Right Column (Hero Video) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -132,69 +131,20 @@ export function HomePage() {
           {/* Soft background glow */}
           <div className="absolute w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl -z-10" />
 
-          {/* Floating Shadow */}
-          <motion.div
-            animate={{ scale: [0.92, 1.05, 0.92], opacity: [0.25, 0.15, 0.25] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-6 w-56 h-8 bg-black/10 rounded-full blur-lg -z-10"
-          />
-
-          {/* Main Floating Platform */}
-          <motion.div
-            animate={{ y: [0, -12, 0], rotate: [0, 1.5, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative w-80 h-80 flex items-center justify-center"
-          >
-            {/* The 3D Platform Image */}
-            <img src={heroImage} alt="Home Rituals Platform" className="w-full h-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.06)]" />
-
-            {/* Overlay floating glassmorphic Card 1 */}
-            <motion.div 
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-10 right-2 bg-white/80 border border-white/60 rounded-2xl p-4 shadow-xl backdrop-blur-md flex items-center gap-3 w-48"
+          {/* Video Container matching previous animation area with rounded edges */}
+          <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.08)] border border-stone-200/80 bg-white">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-full w-full object-cover rounded-2xl"
             >
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-                <Sparkles size={18} />
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-stone-900 leading-none">Clean Formulation</p>
-                <p className="text-[10px] text-stone-500 mt-1">100% Plant-based</p>
-              </div>
-            </motion.div>
-
-            {/* Overlay floating glassmorphic Card 2 */}
-            <motion.div 
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-              className="absolute bottom-16 left-0 bg-white/80 border border-white/60 rounded-2xl p-4 shadow-xl backdrop-blur-md flex items-center gap-3 w-48"
-            >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
-                <Leaf size={18} />
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-stone-900 leading-none">Refreshing Scent</p>
-                <p className="text-[10px] text-stone-500 mt-1">Essential oils infused</p>
-              </div>
-            </motion.div>
-
-            {/* Floating Sparkles and Leaves in the air */}
-            <motion.div
-              animate={{ y: [-6, 6, -6], rotate: [0, 20, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-6 left-16 text-emerald-500/40"
-            >
-              <Leaf size={22} />
-            </motion.div>
-            
-            <motion.div
-              animate={{ y: [6, -6, 6], rotate: [0, -15, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-              className="absolute bottom-24 right-6 text-emerald-600/30"
-            >
-              <Sparkles size={18} />
-            </motion.div>
-          </motion.div>
+              <source src="/Animation.mp4" type="video/mp4" />
+              <source src="/animation.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </motion.div>
       </section>
 
