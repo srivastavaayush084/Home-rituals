@@ -7,6 +7,7 @@ import { ImageZoom } from '../components/ui/ImageZoom';
 import { ProductCard } from '../components/ui/ProductCard';
 import { useApp } from '../context/AppContext';
 import { apiRequest } from '../utils/apiClient';
+import { ProductReviewsSection } from '../components/reviews/ProductReviewsSection';
 
 export function ProductPage() {
   const { id } = useParams();
@@ -15,6 +16,8 @@ export function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [liveReviewCount, setLiveReviewCount] = useState<number>(0);
+  const [liveRating, setLiveRating] = useState<number>(0);
 
   useEffect(() => {
     async function loadProduct() {
@@ -75,8 +78,21 @@ export function ProductPage() {
           <h1 className="mt-3 text-4xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>{product.name}</h1>
           <p className="mt-4 text-lg leading-8 text-[#6f6f6f]">{product.description}</p>
           <div className="mt-5 flex items-center gap-2 text-[#D7A86E]">
-            {Array.from({ length: 5 }).map((_, index) => <Star key={index} size={16} fill="currentColor" />)}
-            <span className="ml-2 text-sm text-[#6f6f6f]">{product.reviewsCount ?? product.reviews} reviews</span>
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  size={16}
+                  className={liveReviewCount > 0 && index < Math.round(liveRating) ? 'fill-[#f4b942] text-[#f4b942]' : 'text-stone-300'}
+                />
+              ))}
+            </div>
+            <a
+              href="#product-reviews-section"
+              className="ml-2 text-sm text-[#6f6f6f] hover:text-[#0B8F3C] transition-colors underline cursor-pointer"
+            >
+              {liveReviewCount > 0 ? `${liveRating.toFixed(1)} (${liveReviewCount} ${liveReviewCount === 1 ? 'review' : 'reviews'})` : 'No reviews yet • Be first to review'}
+            </a>
           </div>
           <div className="mt-6 flex items-end gap-4">
             <p className="text-3xl font-semibold text-black">₹{product.price}</p>
@@ -109,6 +125,15 @@ export function ProductPage() {
           </div>
         </div>
       </div>
+
+      {/* Customer Reviews Section */}
+      <ProductReviewsSection
+        product={product}
+        onReviewsUpdated={(count, avg) => {
+          setLiveReviewCount(count);
+          setLiveRating(avg);
+        }}
+      />
 
       <section className="mt-16">
         <div className="mb-8">

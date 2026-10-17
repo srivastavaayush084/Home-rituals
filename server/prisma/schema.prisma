@@ -98,6 +98,8 @@ model Review {
   rating           Int
   isApproved       Boolean  @default(false)
   verifiedPurchase Boolean  @default(false)
+  images           String[]
+  videos           String[]
   productId        String   @db.ObjectId
   product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId           String?  @db.ObjectId

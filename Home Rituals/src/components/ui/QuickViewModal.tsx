@@ -10,8 +10,11 @@ import {
   ShoppingBag,
   Truck,
   X,
+  Star,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { ReviewModal } from '../reviews/ReviewModal';
 
 // Error Boundary to log any issues
 class QuickViewErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error?: Error }> {
@@ -43,6 +46,7 @@ export function QuickViewModalContent() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeAccordion, setActiveAccordion] = useState<AccordionKey | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const images = useMemo<string[]>(() => {
@@ -215,6 +219,43 @@ export function QuickViewModalContent() {
                 </span>
               </div>
 
+              {/* Customer Rating & Write Review Button */}
+              <div className="mt-3 flex items-center justify-between gap-2 border-y border-stone-200/80 py-2.5">
+                <div className="flex items-center gap-1.5 text-xs text-stone-600">
+                  <div className="flex text-[#f4b942]">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={13}
+                        className={
+                          Number((quickViewProduct as any).reviewsCount ?? quickViewProduct.reviews ?? 0) > 0 &&
+                          i < Math.round(Number(quickViewProduct.rating) || 0)
+                            ? 'fill-[#f4b942] text-[#f4b942]'
+                            : 'text-stone-300'
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="font-semibold text-stone-900">
+                    {Number((quickViewProduct as any).reviewsCount ?? quickViewProduct.reviews ?? 0) > 0
+                      ? (Number(quickViewProduct.rating) || 0).toFixed(1)
+                      : 'New'}
+                  </span>
+                  <span className="text-stone-400">
+                    ({Number((quickViewProduct as any).reviewsCount ?? quickViewProduct.reviews ?? 0)} reviews)
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-[#44D62C] hover:bg-emerald-50 hover:text-[#0B8F3C] transition-colors"
+                >
+                  <MessageSquarePlus size={13} />
+                  Write Review
+                </button>
+              </div>
+
               {features.length > 0 ? (
                 <div className="mt-4 rounded-[16px] border border-stone-200 bg-stone-50 p-4">
                   <ul className="grid gap-2 text-xs font-semibold text-stone-800 sm:grid-cols-2">
@@ -383,6 +424,15 @@ export function QuickViewModalContent() {
           </div>
         </div>
       </div>
+
+      {/* Review Workflow Modal */}
+      {quickViewProduct && (
+        <ReviewModal
+          product={quickViewProduct}
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

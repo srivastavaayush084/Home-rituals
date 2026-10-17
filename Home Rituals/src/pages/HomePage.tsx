@@ -7,7 +7,6 @@ import { Card } from '../components/ui/Card';
 import { ProductCard } from '../components/ui/ProductCard';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useApp } from '../context/AppContext';
-import { reviews } from '../data/content';
 import heroImage from '../assets/hero.png';
 
 const concerns = [
@@ -68,11 +67,26 @@ export function HomePage() {
   const { products, addToCart, toggleWishlist, wishlistIds } = useApp();
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredReelId, setHoveredReelId] = useState<number | null>(null);
+  const [realReviews, setRealReviews] = useState<any[]>([]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsLoading(false), 700);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const collected: any[] = [];
+    products.forEach((p) => {
+      try {
+        const stored = localStorage.getItem(`home-rituals-reviews-${p.id}`);
+        if (stored) {
+          const list = JSON.parse(stored);
+          if (Array.isArray(list)) collected.push(...list);
+        }
+      } catch {}
+    });
+    setRealReviews(collected);
+  }, [products]);
 
   return (
     <div>
@@ -366,18 +380,40 @@ export function HomePage() {
           })}
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {reviews.slice(0, 3).map((review) => (
-            <Card key={review.id} className="p-6">
-              <div className="flex items-center gap-1 text-[#D7A86E]">
-                {Array.from({ length: review.rating }).map((_, index) => <Star key={index} size={14} fill="currentColor" />)}
-              </div>
-              <p className="mt-4 text-lg font-semibold text-[#223229]">“{review.title}”</p>
-              <p className="mt-3 text-sm leading-7 text-[#5e6f64]">{review.text}</p>
-              <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-black">{review.author}</p>
-            </Card>
-          ))}
-        </div>
+        {realReviews.length > 0 ? (
+          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {realReviews.slice(0, 3).map((review) => (
+              <Card key={review.id} className="p-6">
+                <div className="flex items-center gap-1 text-[#f4b942]">
+                  {Array.from({ length: review.rating || 5 }).map((_, index) => (
+                    <Star key={index} size={14} fill="currentColor" />
+                  ))}
+                </div>
+                <p className="mt-4 text-lg font-semibold text-[#223229]">“{review.title}”</p>
+                <p className="mt-3 text-sm leading-7 text-[#5e6f64]">{review.text}</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">{review.author}</p>
+                  {review.verifiedPurchase && (
+                    <span className="text-[11px] font-semibold text-[#44D62C]">Verified Buyer</span>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-[24px] border border-dashed border-stone-200 bg-stone-50/60 p-8 text-center">
+            <p className="text-sm font-bold text-stone-800">Clean Rituals Loved by Our Community</p>
+            <p className="mt-1 text-xs text-stone-500 max-w-md mx-auto">
+              Tried our products? We invite every customer to share their honest review and photos directly from each product page or product card!
+            </p>
+            <Link
+              to="/shop"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#44D62C] hover:bg-[#3ec428] px-5 py-2 text-xs font-bold text-white transition shadow-sm"
+            >
+              Explore Products & Reviews
+            </Link>
+          </div>
+        )}
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

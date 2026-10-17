@@ -31,6 +31,21 @@ export function errorHandler(
     );
   }
 
+  // Check for database connection refusal or timeout
+  if (
+    err.message?.includes('Server selection timeout') ||
+    err.message?.includes('actively refused it') ||
+    err.message?.includes('10061')
+  ) {
+    logger.error('Database connection failed. MongoDB is not running or unreachable.');
+    return sendError(
+      res,
+      'Database is offline: MongoDB is not running on localhost:27017. Please start your local MongoDB service or provide a MongoDB Atlas URI in server/.env.',
+      503,
+      'DATABASE_OFFLINE'
+    );
+  }
+
   // Standard Prisma Database errors or other system errors
   logger.error('Unhandled Server Error:', err);
 

@@ -125,6 +125,9 @@ export const reviewSchemas = {
       title: z.string().min(1, 'Review title is required'),
       text: z.string().min(1, 'Review text is required'),
       rating: z.number().int().min(1).max(5, 'Rating must be between 1 and 5'),
+      author: z.string().optional(),
+      images: z.array(z.string()).optional(),
+      videos: z.array(z.string()).optional(),
     }),
   }),
 };

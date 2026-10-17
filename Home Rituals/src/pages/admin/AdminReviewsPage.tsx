@@ -10,6 +10,8 @@ interface Review {
   rating: number;
   isApproved: boolean;
   verifiedPurchase: boolean;
+  images?: string[];
+  videos?: string[];
   createdAt: string;
   product?: { id: string | number; name: string; image: string };
 }
@@ -96,6 +98,23 @@ export const AdminReviewsPage: React.FC = () => {
                     <span className="font-bold text-stone-900 text-sm">{rev.title}</span>
                   </div>
                   <p className="text-xs text-stone-700">{rev.text}</p>
+
+                  {/* Attached Media previews */}
+                  {((rev.images && rev.images.length > 0) || (rev.videos && rev.videos.length > 0)) && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {rev.images?.map((img, idx) => (
+                        <a key={idx} href={img} target="_blank" rel="noreferrer" className="block h-12 w-12 rounded-lg overflow-hidden border border-stone-200">
+                          <img src={img} alt="review attachment" className="h-full w-full object-cover" />
+                        </a>
+                      ))}
+                      {rev.videos?.map((vid, idx) => (
+                        <a key={idx} href={vid} target="_blank" rel="noreferrer" className="block h-12 w-12 rounded-lg overflow-hidden border border-stone-200 bg-black flex items-center justify-center text-[9px] text-white font-bold">
+                          VIDEO
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
                   <p className="text-[11px] text-stone-500">
                     By <span className="font-medium text-stone-800">{rev.author}</span> on product:{' '}
                     <span className="font-semibold text-stone-900">{rev.product?.name || `ID ${rev.id}`}</span>
