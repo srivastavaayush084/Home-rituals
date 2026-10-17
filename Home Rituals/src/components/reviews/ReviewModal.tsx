@@ -193,148 +193,158 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-6">
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-3 sm:p-4 backdrop-blur-sm"
+      >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="relative w-full max-w-xl overflow-hidden rounded-[28px] border border-stone-200 bg-white p-6 shadow-2xl sm:p-8"
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[24px] border border-stone-200 bg-white p-5 shadow-2xl sm:p-6"
         >
-          {/* Close button */}
+          {/* Top Cut / Close Button */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-900 transition"
+            aria-label="Cut and close review"
+            title="Cut / Cancel review"
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600 transition"
           >
             <X size={18} />
           </button>
 
           {isSuccess ? (
-            <div className="py-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-[#44D62C]">
-                <CheckCircle2 size={40} />
+            <div className="py-8 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-[#44D62C]">
+                <CheckCircle2 size={36} />
               </div>
-              <h3 className="mt-4 text-2xl font-bold text-stone-900" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <h3 className="mt-3 text-xl font-bold text-stone-900" style={{ fontFamily: 'Playfair Display, serif' }}>
                 Thank You for Your Review!
               </h3>
-              <p className="mt-2 text-sm text-stone-600">
+              <p className="mt-1.5 text-xs text-stone-600">
                 Your feedback helps our community discover the best home rituals.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Product header preview */}
-              <div className="flex items-center gap-4 rounded-2xl bg-stone-50 p-3.5 border border-stone-200">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {/* Compact product header */}
+              <div className="flex items-center gap-3 rounded-xl bg-stone-50 p-2.5 border border-stone-200 pr-10">
                 {product.image && (
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="h-14 w-14 rounded-xl object-contain bg-white border border-stone-200"
+                    className="h-10 w-10 rounded-lg object-contain bg-white border border-stone-200 flex-shrink-0"
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#44D62C]">Write Customer Review</p>
-                  <h4 className="truncate text-base font-bold text-stone-900">{product.name}</h4>
-                  {product.price && <p className="text-xs font-semibold text-stone-600">₹{product.price}</p>}
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#44D62C]">Add Customer Review</p>
+                  <h4 className="truncate text-sm font-bold text-stone-900">{product.name}</h4>
+                  {product.price && <p className="text-xs font-semibold text-stone-600 leading-none">₹{product.price}</p>}
                 </div>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-700">
-                  <AlertCircle size={16} className="flex-shrink-0" />
+                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-xs font-medium text-red-700">
+                  <AlertCircle size={15} className="flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
-              {/* 5-Star Rating selector */}
-              <div className="rounded-2xl border border-stone-200 p-4 text-center">
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-2">
-                  Overall Rating (1 to 5 Stars)
-                </label>
-                <div className="flex items-center justify-center gap-2">
-                  {[1, 2, 3, 4, 5].map((starValue) => {
-                    const isFilled = starValue <= activeRating;
-                    return (
-                      <button
-                        key={starValue}
-                        type="button"
-                        onClick={() => setRating(starValue)}
-                        onMouseEnter={() => setHoverRating(starValue)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        aria-label={`Rate ${starValue} stars`}
-                        className="p-1 transition-transform hover:scale-125 focus:outline-none"
-                      >
-                        <Star
-                          size={32}
-                          className={`transition-colors ${
-                            isFilled ? 'fill-amber-400 text-amber-400' : 'text-stone-300'
-                          }`}
-                        />
-                      </button>
-                    );
-                  })}
+              {/* 5-Star Rating selector - compact inline */}
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 py-2.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
+                  Your Rating:
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((starValue) => {
+                      const isFilled = starValue <= activeRating;
+                      return (
+                        <button
+                          key={starValue}
+                          type="button"
+                          onClick={() => setRating(starValue)}
+                          onMouseEnter={() => setHoverRating(starValue)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          aria-label={`Rate ${starValue} stars`}
+                          className="p-0.5 transition-transform hover:scale-125 focus:outline-none"
+                        >
+                          <Star
+                            size={22}
+                            className={`transition-colors ${
+                              isFilled ? 'fill-amber-400 text-amber-400' : 'text-stone-300'
+                            }`}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span className="text-xs font-semibold text-stone-700 min-w-16 text-right">
+                    {RATING_LABELS[activeRating] ? RATING_LABELS[activeRating].split('—')[0].trim() : ''}
+                  </span>
                 </div>
-                <p className="mt-2 text-xs font-semibold text-stone-700 h-4">
-                  {RATING_LABELS[activeRating] || 'Click stars to rate'}
-                </p>
               </div>
 
-              {/* Review Title */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Review Headline / Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Amazing cleaning power & wonderful scent!"
-                  className="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
-                />
+              {/* 2-column inputs: Name & Headline */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1">
+                    Your Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={authorName}
+                    onChange={(e) => setAuthorName(e.target.value)}
+                    placeholder="e.g. Priya Sharma"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1">
+                    Review Headline *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Loved the fragrance & results!"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
+                  />
+                </div>
               </div>
 
-              {/* Review Text */}
+              {/* Review Text - compact 2.5 rows */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Detailed Review / Experience *
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1">
+                  Comments & Feedback *
                 </label>
                 <textarea
                   required
-                  rows={4}
+                  rows={2}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="What did you like or dislike? How effectively did this product clean?"
-                  className="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
+                  placeholder="How did this product perform? Share your honest experience..."
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                 />
               </div>
 
-              {/* Author name */}
+              {/* Photo & Video Upload - slim inline */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Your Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  placeholder="e.g. Priya Sharma"
-                  className="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
-                />
-              </div>
-
-              {/* Photo & Video Upload */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                    Add Photos & Videos (Optional)
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    Photos & Videos (Optional)
                   </label>
-                  <span className="text-[11px] text-stone-500">Max 5 files (Photos & Videos)</span>
+                  <span className="text-[10px] text-stone-500">Max 5 media files</span>
                 </div>
 
-                <div className="rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50/70 p-4 transition hover:bg-stone-100/70">
+                <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50/80 p-2.5 transition hover:bg-stone-100/80">
                   <input
                     type="file"
                     id="media-upload-input"
@@ -345,26 +355,21 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   />
                   <label
                     htmlFor="media-upload-input"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-2 text-center"
+                    className="flex cursor-pointer items-center justify-center gap-2 text-center"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#44D62C] shadow-sm border border-stone-200">
-                      <UploadCloud size={20} />
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#44D62C] shadow-sm border border-stone-200">
+                      <UploadCloud size={14} />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-stone-800">
-                        Click to upload photos or videos
-                      </p>
-                      <p className="text-[11px] text-stone-500 mt-0.5">
-                        Supports JPG, PNG, WEBP, MP4, MOV
-                      </p>
-                    </div>
+                    <span className="text-xs font-semibold text-stone-700 hover:text-black">
+                      Attach photos or videos (JPG, PNG, MP4)
+                    </span>
                   </label>
 
                   {/* Previews */}
                   {mediaList.length > 0 && (
-                    <div className="mt-4 grid grid-cols-4 gap-2.5">
+                    <div className="mt-2.5 flex flex-wrap gap-2">
                       {mediaList.map((media, idx) => (
-                        <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden border border-stone-200 bg-black">
+                        <div key={idx} className="group relative h-12 w-12 rounded-lg overflow-hidden border border-stone-200 bg-black">
                           {media.type === 'video' ? (
                             <div className="relative h-full w-full flex items-center justify-center bg-stone-900">
                               <video
@@ -372,11 +377,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                 className="h-full w-full object-cover opacity-80"
                               />
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <Film size={18} className="text-white drop-shadow" />
+                                <Film size={14} className="text-white drop-shadow" />
                               </div>
-                              <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1 py-0.5 text-[9px] font-bold text-white uppercase">
-                                Video
-                              </span>
                             </div>
                           ) : (
                             <img
@@ -390,9 +392,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                             type="button"
                             onClick={() => handleRemoveMedia(idx)}
                             aria-label="Remove upload"
-                            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/75 text-white hover:bg-red-600 transition"
+                            className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/75 text-white hover:bg-red-600 transition"
                           >
-                            <X size={12} />
+                            <X size={10} />
                           </button>
                         </div>
                       ))}
@@ -401,14 +403,21 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="pt-2">
+              {/* Action Buttons: Cancel/Cut + Submit */}
+              <div className="pt-1.5 flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-10 flex-1 items-center justify-center rounded-full border border-stone-300 bg-stone-50 hover:bg-stone-100 text-xs font-bold text-stone-700 transition"
+                >
+                  Cancel / Not Now
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex h-12 w-full items-center justify-center rounded-full bg-[#44D62C] hover:bg-[#3ec428] font-bold text-white shadow-[0_10px_24px_rgba(68,214,44,0.3)] transition disabled:opacity-60"
+                  className="flex h-10 flex-[1.4] items-center justify-center rounded-full bg-[#44D62C] hover:bg-[#3ec428] text-xs font-bold text-white shadow-md transition disabled:opacity-60"
                 >
-                  {isSubmitting ? 'Submitting Your Review...' : 'Submit Review'}
+                  {isSubmitting ? 'Submitting...' : 'Submit Review'}
                 </button>
               </div>
             </form>
