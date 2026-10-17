@@ -89,63 +89,65 @@ export function HomePage() {
 
   return (
     <div>
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-24 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center relative overflow-visible">
-        {/* Background ambient lighting */}
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#44D62C]/5 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-12 right-1/4 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl -z-10" />
+      <section className="w-full bg-[#E7E2D6] relative">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-24 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center relative overflow-visible">
+          {/* Background ambient lighting */}
+          <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#44D62C]/5 rounded-full blur-3xl -z-10" />
+          <div className="absolute bottom-12 right-1/4 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl -z-10" />
 
-        {/* Left Column (Content) */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="flex flex-col justify-center"
-        >
-          <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-700 shadow-sm">
-            <Sparkles size={14} className="text-emerald-600 animate-pulse" />
-            New cleaning essentials • Powerful home hygiene solutions
-          </div>
-          <h1 className="max-w-2xl text-4xl font-semibold leading-[1.1] text-[#223229] sm:text-5xl lg:text-[56px]" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Cleaner, healthier homes <span className="italic font-serif text-[#0B8F3C] font-normal">made simple</span>.
-          </h1>
-          <p className="mt-6 max-w-xl text-base md:text-lg leading-8 text-[#5f5f5f]">
-            From washing machine care to kitchen and bathroom sanitation, Home Rituals offers reliable cleaning essentials that make everyday upkeep easier, faster, and more effective.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Button to="/shop" icon={<ArrowRight size={16} />} className="group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-              Shop cleaning essentials
-            </Button>
-            <Button to="/shop" variant="primary" className="bg-[#44D62C]/10 border border-[#44D62C]/30 text-emerald-800 hover:bg-[#44D62C]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
-              Explore shop
-            </Button>
-          </div>
-        </motion.div>
+          {/* Left Column (Content) */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="flex flex-col justify-center"
+          >
+            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-700 shadow-sm">
+              <Sparkles size={14} className="text-emerald-600 animate-pulse" />
+              New cleaning essentials • Powerful home hygiene solutions
+            </div>
+            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.1] text-[#223229] sm:text-5xl lg:text-[56px]" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Cleaner, healthier homes <span className="italic font-serif text-[#0B8F3C] font-normal">made simple</span>.
+            </h1>
+            <p className="mt-6 max-w-xl text-base md:text-lg leading-8 text-[#5f5f5f]">
+              From washing machine care to kitchen and bathroom sanitation, Home Rituals offers reliable cleaning essentials that make everyday upkeep easier, faster, and more effective.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Button to="/shop" icon={<ArrowRight size={16} />} className="group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                Shop cleaning essentials
+              </Button>
+              <Button to="/shop" variant="primary" className="bg-[#44D62C]/10 border border-[#44D62C]/30 text-emerald-800 hover:bg-[#44D62C]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                Explore shop
+              </Button>
+            </div>
+          </motion.div>
 
-        {/* Right Column (Hero Video) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
-          className="relative flex items-center justify-center overflow-visible select-none py-8"
-        >
-          {/* Soft background glow */}
-          <div className="absolute w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl -z-10" />
+          {/* Right Column (Hero Video) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
+            className="relative flex items-center justify-center overflow-visible select-none py-8"
+          >
+            {/* Soft background glow */}
+            <div className="absolute w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl -z-10" />
 
-          {/* Video Container matching previous animation area with rounded edges */}
-          <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.08)] border border-stone-200/80 bg-white">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="h-full w-full object-cover rounded-2xl"
-            >
-              <source src="/Animation.mp4" type="video/mp4" />
-              <source src="/animation.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </motion.div>
+            {/* Video Container matching previous animation area with rounded edges */}
+            <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.08)] border border-stone-200/80 bg-white">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="h-full w-full object-cover rounded-2xl"
+              >
+                <source src="/Animation.mp4" type="video/mp4" />
+                <source src="/animation.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative overflow-visible">
