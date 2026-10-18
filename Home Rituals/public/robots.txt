@@ -1,9 +1,17 @@
 User-agent: *
 Allow: /
+
+# Disallow private user accounts, auth, checkout, and admin routes
 Disallow: /admin
 Disallow: /profile
 Disallow: /account
+Disallow: /cart
 Disallow: /checkout
 Disallow: /payment
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
 
-Sitemap: /sitemap.xml
+# Sitemap
+Sitemap: https://homerituals.co/sitemap.xml
