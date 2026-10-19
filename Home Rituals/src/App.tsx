@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import { BackToTop } from './components/ui/BackToTop';
 import { QuickViewModal } from './components/ui/QuickViewModal';
@@ -45,11 +45,26 @@ const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage').then((m
 const AdminInquiriesPage = lazy(() => import('./pages/admin/AdminInquiriesPage').then((module) => ({ default: module.AdminInquiriesPage })));
 const AdminBannersPage = lazy(() => import('./pages/admin/AdminBannersPage').then((module) => ({ default: module.AdminBannersPage })));
 
+function GoogleAnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('config', 'G-30MMRQ8BVM', {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   const { toastMessage, clearToast } = useApp();
 
   return (
     <BrowserRouter>
+      <GoogleAnalyticsTracker />
       <Preloader />
       <Suspense fallback={<div className="min-h-screen bg-[#091f17]" />}>
         <Routes>
