@@ -89,30 +89,34 @@ export function HomePage() {
 
   return (
     <div>
-      <section className="w-full bg-[#E7E2D6] relative border-b border-black/5">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center relative">
+      <section className="w-full bg-[#E7E2D6] relative">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-24 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center relative overflow-visible">
+          {/* Background ambient lighting */}
+          <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#44D62C]/5 rounded-full blur-3xl -z-10" />
+          <div className="absolute bottom-12 right-1/4 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl -z-10" />
+
           {/* Left Column (Content) */}
           <motion.div
-            initial={{ opacity: 0, x: -24 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             className="flex flex-col justify-center"
           >
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-[4px] border border-emerald-700/20 bg-emerald-700/5 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-800 shadow-2xs">
-              <Sparkles size={13} className="text-[#0B8F3C]" />
+            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-700 shadow-sm">
+              <Sparkles size={14} className="text-emerald-600 animate-pulse" />
               New cleaning essentials • Powerful home hygiene solutions
             </div>
-            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.12] text-[#223229] sm:text-5xl lg:text-[54px]" style={{ fontFamily: 'Playfair Display, serif' }}>
+            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.1] text-[#223229] sm:text-5xl lg:text-[56px]" style={{ fontFamily: 'Playfair Display, serif' }}>
               Cleaner, healthier homes <span className="italic font-serif text-[#0B8F3C] font-normal">made simple</span>.
             </h1>
-            <p className="mt-5 max-w-xl text-base md:text-lg leading-relaxed text-[#5f5f5f]">
+            <p className="mt-6 max-w-xl text-base md:text-lg leading-8 text-[#5f5f5f]">
               From washing machine care to kitchen and bathroom sanitation, Home Rituals offers reliable cleaning essentials that make everyday upkeep easier, faster, and more effective.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3.5">
-              <Button to="/shop" size="lg" icon={<ArrowRight size={16} />}>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Button to="/shop" icon={<ArrowRight size={16} />} className="group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                 Shop cleaning essentials
               </Button>
-              <Button to="/shop" variant="secondary" size="lg">
+              <Button to="/shop" variant="primary" className="bg-[#44D62C]/10 border border-[#44D62C]/30 text-emerald-800 hover:bg-[#44D62C]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
                 Explore shop
               </Button>
             </div>
@@ -120,19 +124,22 @@ export function HomePage() {
 
           {/* Right Column (Hero Video) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
-            className="relative flex items-center justify-center select-none py-4"
+            transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
+            className="relative flex items-center justify-center overflow-visible select-none py-8"
           >
-            {/* Video Container with crisp architectural frame */}
-            <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] rounded-[10px] overflow-hidden shadow-lg border border-stone-300/80 bg-white">
+            {/* Soft background glow */}
+            <div className="absolute w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl -z-10" />
+
+            {/* Video Container matching previous animation area with rounded edges */}
+            <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.08)] border border-stone-200/80 bg-white">
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="h-full w-full object-cover rounded-[8px]"
+                className="h-full w-full object-cover rounded-2xl"
               >
                 <source src="/Animation.mp4" type="video/mp4" />
                 <source src="/animation.mp4" type="video/mp4" />
@@ -143,10 +150,13 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative">
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-stone-200 pb-6 relative">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative overflow-visible">
+        {/* Subtle decorative background glow */}
+        <div className="absolute top-0 left-12 w-80 h-32 bg-emerald-500/5 rounded-full blur-3xl -z-10" />
+
+        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-stone-100 pb-8 relative">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-800 bg-emerald-500/10 border border-emerald-500/20 rounded-[4px] px-2.5 py-1">
+            <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-800 bg-emerald-500/5 border border-emerald-500/15 rounded-full px-3.5 py-1.5 shadow-sm">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -159,22 +169,22 @@ export function HomePage() {
           </div>
           <Link 
             to="/shop" 
-            className="group inline-flex items-center gap-2 rounded-[6px] border border-stone-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-stone-800 hover:border-[#0B8F3C] hover:text-[#0B8F3C] shadow-2xs transition-all duration-200 w-fit"
+            className="group inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-stone-800 hover:border-emerald-500 hover:text-emerald-700 shadow-sm hover:shadow transition-all duration-300 hover:-translate-y-0.5 w-fit"
           >
             <span>Shop all products</span>
-            <ArrowRight size={14} className="transform transition-transform duration-200 group-hover:translate-x-1 text-stone-400 group-hover:text-[#0B8F3C]" />
+            <ArrowRight size={14} className="transform transition-transform duration-300 group-hover:translate-x-1 text-stone-400 group-hover:text-emerald-600" />
           </Link>
         </div>
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="overflow-hidden rounded-[8px] border border-[#EAEAEA] bg-white p-4 shadow-2xs">
-                <Skeleton className="aspect-square w-full rounded-[4px]" />
+              <div key={index} className="overflow-hidden rounded-[20px] border border-[#EAEAEA] bg-white p-4 shadow-[0_8px_25px_rgba(0,0,0,0.08)]">
+                <Skeleton className="aspect-square w-full" />
                 <div className="mt-4 space-y-3">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-6 w-3/4" />
                   <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-11 w-full rounded-[6px]" />
+                  <Skeleton className="h-14 w-full" />
                 </div>
               </div>
             ))}
@@ -193,46 +203,49 @@ export function HomePage() {
           </div>
         )}
       </section>
-
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[14px] bg-gradient-to-br from-[#162C20] to-[#0E1B14] p-8 text-white shadow-xl sm:p-10 lg:p-12 relative z-0">
+        <div className="overflow-hidden rounded-[40px] bg-gradient-to-br from-[#162C20] to-[#0E1B14] p-8 text-white shadow-[0_30px_70px_rgba(22,44,32,0.15)] sm:p-10 lg:p-14 relative z-0">
+          {/* Subtle background glow accents */}
+          <div className="absolute top-0 right-0 w-[350px] h-[350px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+          <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-amber-500/5 rounded-full blur-[80px] pointer-events-none -z-10" />
+
           <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] relative z-10">
             <div className="flex flex-col justify-between">
               <div>
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#A8D5BA] bg-white/5 border border-white/10 rounded-[4px] px-2.5 py-1 mb-4">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-[#A8D5BA] bg-white/5 border border-white/10 rounded-full px-3.5 py-1.5 mb-4 shadow-sm">
                   Why choose Home Rituals
                 </div>
                 <h2 className="text-3xl font-semibold leading-tight sm:text-4xl text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
                   Reliable cleaning, <span className="italic font-serif font-normal text-[#A8D5BA]">made simple</span> for modern homes.
                 </h2>
-                <p className="mt-4 max-w-xl text-base leading-relaxed text-emerald-100/75">
+                <p className="mt-4 max-w-xl text-base leading-8 text-emerald-100/75">
                   We combine effective sanitation, practical performance, and easy-to-use essentials for kitchens, bathrooms, laundry, and beyond.
                 </p>
               </div>
 
               <div className="mt-8 space-y-6">
                 {/* Stats Grid */}
-                <div className="grid gap-3.5 grid-cols-3">
+                <div className="grid gap-4 grid-cols-3">
                   {[
                     { value: 30, label: 'Cleaning essentials', suffix: '+' },
                     { value: 99.9, label: 'Hygiene confidence', suffix: '%' },
                     { value: 100, label: 'Everyday value', suffix: '%' },
                   ].map((stat) => (
-                    <div key={stat.label} className="rounded-[8px] border border-white/10 bg-white/5 p-4 text-white shadow-2xs transition-colors hover:bg-white/10">
+                    <div key={stat.label} className="rounded-[20px] border border-white/10 bg-white/5 p-4 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-md">
                       <p className="text-2xl font-bold leading-tight text-white">{stat.value}{stat.suffix}</p>
-                      <p className="mt-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-200/80 leading-snug">{stat.label}</p>
+                      <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.18em] text-emerald-200/80 leading-snug">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Core values cards */}
-                <div className="grid gap-3.5 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-3">
                   {[
                     { title: 'Thoughtful ingredients', text: 'Botanical, transparent, and consciously chosen.' },
                     { title: 'Quiet luxury', text: 'Textural packaging and elevated everyday design.' },
                     { title: 'Home-first', text: 'Made to bring calm to each room and ritual.' },
                   ].map((item) => (
-                    <div key={item.title} className="rounded-[8px] border border-white/10 bg-white/5 p-4 text-white shadow-2xs transition-colors hover:bg-white/10 text-left">
+                    <div key={item.title} className="rounded-[20px] border border-white/10 bg-white/5 p-5 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-md text-left">
                       <p className="text-xs font-bold tracking-wide text-white uppercase">{item.title}</p>
                       <p className="mt-2 text-[11px] leading-relaxed text-emerald-100/70">{item.text}</p>
                     </div>
@@ -243,16 +256,16 @@ export function HomePage() {
 
             {/* Right Column: Cards Grid */}
             <div className="flex items-center justify-center">
-              <div className="grid gap-3.5 sm:grid-cols-2 w-full">
+              <div className="grid gap-4 sm:grid-cols-2 w-full">
                 {concerns.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.title} className="rounded-[8px] bg-white border border-stone-200 p-5 text-stone-900 shadow-2xs transition-all duration-200 hover:shadow-md hover:border-[#0B8F3C]/40">
-                      <div className="w-9 h-9 rounded-[6px] bg-emerald-500/10 flex items-center justify-center text-emerald-700 mb-3.5">
-                        <Icon size={18} />
+                    <div key={item.title} className="rounded-[24px] bg-white border border-stone-100/85 p-6 text-stone-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-700 mb-4">
+                        <Icon size={20} />
                       </div>
                       <p className="font-bold text-sm text-[#223229] tracking-wide">{item.title}</p>
-                      <p className="mt-1.5 text-xs leading-relaxed text-stone-500">{item.text}</p>
+                      <p className="mt-2 text-xs leading-6 text-stone-500">{item.text}</p>
                     </div>
                   );
                 })}
@@ -264,9 +277,9 @@ export function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.3em] font-semibold text-black">Customer love</p>
-          <h2 className="mt-1.5 text-3xl font-semibold text-[#223229]" style={{ fontFamily: 'Playfair Display, serif' }}>Real moments from our community</h2>
-          <p className="mt-2 max-w-2xl text-base leading-relaxed text-[#5e6f64]">A glimpse into the rituals our community loves.</p>
+          <p className="text-sm uppercase tracking-[0.35em] text-black">Customer love</p>
+          <h2 className="mt-2 text-3xl font-semibold text-[#223229]" style={{ fontFamily: 'Playfair Display, serif' }}>Real moments from our community</h2>
+          <p className="mt-3 max-w-2xl text-lg leading-8 text-[#5e6f64]">A glimpse into the rituals our community loves.</p>
         </div>
 
         <div className="mt-8 flex gap-4 overflow-x-auto pb-4 pt-1">
@@ -277,7 +290,7 @@ export function HomePage() {
             return (
               <div
                 key={reel.id}
-                className="group relative aspect-[9/16] w-[240px] flex-none overflow-hidden rounded-[10px] border border-black/10 bg-black shadow-xs transition duration-200 hover:shadow-lg cursor-pointer"
+                className="group relative aspect-[9/16] w-[240px] flex-none overflow-hidden rounded-[24px] border border-black/10 bg-black shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
                 onMouseEnter={() => setHoveredReelId(reel.id)}
                 onMouseLeave={() => setHoveredReelId(null)}
               >
@@ -295,13 +308,13 @@ export function HomePage() {
                     <img
                       src={reel.thumbnail}
                       alt={reel.title}
-                      className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                     {/* Play Badge Icon */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-white/95 text-black shadow-md backdrop-blur-md transition duration-200 group-hover:scale-105">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-black shadow-lg backdrop-blur-md transition duration-300 group-hover:scale-110">
                         <svg className="ml-0.5 h-5 w-5 fill-current" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z" />
                         </svg>
@@ -328,26 +341,26 @@ export function HomePage() {
                     <Star key={index} size={14} fill="currentColor" />
                   ))}
                 </div>
-                <p className="mt-3.5 text-lg font-semibold text-[#223229]">“{review.title}”</p>
-                <p className="mt-2 text-sm leading-relaxed text-[#5e6f64]">{review.text}</p>
-                <div className="mt-4 flex items-center justify-between pt-3 border-t border-black/5">
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-black">{review.author}</p>
+                <p className="mt-4 text-lg font-semibold text-[#223229]">“{review.title}”</p>
+                <p className="mt-3 text-sm leading-7 text-[#5e6f64]">{review.text}</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">{review.author}</p>
                   {review.verifiedPurchase && (
-                    <span className="text-[11px] font-semibold text-[#0B8F3C] bg-green-50 px-2 py-0.5 rounded-[4px] border border-green-200/60">Verified Buyer</span>
+                    <span className="text-[11px] font-semibold text-[#44D62C]">Verified Buyer</span>
                   )}
                 </div>
               </Card>
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-[8px] border border-dashed border-stone-300 bg-stone-50/70 p-8 text-center">
+          <div className="mt-8 rounded-[24px] border border-dashed border-stone-200 bg-stone-50/60 p-8 text-center">
             <p className="text-sm font-bold text-stone-800">Clean Rituals Loved by Our Community</p>
             <p className="mt-1 text-xs text-stone-500 max-w-md mx-auto">
               Tried our products? We invite every customer to share their honest review and photos directly from each product page or product card!
             </p>
             <Link
               to="/shop"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-[6px] bg-[#44D62C] hover:bg-[#3ec428] px-4 py-2 text-xs font-bold text-[#111] transition shadow-xs"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#44D62C] hover:bg-[#3ec428] px-5 py-2 text-xs font-bold text-white transition shadow-sm"
             >
               Explore Products & Reviews
             </Link>
@@ -356,16 +369,16 @@ export function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="rounded-[10px] border border-black/10 bg-white p-8 shadow-xs sm:p-10 lg:p-12">
+        <div className="rounded-[36px] border border-black/10 bg-white p-8 shadow-sm sm:p-10 lg:p-12">
           <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] font-semibold text-black">Stay close</p>
-              <h2 className="mt-2 text-3xl font-semibold text-[#223229]" style={{ fontFamily: 'Playfair Display, serif' }}>Join the ritual list</h2>
-              <p className="mt-2 max-w-xl text-base leading-relaxed text-[#5e6f64]">Receive first access to launches, wellness notes, and thoughtful offers.</p>
+              <p className="text-sm uppercase tracking-[0.35em] text-black">Stay close</p>
+              <h2 className="mt-3 text-3xl font-semibold text-[#223229]" style={{ fontFamily: 'Playfair Display, serif' }}>Join the ritual list</h2>
+              <p className="mt-3 max-w-xl text-lg leading-8 text-[#5e6f64]">Receive first access to launches, wellness notes, and thoughtful offers.</p>
             </div>
-            <div className="flex w-full max-w-md flex-col gap-2.5 sm:flex-row">
-              <input className="w-full rounded-[6px] border border-black/15 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] transition" placeholder="Email address" />
-              <Button className="shrink-0">Join now</Button>
+            <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
+              <input className="w-full rounded-full border border-black/10 bg-white px-4 py-3 text-sm outline-none" placeholder="Email address" />
+              <Button>Join now</Button>
             </div>
           </div>
         </div>

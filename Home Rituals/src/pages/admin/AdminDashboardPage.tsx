@@ -194,9 +194,9 @@ export const AdminDashboardPage: React.FC = () => {
                   <span className="font-medium text-stone-800">{cat.categoryName}</span>
                   <span className="text-stone-500">{cat.productCount} products</span>
                 </div>
-                <div className="w-full h-2 bg-stone-100 rounded-[2px] overflow-hidden">
+                <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-stone-900 rounded-[2px]"
+                    className="h-full bg-stone-900 rounded-full"
                     style={{
                       width: `${Math.min(100, (cat.productCount / (summary.totalProducts || 1)) * 100)}%`,
                     }}

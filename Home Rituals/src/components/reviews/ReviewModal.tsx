@@ -204,7 +204,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-stone-200 bg-white p-5 shadow-2xl sm:p-6"
+          className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[24px] border border-stone-200 bg-white p-5 shadow-2xl sm:p-6"
         >
           {/* Top Cut / Close Button */}
           <button
@@ -212,14 +212,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             onClick={onClose}
             aria-label="Cut and close review"
             title="Cut / Cancel review"
-            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[6px] bg-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600 transition"
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600 transition"
           >
             <X size={18} />
           </button>
 
           {isSuccess ? (
             <div className="py-8 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[8px] bg-emerald-100 text-[#44D62C]">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-[#44D62C]">
                 <CheckCircle2 size={36} />
               </div>
               <h3 className="mt-3 text-xl font-bold text-stone-900" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -232,12 +232,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Compact product header */}
-              <div className="flex items-center gap-3 rounded-[8px] bg-stone-50 p-2.5 border border-stone-200 pr-10">
+              <div className="flex items-center gap-3 rounded-xl bg-stone-50 p-2.5 border border-stone-200 pr-10">
                 {product.image && (
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="h-10 w-10 rounded-[6px] object-contain bg-white border border-stone-200 flex-shrink-0"
+                    className="h-10 w-10 rounded-lg object-contain bg-white border border-stone-200 flex-shrink-0"
                   />
                 )}
                 <div className="min-w-0 flex-1">
@@ -248,14 +248,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 rounded-[6px] bg-red-50 p-2.5 text-xs font-medium text-red-700">
+                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-xs font-medium text-red-700">
                   <AlertCircle size={15} className="flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* 5-Star Rating selector - compact inline */}
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-[8px] border border-stone-200 bg-stone-50/50 px-3.5 py-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-3.5 py-2.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
                   Your Rating:
                 </span>
@@ -301,7 +301,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     value={authorName}
                     onChange={(e) => setAuthorName(e.target.value)}
                     placeholder="e.g. Priya Sharma"
-                    className="w-full rounded-[6px] border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                   />
                 </div>
 
@@ -315,7 +315,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Loved the fragrance & results!"
-                    className="w-full rounded-[6px] border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                   />
                 </div>
               </div>
@@ -331,7 +331,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="How did this product perform? Share your honest experience..."
-                  className="w-full rounded-[6px] border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                 />
               </div>
 
@@ -344,7 +344,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   <span className="text-[10px] text-stone-500">Max 5 media files</span>
                 </div>
 
-                <div className="rounded-[6px] border border-dashed border-stone-300 bg-stone-50/80 p-2.5 transition hover:bg-stone-100/80">
+                <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50/80 p-2.5 transition hover:bg-stone-100/80">
                   <input
                     type="file"
                     id="media-upload-input"
@@ -357,7 +357,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     htmlFor="media-upload-input"
                     className="flex cursor-pointer items-center justify-center gap-2 text-center"
                   >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-[4px] bg-white text-[#44D62C] shadow-2xs border border-stone-200">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#44D62C] shadow-sm border border-stone-200">
                       <UploadCloud size={14} />
                     </div>
                     <span className="text-xs font-semibold text-stone-700 hover:text-black">
@@ -369,7 +369,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   {mediaList.length > 0 && (
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       {mediaList.map((media, idx) => (
-                        <div key={idx} className="group relative h-12 w-12 rounded-[4px] overflow-hidden border border-stone-200 bg-black">
+                        <div key={idx} className="group relative h-12 w-12 rounded-lg overflow-hidden border border-stone-200 bg-black">
                           {media.type === 'video' ? (
                             <div className="relative h-full w-full flex items-center justify-center bg-stone-900">
                               <video
@@ -392,7 +392,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                             type="button"
                             onClick={() => handleRemoveMedia(idx)}
                             aria-label="Remove upload"
-                            className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-[3px] bg-black/75 text-white hover:bg-red-600 transition"
+                            className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/75 text-white hover:bg-red-600 transition"
                           >
                             <X size={10} />
                           </button>
@@ -408,14 +408,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex h-10 flex-1 items-center justify-center rounded-[6px] border border-stone-300 bg-stone-50 hover:bg-stone-100 text-xs font-semibold text-stone-700 transition"
+                  className="flex h-10 flex-1 items-center justify-center rounded-full border border-stone-300 bg-stone-50 hover:bg-stone-100 text-xs font-bold text-stone-700 transition"
                 >
                   Cancel / Not Now
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex h-10 flex-[1.4] items-center justify-center rounded-[6px] bg-[#44D62C] hover:bg-[#3ec428] text-xs font-semibold text-[#111827] shadow-xs transition disabled:opacity-60"
+                  className="flex h-10 flex-[1.4] items-center justify-center rounded-full bg-[#44D62C] hover:bg-[#3ec428] text-xs font-bold text-white shadow-md transition disabled:opacity-60"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Review'}
                 </button>

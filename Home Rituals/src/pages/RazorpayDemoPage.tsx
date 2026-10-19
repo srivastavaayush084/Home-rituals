@@ -216,9 +216,9 @@ export function RazorpayDemoPage() {
       <div className="mx-auto max-w-4xl">
         
         {/* Sleek Gradient Header */}
-        <div className="relative overflow-hidden rounded-[10px] bg-gradient-to-r from-emerald-700 to-green-600 p-8 shadow-md mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-700 to-green-600 p-8 shadow-xl mb-8">
           <div className="relative z-10">
-            <div className="inline-block px-3 py-1 bg-white/20 rounded-[4px] text-xs font-semibold text-white uppercase tracking-wider mb-3">
+            <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold text-white uppercase tracking-wider mb-3">
               Razorpay Sandbox Console
             </div>
             <h1 className="text-3xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -228,25 +228,26 @@ export function RazorpayDemoPage() {
               Sandbox testing console for Razorpay Checkout. Test secure server-side order creation, modal payment processing, HMAC-SHA256 signature verification, and webhook notifications.
             </p>
           </div>
+          <div className="absolute right-0 top-0 h-48 w-48 -translate-y-8 translate-x-8 rounded-full bg-white/10 blur-xl"></div>
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           
           {/* Form Configuration Card (Left) */}
-          <div className="rounded-[8px] border border-black/8 bg-white p-6 shadow-xs">
+          <div className="rounded-3xl border border-black/5 bg-white p-6 shadow-md hover:shadow-lg transition duration-300">
             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
               Payment Settings
             </h2>
 
             {error && (
-              <div className="mb-6 rounded-[6px] bg-red-50 p-4 border border-red-100 text-sm text-red-600 flex items-start gap-2">
+              <div className="mb-6 rounded-2xl bg-red-50 p-4 border border-red-100 text-sm text-red-600 flex items-start gap-2">
                 <span className="font-bold">Error:</span> {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-6 rounded-[6px] bg-emerald-50 p-4 border border-emerald-100 text-sm text-emerald-700 font-medium">
+              <div className="mb-6 rounded-2xl bg-emerald-50 p-4 border border-emerald-100 text-sm text-emerald-700 font-medium">
                 🎉 Congratulations! Razorpay payment was verified successfully and order finalized.
               </div>
             )}
@@ -256,7 +257,7 @@ export function RazorpayDemoPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Amount (in INR)
                 </label>
-                <div className="relative rounded-[6px] border border-slate-200 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition overflow-hidden">
+                <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition overflow-hidden">
                   <input
                     type="number"
                     value={amount}
@@ -266,9 +267,9 @@ export function RazorpayDemoPage() {
                     }}
                     placeholder="e.g. 5.00"
                     disabled={loading || !token}
-                    className="w-full bg-transparent px-3.5 py-2.5 text-slate-800 outline-none font-mono text-sm"
+                    className="w-full bg-transparent px-4 py-3 text-slate-800 outline-none font-mono"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-[4px] font-medium font-mono">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">
                     ₹{amount.toFixed(2)}
                   </div>
                 </div>
@@ -286,12 +287,12 @@ export function RazorpayDemoPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={loading || !token}
-                  className="w-full rounded-[6px] border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
                 />
               </div>
 
               {/* Razorpay Test Mode Info */}
-              <div className="rounded-[6px] border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-800 space-y-1">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-800 space-y-1">
                 <p className="font-semibold text-emerald-900">Razorpay Sandbox Environment Guide:</p>
                 <p>• Key ID Prefix: <code className="bg-emerald-100 px-1 rounded text-emerald-900 font-mono">rzp_test_...</code></p>
                 <p>• Checkout: UPI (success@razorpay), Cards (4111 1111 1111 1111), NetBanking.</p>
@@ -302,7 +303,7 @@ export function RazorpayDemoPage() {
                 <button
                   onClick={handlePay}
                   disabled={loading || !token || amount <= 0}
-                  className="w-full relative overflow-hidden group rounded-[6px] bg-[#0B8F3C] py-3.5 font-semibold text-sm text-white shadow-xs hover:bg-[#0a7a33] active:scale-[0.99] disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-200"
+                  className="w-full relative overflow-hidden group rounded-full bg-[#0B8F3C] py-4 font-semibold text-white shadow-md hover:bg-[#0a7a33] active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     {loading ? (

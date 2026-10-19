@@ -130,7 +130,7 @@ export function QuickViewModalContent() {
         aria-modal="true"
         aria-labelledby="quick-view-title"
         onClick={(event) => event.stopPropagation()}
-        className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[10px] border border-stone-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+        className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Close Button */}
         <button
@@ -138,9 +138,9 @@ export function QuickViewModalContent() {
           type="button"
           aria-label="Close quick view"
           onClick={closeQuickView}
-          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-[6px] border border-stone-200 bg-white text-stone-700 shadow-sm transition hover:bg-stone-100 hover:text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B8F3C]"
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-md transition hover:scale-105 hover:bg-stone-100"
         >
-          <X size={17} />
+          <X size={18} />
         </button>
 
         <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -148,12 +148,12 @@ export function QuickViewModalContent() {
             
             {/* Image Gallery */}
             <div className="space-y-4">
-              <div className="relative overflow-hidden rounded-[8px] bg-stone-100 p-3 sm:p-4 border border-stone-200">
+              <div className="relative overflow-hidden rounded-[24px] bg-stone-100 p-3 sm:p-4 border border-stone-200">
                 <img
                   src={currentImage}
                   alt={String(quickViewProduct.name || 'Product')}
                   loading="lazy"
-                  className="aspect-square w-full rounded-[6px] object-cover"
+                  className="aspect-square w-full rounded-[18px] object-cover"
                 />
 
                 {canNavigate ? (
@@ -162,35 +162,35 @@ export function QuickViewModalContent() {
                       type="button"
                       aria-label="Previous image"
                       onClick={handlePreviousImage}
-                      className="absolute left-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[6px] border border-stone-200 bg-white/95 text-stone-800 shadow-sm transition hover:bg-white"
+                      className="absolute left-4 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-800 shadow-md transition hover:scale-105"
                     >
-                      <ArrowLeft size={15} />
+                      <ArrowLeft size={16} />
                     </button>
                     <button
                       type="button"
                       aria-label="Next image"
                       onClick={handleNextImage}
-                      className="absolute right-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[6px] border border-stone-200 bg-white/95 text-stone-800 shadow-sm transition hover:bg-white"
+                      className="absolute right-4 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-800 shadow-md transition hover:scale-105"
                     >
-                      <ArrowRight size={15} />
+                      <ArrowRight size={16} />
                     </button>
                   </>
                 ) : null}
               </div>
 
               {images.length > 1 ? (
-                <div className="flex gap-2.5 overflow-x-auto pb-1">
+                <div className="flex gap-3 overflow-x-auto pb-1">
                   {images.map((image, index) => (
                     <button
                       key={`${image}-${index}`}
                       type="button"
                       aria-label={`Show image ${index + 1}`}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[6px] border-2 bg-stone-100 p-1 transition ${
-                        selectedImageIndex === index ? 'border-[#44D62C] shadow-xs' : 'border-stone-200 hover:border-stone-300'
+                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[14px] border-2 bg-stone-100 p-1 transition ${
+                        selectedImageIndex === index ? 'border-[#44D62C] shadow-sm' : 'border-transparent'
                       }`}
                     >
-                      <img src={image} alt={`${quickViewProduct.name} thumbnail ${index + 1}`} loading="lazy" className="h-full w-full rounded-[4px] object-cover" />
+                      <img src={image} alt={`${quickViewProduct.name} thumbnail ${index + 1}`} loading="lazy" className="h-full w-full rounded-[10px] object-cover" />
                     </button>
                   ))}
                 </div>
@@ -199,22 +199,22 @@ export function QuickViewModalContent() {
 
             {/* Product Details */}
             <div className="flex flex-col">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0B8F3C]">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#44D62C]">
                 {categoryName}
               </p>
 
-              <h2 id="quick-view-title" className="mt-1.5 text-2xl font-serif font-bold tracking-tight text-stone-900 sm:text-3xl">
+              <h2 id="quick-view-title" className="mt-2 text-2xl font-serif font-bold tracking-tight text-stone-900 sm:text-3xl">
                 {String(quickViewProduct.name)}
               </h2>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-600">
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-600">
                 {quickViewProduct.variant ? (
-                  <span className="rounded-[4px] bg-green-50 text-[#0B8F3C] border border-green-200/80 px-2.5 py-1">{String(quickViewProduct.variant)}</span>
+                  <span className="rounded-full bg-green-50 text-[#44D62C] border border-green-200 px-3 py-1">{String(quickViewProduct.variant)}</span>
                 ) : null}
                 {quickViewProduct.packSize ? (
-                  <span className="rounded-[4px] border border-stone-200 px-2.5 py-1">{String(quickViewProduct.packSize)}</span>
+                  <span className="rounded-full border border-stone-200 px-3 py-1">{String(quickViewProduct.packSize)}</span>
                 ) : null}
-                <span className="rounded-[4px] border border-stone-200 px-2.5 py-1">
+                <span className="rounded-full border border-stone-200 px-3 py-1">
                   {quickViewProduct.stockStatus || ((quickViewProduct as any).stock > 0 ? 'In Stock' : 'In Stock')}
                 </span>
               </div>
@@ -249,7 +249,7 @@ export function QuickViewModalContent() {
                 <button
                   type="button"
                   onClick={() => setIsReviewModalOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-[4px] border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-[#44D62C] hover:bg-emerald-50 hover:text-[#0B8F3C] transition-colors"
+                  className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-[#44D62C] hover:bg-emerald-50 hover:text-[#0B8F3C] transition-colors"
                 >
                   <MessageSquarePlus size={13} />
                   Write Review
@@ -276,16 +276,16 @@ export function QuickViewModalContent() {
               ) : null}
 
               {highlights.length > 0 ? (
-                <div className="mt-4 rounded-[8px] border border-stone-200 bg-stone-50 p-4">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#0B8F3C]">
+                <div className="mt-4 rounded-[18px] border border-stone-200 bg-stone-50 p-4">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#44D62C]">
                     <Check size={14} />
                     Product Highlights
                   </div>
                   <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
                     {highlights.map((highlight, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-stone-800">
-                        <span className="flex h-4 w-4 items-center justify-center rounded-[4px] bg-green-100 text-[#0B8F3C]">
-                          <Check size={11} />
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-[#44D62C]">
+                          <Check size={12} />
                         </span>
                         {highlight}
                       </div>
@@ -295,76 +295,76 @@ export function QuickViewModalContent() {
               ) : null}
 
               {/* Price & Quantity */}
-              <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
+              <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
                 <div>
                   {originalPrice > price ? (
-                    <p className="text-sm text-stone-400 line-through">₹{originalPrice}</p>
+                    <p className="text-base text-stone-400 line-through">₹{originalPrice}</p>
                   ) : null}
-                  <div className="flex items-baseline gap-2.5">
-                    <p className="text-2xl font-bold text-stone-900">₹{price}</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-3xl font-bold text-stone-900">₹{price}</p>
                     {originalPrice > price ? (
-                      <span className="rounded-[4px] bg-[#44D62C] px-2 py-0.5 text-[11px] font-bold text-[#111]">
+                      <span className="rounded-full bg-[#44D62C] px-3 py-0.5 text-xs font-bold text-white">
                         {Math.round(((originalPrice - price) / originalPrice) * 100)}% OFF
                       </span>
                     ) : null}
                   </div>
                 </div>
 
-                <div className="flex items-center rounded-[6px] border border-stone-300 bg-white p-0.5 shadow-2xs">
+                <div className="flex items-center rounded-full border border-stone-300 bg-white p-1 shadow-sm">
                   <button
                     type="button"
                     aria-label="Decrease quantity"
                     onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-                    className="flex h-8 w-8 items-center justify-center rounded-[4px] text-stone-700 hover:bg-stone-100 transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0B8F3C]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 transition"
                   >
-                    <Minus size={14} />
+                    <Minus size={15} />
                   </button>
                   <span className="min-w-8 text-center text-sm font-bold text-stone-900">{quantity}</span>
                   <button
                     type="button"
                     aria-label="Increase quantity"
                     onClick={() => setQuantity((current) => current + 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-[4px] text-stone-700 hover:bg-stone-100 transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0B8F3C]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 transition"
                   >
-                    <Plus size={14} />
+                    <Plus size={15} />
                   </button>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex h-11 items-center justify-center gap-2 rounded-[6px] bg-[#44D62C] hover:bg-[#3bc224] px-5 text-sm font-semibold text-[#111] shadow-2xs transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B8F3C]"
+                  className="flex items-center justify-center gap-2 rounded-full bg-[#44D62C] hover:bg-[#3bc224] px-5 py-3.5 text-sm font-semibold text-white shadow-md transition"
                 >
-                  <ShoppingBag size={16} />
+                  <ShoppingBag size={17} />
                   Add to Cart
                 </button>
                 <button
                   type="button"
                   onClick={closeQuickView}
-                  className="h-11 rounded-[6px] border border-stone-300 bg-white px-5 text-sm font-semibold text-stone-800 hover:bg-stone-50 hover:border-stone-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B8F3C]"
+                  className="rounded-full border border-stone-300 bg-white px-5 py-3.5 text-sm font-semibold text-stone-800 hover:border-stone-400 transition"
                 >
                   Close Window
                 </button>
               </div>
 
               {/* Features badges */}
-              <div className="mt-5 grid gap-3 rounded-[8px] border border-stone-200 bg-stone-50 p-3.5 text-xs font-medium text-stone-600 sm:grid-cols-2">
+              <div className="mt-6 grid gap-3 rounded-[18px] border border-stone-200 bg-stone-50 p-4 text-xs font-medium text-stone-600 sm:grid-cols-2">
                 <div className="flex items-center gap-2">
-                  <Truck size={15} className="text-[#0B8F3C]" />
+                  <Truck size={16} className="text-[#44D62C]" />
                   Free Express Shipping
                 </div>
                 <div className="flex items-center gap-2">
-                  <ShieldCheck size={15} className="text-[#0B8F3C]" />
+                  <ShieldCheck size={16} className="text-[#44D62C]" />
                   100% Quality Guaranteed
                 </div>
               </div>
 
               {/* Accordions */}
-              <div className="mt-5 space-y-2">
-                <div className="rounded-[6px] border border-stone-200 bg-white overflow-hidden">
+              <div className="mt-6 space-y-2">
+                <div className="rounded-[14px] border border-stone-200 bg-white overflow-hidden">
                   <button
                     type="button"
                     className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-bold text-stone-900"

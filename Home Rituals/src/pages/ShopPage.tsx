@@ -23,17 +23,17 @@ export function ShopPage() {
         </div>
       )}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-[10px] border border-stone-200/80 bg-stone-100 shadow-sm mb-12 aspect-[16/9] max-h-[440px] w-full flex items-center justify-center"
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative overflow-hidden rounded-[32px] border border-stone-200/80 bg-stone-100 shadow-sm mb-12 aspect-[16/9] max-h-[460px] w-full flex items-center justify-center"
       >
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="h-full w-full object-cover rounded-[8px]"
+          className="h-full w-full object-cover rounded-[32px]"
         >
           <source src="/Animation1.mp4" type="video/mp4" />
           <source src="/animation1.mp4" type="video/mp4" />

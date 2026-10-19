@@ -94,9 +94,9 @@ export function CheckoutPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h2 className="text-2xl font-semibold text-[#242424]">Please Sign In to Checkout</h2>
-        <p className="mt-2 text-sm text-[#6f6f6f]">You must have a Home Rituals account to complete your purchase.</p>
-        <Link to="/login" className="mt-6 inline-flex items-center justify-center rounded-[6px] bg-[#44D62C] text-[#111] px-5 py-2.5 text-sm font-semibold hover:bg-[#3bc224] transition shadow-2xs">Sign In</Link>
+        <h2 className="text-2xl font-semibold">Please Sign In to Checkout</h2>
+        <p className="mt-2 text-[#6f6f6f]">You must have a Home Rituals account to complete your purchase.</p>
+        <Link to="/login" className="mt-6 inline-flex items-center justify-center rounded-full bg-[#44D62C] text-white px-6 py-3 font-semibold">Sign In</Link>
       </div>
     );
   }
@@ -104,10 +104,10 @@ export function CheckoutPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping details</h1>
-      <p className="mt-1 text-sm text-[#6f6f6f]">Select a shipping address or add a new one.</p>
+      <p className="mt-2 text-sm text-[#6f6f6f]">Select a shipping address or add a new one.</p>
 
       {error && (
-        <div className="mt-4 rounded-[6px] bg-red-50 p-3.5 text-xs text-red-600 border border-red-200">
+        <div className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-600 border border-red-100">
           {error}
         </div>
       )}
@@ -118,10 +118,10 @@ export function CheckoutPage() {
           {addresses.map((addr) => (
             <label
               key={addr.id}
-              className={`flex items-start gap-3.5 p-4 rounded-[8px] border-2 cursor-pointer transition ${
+              className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition ${
                 selectedAddressId === addr.id
                   ? 'border-[#44D62C] bg-[#fdfefc]'
-                  : 'border-black/10 bg-white hover:border-black/20'
+                  : 'border-black/5 bg-white hover:border-black/10'
               }`}
             >
               <input
@@ -129,13 +129,13 @@ export function CheckoutPage() {
                 name="selectedAddress"
                 checked={selectedAddressId === addr.id}
                 onChange={() => setSelectedAddressId(addr.id)}
-                className="mt-1 accent-[#0B8F3C]"
+                className="mt-1 accent-[#44D62C]"
               />
               <div className="text-sm">
-                <p className="font-semibold text-[#242424]">{addr.fullName} {addr.isDefault && <span className="ml-2 text-[10px] uppercase font-bold tracking-wider bg-emerald-50 text-[#0B8F3C] border border-emerald-200 px-2 py-0.5 rounded-[4px]">Default</span>}</p>
-                <p className="mt-1 text-xs text-[#5f5f5f] leading-relaxed">{addr.address1}, {addr.address2 && `${addr.address2}, `}{addr.city}, {addr.state} - {addr.postalCode}</p>
-                {addr.landmark && <p className="text-xs text-[#888]">Landmark: {addr.landmark}</p>}
-                <p className="mt-1 text-xs font-semibold text-stone-700">Phone: {addr.phone}</p>
+                <p className="font-semibold text-[#242424]">{addr.fullName} {addr.isDefault && <span className="ml-2 text-xs bg-[#44D62C]/10 text-[#0B8F3C] px-2 py-0.5 rounded-full">Default</span>}</p>
+                <p className="mt-1 text-[#5f5f5f]">{addr.address1}, {addr.address2 && `${addr.address2}, `}{addr.city}, {addr.state} - {addr.postalCode}</p>
+                {addr.landmark && <p className="text-[#888]">Landmark: {addr.landmark}</p>}
+                <p className="mt-1 font-medium">Phone: {addr.phone}</p>
               </div>
             </label>
           ))}
@@ -148,7 +148,7 @@ export function CheckoutPage() {
           <button
             onClick={() => setShowNewAddressForm(!showNewAddressForm)}
             style={{ color: '#0B8F3C' }}
-            className="text-xs uppercase tracking-wider font-bold hover:underline cursor-pointer"
+            className="text-sm font-semibold hover:underline"
           >
             {showNewAddressForm ? 'Cancel new address' : '+ Add a new address'}
           </button>
@@ -157,34 +157,34 @@ export function CheckoutPage() {
 
       {/* New Address Form */}
       {showNewAddressForm && (
-        <form onSubmit={handleAddNewAddress} className="mt-6 grid gap-3.5 border-t border-black/10 pt-6">
-          <h3 className="text-base font-semibold text-[#242424]">Add a new address</h3>
+        <form onSubmit={handleAddNewAddress} className="mt-6 grid gap-4 border-t border-black/5 pt-6">
+          <h3 className="text-lg font-semibold text-[#242424]">Add a new address</h3>
           <input
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Full name"
-            className="w-full rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+            className="w-full rounded-md border border-black/10 px-4 py-3"
             required
           />
           <input
             value={address1}
             onChange={(e) => setAddress1(e.target.value)}
             placeholder="Address line 1"
-            className="w-full rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+            className="w-full rounded-md border border-black/10 px-4 py-3"
             required
           />
           <input
             value={address2}
             onChange={(e) => setAddress2(e.target.value)}
             placeholder="Address line 2 (optional)"
-            className="w-full rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+            className="w-full rounded-md border border-black/10 px-4 py-3"
           />
 
-          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <select
               value={state}
               onChange={(e) => setState(e.target.value)}
-              className="rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+              className="rounded-md border border-black/10 px-4 py-3"
               required
             >
               <option value="">Select state</option>
@@ -196,38 +196,38 @@ export function CheckoutPage() {
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder="City"
-              className="rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+              className="rounded-md border border-black/10 px-4 py-3"
               required
             />
             <input
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
               placeholder="Postal / ZIP code"
-              className="rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+              className="rounded-md border border-black/10 px-4 py-3"
               required
             />
           </div>
 
-          <input value="India" readOnly className="w-full rounded-[6px] border border-black/10 px-3.5 py-2.5 text-sm bg-gray-50 text-gray-500" />
+          <input value="India" readOnly className="w-full rounded-md border border-black/10 px-4 py-3 bg-gray-50 text-gray-500" />
           <input
             value={landmark}
             onChange={(e) => setLandmark(e.target.value)}
             placeholder="Landmark (optional)"
-            className="w-full rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+            className="w-full rounded-md border border-black/10 px-4 py-3"
           />
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="Phone number"
-            className="w-full rounded-[6px] border border-black/15 bg-white px-3.5 py-2.5 text-sm focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] outline-none transition"
+            className="w-full rounded-md border border-black/10 px-4 py-3"
             required
           />
 
-          <div className="pt-2">
+          <div>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center rounded-[6px] bg-[#44D62C] text-[#111] px-5 py-2.5 text-sm font-semibold hover:bg-[#3ebe27] transition shadow-2xs disabled:bg-gray-200 disabled:text-gray-400"
+              className="inline-flex items-center justify-center rounded-full bg-[#44D62C] text-white px-6 py-3 font-semibold hover:bg-[#3ebe27] disabled:bg-gray-300"
             >
               {loading ? 'Adding Address...' : 'Add Address'}
             </button>
@@ -237,10 +237,10 @@ export function CheckoutPage() {
 
       {/* Next Step controls */}
       {!showNewAddressForm && addresses.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-black/10 flex items-center justify-between">
+        <div className="mt-8 pt-6 border-t border-black/5 flex items-center justify-between">
           <button
             onClick={handleProceedToPayment}
-            className="inline-flex items-center justify-center rounded-[6px] bg-[#44D62C] text-[#111] px-6 py-3 text-sm font-semibold hover:bg-[#3ebe27] transition shadow-2xs"
+            className="inline-flex items-center justify-center rounded-full bg-[#44D62C] text-white px-6 py-3 font-semibold hover:bg-[#3ebe27]"
           >
             Save and continue to payment
           </button>

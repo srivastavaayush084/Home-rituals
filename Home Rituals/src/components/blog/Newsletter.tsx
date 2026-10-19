@@ -26,7 +26,7 @@ export function Newsletter() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl rounded-[8px] border border-[#e8efe7] bg-white p-6 text-center shadow-xs">
+    <div className="mx-auto max-w-3xl rounded-[18px] border border-[#e8efe7] bg-white p-6 text-center shadow-sm">
       <h3 className="text-xl font-semibold text-[#1a1a1a]">Stay Updated with Cleaning Tips</h3>
       <p className="mt-2 text-sm text-[#666666]">Get expert home care tips, exclusive offers, and new product launches delivered straight to your inbox.</p>
 
@@ -36,13 +36,13 @@ export function Newsletter() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email Address"
           type="email"
-          className="w-full rounded-[6px] border border-[#e8efe7] px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-[#0B8F3C]"
+          className="w-full rounded-full border border-[#e8efe7] px-4 py-3 text-sm"
           required
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full sm:w-auto rounded-[6px] bg-[#0B8F3C] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#097b33] transition shadow-xs disabled:opacity-50"
+          className="w-full sm:w-auto rounded-full bg-[#0B8F3C] px-5 py-3 text-sm font-semibold text-white hover:bg-[#097b33] disabled:bg-gray-300"
         >
           {loading ? 'Subscribing...' : 'Subscribe'}
         </button>

@@ -46,7 +46,7 @@ export function BlogArticlePage() {
       <div className="mx-auto max-w-5xl px-4 py-20 text-center">
         <h1 className="text-3xl font-semibold text-[#1a1a1a]">Article not found</h1>
         <p className="mt-3 text-[#666666]">The blog post you are looking for does not exist.</p>
-        <Link to="/blog" className="mt-6 inline-flex items-center gap-2 rounded-[6px] bg-[#0B8F3C] px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-[#097b33]">
+        <Link to="/blog" className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#0B8F3C] px-5 py-3 text-sm font-semibold text-white">
           <ArrowLeft size={16} />
           Back to blog
         </Link>
@@ -69,7 +69,7 @@ export function BlogArticlePage() {
           Back to blog
         </Link>
 
-        <div className="mt-8 overflow-hidden rounded-[10px] border border-[#e8efe7] bg-[#f8fbf8] shadow-xs">
+        <div className="mt-8 overflow-hidden rounded-[28px] border border-[#e8efe7] bg-[#f8fbf8] shadow-sm">
           <img src={post.image} alt={post.title} className="h-[320px] w-full object-contain bg-[#f7faf7] p-4 sm:h-[420px] sm:p-6" />
           <div className="p-6 sm:p-8 lg:p-10">
             <div className="flex flex-wrap items-center gap-3 text-sm font-semibold uppercase tracking-[0.24em] text-[#0B8F3C]">

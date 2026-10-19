@@ -95,13 +95,13 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fadeIn">
       <div
-        className="bg-white w-full max-w-lg rounded-[10px] shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[92vh]"
+        className="bg-white w-full max-w-lg rounded-[28px] shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[6px] bg-rose-100 text-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
@@ -114,7 +114,7 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="text-stone-400 hover:text-stone-600 p-1.5 rounded-[6px] hover:bg-stone-100 transition disabled:opacity-50"
+            className="text-stone-400 hover:text-stone-600 p-1.5 rounded-full hover:bg-stone-100 transition disabled:opacity-50"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -129,7 +129,7 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
           </p>
 
           {/* Order Summary Snapshot */}
-          <div className="bg-stone-50 border border-stone-200/80 rounded-[8px] p-4 space-y-2.5">
+          <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs text-stone-500 border-b border-stone-200/60 pb-2">
               <span className="font-semibold uppercase tracking-wider">Order Summary</span>
               <span>{order.items?.length || 1} item(s)</span>
@@ -154,6 +154,8 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
             </div>
           </div>
 
+
+
           {/* Cancellation Reason Dropdown */}
           <div className="space-y-1.5">
             <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
@@ -163,7 +165,7 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
               value={selectedReason}
               onChange={(e) => setSelectedReason(e.target.value)}
               disabled={isSubmitting}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-[6px] text-sm text-stone-800 focus:outline-none focus:ring-1 focus:ring-rose-500 transition disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-500 transition disabled:opacity-50"
             >
               {CANCELLATION_REASONS.map((r) => (
                 <option key={r} value={r}>
@@ -189,14 +191,14 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
               rows={3}
               maxLength={500}
               disabled={isSubmitting}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-[6px] text-sm text-stone-800 focus:outline-none focus:ring-1 focus:ring-rose-500 placeholder-stone-400 transition disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-500 placeholder-stone-400 transition disabled:opacity-50"
             />
             <div className="text-right text-[11px] text-stone-400">{customComment.length} / 500</div>
           </div>
 
           {/* Error Message Alert */}
           {errorMessage && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-3.5 rounded-[6px] flex items-start gap-2 animate-fadeIn">
+            <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-3.5 rounded-xl flex items-start gap-2 animate-fadeIn">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
@@ -208,14 +210,14 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-[6px] border border-stone-300 text-stone-700 hover:bg-stone-100 font-semibold text-sm transition disabled:opacity-50 text-center"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-stone-300 text-stone-700 hover:bg-stone-100 font-semibold text-sm transition disabled:opacity-50 text-center"
             >
               Keep Order
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-xs transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

@@ -19,35 +19,26 @@ export function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-      <h1 className="text-3xl sm:text-4xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>Your cart</h1>
+      <h1 className="text-4xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>Your cart</h1>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           {cart.map((item) => (
-            <div key={item.productId} className="flex items-center justify-between rounded-[8px] border border-black/10 bg-white p-4 sm:p-5 shadow-2xs">
+            <Card key={item.productId} className="flex items-center justify-between p-5">
               <div>
-                <p className="font-semibold text-[#242424] text-base">{item.product.name}</p>
-                <p className="mt-1 text-xs text-[#6f6f6f]">Qty {item.quantity} • ₹{item.product.price} each</p>
+                <p className="font-semibold text-[#242424]">{item.product.name}</p>
+                <p className="mt-1 text-sm text-[#6f6f6f]">Qty {item.quantity} • ₹{item.product.price}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => removeFromCart(item.productId)}
-                className="text-xs font-semibold text-stone-500 hover:text-red-600 transition p-2 cursor-pointer"
-              >
-                Remove
-              </button>
-            </div>
+              <Button variant="ghost" onClick={() => removeFromCart(item.productId)}>Remove</Button>
+            </Card>
           ))}
         </div>
         <Card className="p-6">
-          <p className="text-xs uppercase tracking-[0.25em] font-bold text-black">Summary</p>
-          <div className="mt-5 space-y-2.5 text-sm text-[#5f5f5f]">
-            <div className="flex justify-between"><span>Subtotal</span><span className="font-medium text-[#242424]">₹{subtotal}</span></div>
-            <div className="flex justify-between"><span>Shipping</span><span className="text-[#0B8F3C] font-semibold">Free</span></div>
+          <p className="text-sm uppercase tracking-[0.35em] text-black">Summary</p>
+          <div className="mt-6 space-y-3 text-sm text-[#5f5f5f]">
+            <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal}</span></div>
+            <div className="flex justify-between"><span>Shipping</span><span>Free</span></div>
           </div>
-          <div className="mt-5 flex justify-between border-t border-black/10 pt-4 text-base font-bold text-[#242424]">
-            <span>Total</span>
-            <span className="text-xl">₹{total}</span>
-          </div>
+          <div className="mt-6 flex justify-between border-t border-black/5 pt-4 text-lg font-semibold text-[#242424]"><span>Total</span><span>₹{total}</span></div>
           <Button to="/checkout" className="mt-6 w-full">Proceed to checkout</Button>
         </Card>
       </div>

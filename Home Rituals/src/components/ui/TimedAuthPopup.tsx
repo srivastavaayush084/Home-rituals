@@ -131,25 +131,25 @@ export function TimedAuthPopup() {
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
-            className="relative flex w-full max-w-[420px] flex-col items-center rounded-[12px] border border-stone-200 bg-white p-8 text-center shadow-xl"
+            className="relative flex w-full max-w-[420px] flex-col items-center rounded-[32px] border border-stone-200/60 bg-white p-8 text-center shadow-[0_24px_50px_-12px_rgba(0,0,0,0.15)]"
           >
             {/* Close Icon Button */}
             <button
               type="button"
               onClick={handleClose}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[6px] border border-stone-200 bg-stone-50 text-stone-600 transition hover:bg-stone-100 hover:text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B8F3C]"
+              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full border border-stone-150 bg-stone-50 text-stone-500 shadow-sm transition hover:bg-stone-100 hover:text-stone-800 hover:scale-105 active:scale-95"
               aria-label="Close dialog"
             >
               <X size={15} />
             </button>
 
             {/* Dynamic Promotional Content */}
-            <div className="mt-2 flex flex-col items-center">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-[#44D62C]/10 text-[#0B8F3C] text-[10px] font-bold uppercase tracking-wider mb-4 border border-[#44D62C]/20 select-none">
+            <div className="mt-4 flex flex-col items-center">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#44D62C]/10 text-[#0B8F3C] text-[10px] font-bold uppercase tracking-wider mb-4 shadow-sm select-none">
                 <Sparkles size={11} className="text-[#0B8F3C]" /> Exclusive Welcome
               </div>
-              <div className="text-4xl select-none leading-none mb-1">🎁</div>
-              <h2 className="mt-3 text-2xl font-semibold text-[#223229] leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <div className="text-5xl select-none leading-none">🎁</div>
+              <h2 className="mt-4 text-3xl font-semibold text-[#223229] leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
                 {AUTH_POPUP_TITLE}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-stone-500 max-w-[320px]">
@@ -158,17 +158,17 @@ export function TimedAuthPopup() {
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-7 w-full space-y-2.5">
+            <div className="mt-8 w-full space-y-3">
               <Button
                 onClick={() => handleAction('/login')}
-                className="w-full"
+                className="w-full py-3.5 shadow-lg shadow-[#44D62C]/20 hover:scale-[1.02] active:scale-[0.98] transition-transform"
               >
                 Login
               </Button>
               <button
                 type="button"
                 onClick={() => handleAction('/register')}
-                className="w-full rounded-[6px] border border-stone-300 bg-white py-2.5 text-sm font-semibold text-stone-800 hover:bg-stone-50 hover:border-stone-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B8F3C]"
+                className="w-full rounded-full border border-stone-200 bg-white py-3.5 text-sm font-semibold text-stone-850 hover:bg-stone-50 hover:border-stone-300 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 Create Account
               </button>
