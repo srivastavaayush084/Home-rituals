@@ -90,7 +90,7 @@ function PromotionalBannerSlider({ banners }: { banners: ImageBanner[] }) {
               {showOverlay && (
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 sm:p-10 lg:p-12 text-white">
                   <div className="max-w-4xl space-y-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#44D62C] text-[#111] text-xs font-bold uppercase tracking-widest shadow-md">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-[#44D62C] text-[#111] text-xs font-bold uppercase tracking-widest shadow-sm">
                       <Sparkles size={13} /> Exclusive Deal
                     </span>
                     <h3 className="text-xl sm:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight drop-shadow-md">
@@ -111,26 +111,26 @@ function PromotionalBannerSlider({ banners }: { banners: ImageBanner[] }) {
         <>
           <button
             onClick={() => setCurrentIndex((prev) => (prev - 1 + list.length) % list.length)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 hover:bg-black/70 transition"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/50 text-white backdrop-blur-md border border-white/20 hover:bg-black/70 transition"
             aria-label="Previous Slide"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </button>
           <button
             onClick={() => setCurrentIndex((prev) => (prev + 1) % list.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 hover:bg-black/70 transition"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/50 text-white backdrop-blur-md border border-white/20 hover:bg-black/70 transition"
             aria-label="Next Slide"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
 
-          <div className="absolute bottom-4 right-6 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+          <div className="absolute bottom-4 right-6 z-20 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-[4px] border border-white/20">
             {list.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`h-2.5 rounded-full transition-all duration-300 ${
-                  currentIndex === idx ? 'w-8 bg-[#44D62C]' : 'w-2.5 bg-white/50 hover:bg-white'
+                className={`h-2 rounded-[2px] transition-all duration-300 ${
+                  currentIndex === idx ? 'w-6 bg-[#44D62C]' : 'w-2 bg-white/50 hover:bg-white'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
@@ -191,13 +191,13 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-300">
-      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-sm backdrop-blur-xl' : 'backdrop-blur'}`} style={{ backgroundColor: 'var(--surface)' }}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-xs backdrop-blur-xl' : 'backdrop-blur'}`} style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="Home Rituals logo" className="h-10 w-10 rounded-full border border-black/10 bg-[#f4f4f5] object-contain shadow-sm" />
+            <img src="/logo.png" alt="Home Rituals logo" className="h-9 w-9 rounded-[6px] border border-black/10 bg-[#f4f4f5] object-contain shadow-2xs" />
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-black">Home Rituals</p>
-              <p className="text-[11px] text-[#6f6f6f]">Home hygiene essentials</p>
+              <p className="text-xs uppercase tracking-[0.3em] font-semibold text-black">Home Rituals</p>
+              <p className="text-[10px] text-[#6f6f6f]">Home hygiene essentials</p>
             </div>
           </Link>
 
@@ -206,25 +206,25 @@ export function Layout({ children }: LayoutProps) {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-black' : 'text-[#223229] hover:text-black'}`}
+                className={({ isActive }) => `text-sm font-medium transition ${isActive ? 'text-black font-semibold' : 'text-[#223229] hover:text-black'}`}
               >
                 {item.label}
               </NavLink>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button onClick={openSearch} className="rounded-full border border-black/10 bg-[var(--surface)] p-2.5 text-[var(--text)] shadow-sm transition hover:-translate-y-0.5" aria-label="Search">
-              <Search size={18} />
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <button onClick={openSearch} className="rounded-[6px] border border-black/10 bg-[var(--surface)] p-2 text-[var(--text)] shadow-2xs transition hover:border-[#44D62C]" aria-label="Search">
+              <Search size={17} />
             </button>
-            <button className="rounded-full border border-black/10 bg-[var(--surface)] p-2.5 text-[var(--text)] shadow-sm transition hover:-translate-y-0.5" aria-label="Wishlist" onClick={openWishlist}>
-              <Heart size={18} />
+            <button className="rounded-[6px] border border-black/10 bg-[var(--surface)] p-2 text-[var(--text)] shadow-2xs transition hover:border-[#44D62C]" aria-label="Wishlist" onClick={openWishlist}>
+              <Heart size={17} />
             </button>
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
                   to="/profile"
-                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 hover:text-stone-900 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-full transition"
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 hover:text-stone-900 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-[6px] border border-stone-200 transition"
                 >
                   <User size={14} className="text-stone-500" />
                   Hi, {user.name.split(' ')[0]}
@@ -236,7 +236,7 @@ export function Layout({ children }: LayoutProps) {
                 ) : null}
                 <button
                   onClick={logout}
-                  className="hidden sm:inline-flex text-xs font-medium text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition"
+                  className="hidden sm:inline-flex text-xs font-medium text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-[6px] border border-red-200 transition"
                   title="Sign out"
                 >
                   Sign out
@@ -247,11 +247,11 @@ export function Layout({ children }: LayoutProps) {
                 Sign in
               </Button>
             )}
-            <button className="rounded-full border border-black/10 bg-[var(--surface)] p-2.5 text-[var(--text)] shadow-sm transition hover:-translate-y-0.5" aria-label="Cart" onClick={openCart}>
-              <ShoppingBag size={18} />
+            <button className="rounded-[6px] border border-black/10 bg-[var(--surface)] p-2 text-[var(--text)] shadow-2xs transition hover:border-[#44D62C]" aria-label="Cart" onClick={openCart}>
+              <ShoppingBag size={17} />
             </button>
-            <button className="rounded-full border border-black/10 bg-[var(--surface)] p-2.5 text-[var(--text)] shadow-sm transition hover:-translate-y-0.5 lg:hidden" aria-label="Menu" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <Menu size={18} />
+            <button className="rounded-[6px] border border-black/10 bg-[var(--surface)] p-2 text-[var(--text)] shadow-2xs transition hover:border-[#44D62C] lg:hidden" aria-label="Menu" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Menu size={17} />
             </button>
           </div>
         </div>
@@ -299,7 +299,7 @@ export function Layout({ children }: LayoutProps) {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center rounded-full bg-[#44D62C] text-white py-2 text-sm font-semibold shadow-md"
+                    className="w-full text-center rounded-[6px] bg-[#44D62C] text-[#111] py-2.5 text-sm font-semibold shadow-2xs hover:bg-[#3bc224] transition-colors"
                   >
                     Sign in
                   </Link>
@@ -331,19 +331,19 @@ export function Layout({ children }: LayoutProps) {
       </AnimatePresence>
 
       {isSearchOpen ? (
-        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" onClick={closeSearch}>
-          <div className="mx-auto mt-20 max-w-2xl rounded-[28px] border border-black/5 bg-white p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs" onClick={closeSearch}>
+          <div className="mx-auto mt-20 max-w-2xl rounded-[10px] border border-black/10 bg-white p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <p className="text-sm uppercase tracking-[0.35em] text-black">Search</p>
-              <button onClick={closeSearch} className="rounded-full bg-[#EFE9DF] p-2 text-black"><X size={16} /></button>
+              <p className="text-xs uppercase tracking-[0.25em] font-semibold text-black">Search catalog</p>
+              <button onClick={closeSearch} className="rounded-[6px] bg-stone-100 p-2 text-stone-700 hover:bg-stone-200 transition" aria-label="Close search"><X size={16} /></button>
             </div>
-            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search for cleaners, pods, or essentials" className="mt-4 w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3 text-sm outline-none" />
-            <div className="mt-4 max-h-72 space-y-3 overflow-auto">
+            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search for cleaners, pods, or essentials" className="mt-4 w-full rounded-[6px] border border-black/15 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#0B8F3C] focus:ring-1 focus:ring-[#0B8F3C] transition" />
+            <div className="mt-4 max-h-72 space-y-2 overflow-auto">
               {filteredProducts.map((product) => (
-                <Link key={product.id} to={`/product/${product.id}`} onClick={closeSearch} className="flex items-center justify-between rounded-[20px] border border-black/5 bg-[#FAFAF8] px-4 py-3">
+                <Link key={product.id} to={`/product/${product.id}`} onClick={closeSearch} className="flex items-center justify-between rounded-[6px] border border-black/5 bg-[#FAFAF8] px-4 py-3 hover:border-black/15 hover:bg-white transition">
                   <div>
-                    <p className="font-semibold text-[#242424]">{product.name}</p>
-                    <p className="text-sm text-[#6f6f6f]">{getCategoryName(product.category)}</p>
+                    <p className="font-semibold text-[#242424] text-sm">{product.name}</p>
+                    <p className="text-xs text-[#6f6f6f]">{getCategoryName(product.category)}</p>
                   </div>
                   <p className="text-sm font-semibold text-black">₹{product.price}</p>
                 </Link>
@@ -354,42 +354,42 @@ export function Layout({ children }: LayoutProps) {
       ) : null}
 
       {isCartOpen ? (
-        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" onClick={closeCart}>
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs" onClick={closeCart}>
           <div className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-[var(--surface)] p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-[#242424]">Cart</h2>
-              <button onClick={closeCart} className="rounded-full bg-[#EFE9DF] p-2 text-black"><X size={16} /></button>
+            <div className="flex items-center justify-between pb-4 border-b border-black/10">
+              <h2 className="text-xl font-semibold text-[#242424]">Cart</h2>
+              <button onClick={closeCart} className="rounded-[6px] bg-stone-100 p-2 text-stone-700 hover:bg-stone-200 transition" aria-label="Close cart"><X size={16} /></button>
             </div>
-            <div className="mt-6 flex-1 space-y-4 overflow-auto">
-              {cart.length === 0 ? <p className="text-sm text-[#6f6f6f]">Your cart is empty.</p> : cart.map((item) => (
-                <div key={item.productId} className="flex items-center justify-between rounded-[20px] border border-black/5 bg-[#FAFAF8] p-4">
+            <div className="mt-4 flex-1 space-y-3 overflow-auto">
+              {cart.length === 0 ? <p className="text-sm text-[#6f6f6f] py-8 text-center">Your cart is empty.</p> : cart.map((item) => (
+                <div key={item.productId} className="flex items-center justify-between rounded-[6px] border border-black/5 bg-[#FAFAF8] p-3.5">
                   <div>
-                    <p className="font-semibold text-[#242424]">{item.product.name}</p>
-                    <p className="text-sm text-[#6f6f6f]">Qty {item.quantity}</p>
+                    <p className="font-semibold text-[#242424] text-sm">{item.product.name}</p>
+                    <p className="text-xs text-[#6f6f6f] mt-0.5">Qty {item.quantity} • ₹{item.product.price * item.quantity}</p>
                   </div>
-                  <button onClick={() => removeFromCart(item.productId)} className="text-sm font-semibold text-black">Remove</button>
+                  <button onClick={() => removeFromCart(item.productId)} className="text-xs font-semibold text-red-600 hover:text-red-800 transition">Remove</button>
                 </div>
               ))}
             </div>
-            <Button to="/cart" onClick={closeCart} className="mt-6 w-full">View cart</Button>
+            <Button to="/cart" onClick={closeCart} className="mt-4 w-full">View cart</Button>
           </div>
         </div>
       ) : null}
 
       {isWishlistOpen ? (
-        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" onClick={closeWishlist}>
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs" onClick={closeWishlist}>
           <div className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-[var(--surface)] p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-[#242424]">Wishlist</h2>
-              <button onClick={closeWishlist} className="rounded-full bg-[#EFE9DF] p-2 text-black"><X size={16} /></button>
+            <div className="flex items-center justify-between pb-4 border-b border-black/10">
+              <h2 className="text-xl font-semibold text-[#242424]">Wishlist</h2>
+              <button onClick={closeWishlist} className="rounded-[6px] bg-stone-100 p-2 text-stone-700 hover:bg-stone-200 transition" aria-label="Close wishlist"><X size={16} /></button>
             </div>
-            <div className="mt-6 flex-1 space-y-4 overflow-auto">
-              {wishlistIds.length === 0 ? <p className="text-sm text-[#6f6f6f]">No saved favourites yet.</p> : wishlistIds.map((id) => {
+            <div className="mt-4 flex-1 space-y-3 overflow-auto">
+              {wishlistIds.length === 0 ? <p className="text-sm text-[#6f6f6f] py-8 text-center">No saved favourites yet.</p> : wishlistIds.map((id) => {
                 const product = products.find((item) => item.id === id);
                 return (
-                  <div key={id} className="rounded-[20px] border border-black/5 bg-[#FAFAF8] p-4 text-sm text-[#242424]">
+                  <div key={id} className="rounded-[6px] border border-black/5 bg-[#FAFAF8] p-3.5 text-sm text-[#242424]">
                     <p className="font-semibold">{product?.name ?? `Product ${id}`}</p>
-                    <p className="mt-1 text-[#6f6f6f]">{getCategoryName(product?.category) || 'Saved item'}</p>
+                    <p className="mt-0.5 text-xs text-[#6f6f6f]">{getCategoryName(product?.category) || 'Saved item'}</p>
                   </div>
                 );
               })}
@@ -478,26 +478,26 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </section>
 
-      <footer className="border-t border-[#44D62C]/30 bg-[#44D62C] px-4 py-16 text-black shadow-[0_24px_70px_rgba(68,214,44,0.14)] sm:px-6 lg:px-8">
+      <footer className="border-t border-black/10 bg-[#44D62C] px-4 py-16 text-black sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-4 lg:gap-10">
           <div>
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Home Rituals logo" className="h-14 w-14 rounded-full bg-white/20 object-contain p-2" />
-              <p className="text-xs uppercase tracking-[0.35em] font-semibold text-black">Home Rituals</p>
+              <img src="/logo.png" alt="Home Rituals logo" className="h-12 w-12 rounded-[8px] bg-white/30 object-contain p-1.5 shadow-2xs" />
+              <p className="text-xs uppercase tracking-[0.3em] font-bold text-black">Home Rituals</p>
             </div>
-            <p className="mt-4 text-sm leading-7 font-semibold text-black/90">Reliable cleaning and sanitation solutions for homes that want freshness, hygiene, and effortless care every day.</p>
+            <p className="mt-4 text-sm leading-relaxed font-medium text-black/85">Reliable cleaning and sanitation solutions for homes that want freshness, hygiene, and effortless care every day.</p>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-black">Discover</h3>
-            <ul className="mt-4 space-y-2 text-sm font-semibold text-black/90">
+            <h3 className="text-xs uppercase tracking-[0.15em] font-bold text-black">Discover</h3>
+            <ul className="mt-4 space-y-2.5 text-sm font-medium text-black/85">
               <li><Link to="/about" className="block transition hover:text-black hover:underline">About</Link></li>
               <li><Link to="/contact" className="block transition hover:text-black hover:underline">Support</Link></li>
               <li><Link to="/wishlist" className="block transition hover:text-black hover:underline">Wishlist</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-black">Company</h3>
-            <ul className="mt-4 space-y-2 text-sm font-semibold text-black/90">
+            <h3 className="text-xs uppercase tracking-[0.15em] font-bold text-black">Company</h3>
+            <ul className="mt-4 space-y-2.5 text-sm font-medium text-black/85">
               <li><Link to="/privacy-policy" className="block transition hover:text-black hover:underline">Privacy Policy</Link></li>
               <li><Link to="/terms" className="block transition hover:text-black hover:underline">Terms &amp; Conditions</Link></li>
               <li><Link to="/refund-cancellation" className="block transition hover:text-black hover:underline">Refund &amp; Cancellation</Link></li>
@@ -507,25 +507,25 @@ export function Layout({ children }: LayoutProps) {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-black">Contact</h3>
-            <div className="mt-4 flex items-center gap-3 text-black/90">
-              <a href="mailto:info@homerituals.co" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Email">
+            <h3 className="text-xs uppercase tracking-[0.15em] font-bold text-black">Contact</h3>
+            <div className="mt-4 flex items-center gap-2.5 text-black">
+              <a href="mailto:info@homerituals.co" className="rounded-[6px] border border-black/15 bg-white/25 p-2 text-black transition hover:bg-black hover:text-white" aria-label="Email">
                 <Mail size={16} />
               </a>
-              <a href="https://www.instagram.com/homerituals.co/?hl=en" target="_blank" rel="noreferrer" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Instagram">
+              <a href="https://www.instagram.com/homerituals.co/?hl=en" target="_blank" rel="noreferrer" className="rounded-[6px] border border-black/15 bg-white/25 p-2 text-black transition hover:bg-black hover:text-white" aria-label="Instagram">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <rect x="3" y="3" width="18" height="18" rx="5" />
                   <circle cx="12" cy="12" r="4" />
                   <circle cx="17.5" cy="6.5" r="1" />
                 </svg>
               </a>
-              <a href="https://www.facebook.com/share/1Czc6yipq5/" target="_blank" rel="noreferrer" className="rounded-full border border-black/10 bg-white/15 p-2.5 transition hover:bg-[#44D62C] hover:text-black" aria-label="Facebook">
+              <a href="https://www.facebook.com/share/1Czc6yipq5/" target="_blank" rel="noreferrer" className="rounded-[6px] border border-black/15 bg-white/25 p-2 text-black transition hover:bg-black hover:text-white" aria-label="Facebook">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
               </a>
             </div>
-            <ul className="mt-4 space-y-2 text-sm font-semibold text-black/90">
+            <ul className="mt-4 space-y-2 text-sm font-medium text-black/85">
               <li>+91 8490969922</li>
               <li className="leading-relaxed">
                 Office No. 321<br />

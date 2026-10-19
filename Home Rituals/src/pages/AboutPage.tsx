@@ -16,7 +16,7 @@ export function AboutPage() {
           <img
             src="/logo.png"
             alt="Home Rituals logo"
-            className="h-64 w-64 rounded-full object-contain bg-white border-4 border-black/5 shadow-xl"
+            className="h-64 w-64 rounded-[12px] object-contain bg-white border border-black/8 shadow-md p-4"
           />
         </div>
       </div>
@@ -30,12 +30,12 @@ export function AboutPage() {
       </div>
 
       <div className="mt-16 grid gap-8 lg:grid-cols-[1fr_0.95fr]">
-        <div className="rounded-[32px] border border-black/5 bg-[#EFE9DF] p-8">
+        <div className="rounded-[10px] border border-black/8 bg-[#EFE9DF] p-8 shadow-xs">
           <p className="text-sm uppercase tracking-[0.35em] text-black">Mission</p>
           <h2 className="mt-3 text-3xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>To make everyday cleaning simpler, stronger, and more dependable.</h2>
           <p className="mt-4 text-lg leading-8 text-[#5f5f5f]">Our mission is to provide easy-to-use, affordable, and effective solutions that help households remove dirt, stains, odors, and harmful bacteria with confidence.</p>
         </div>
-        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+        <div className="rounded-[10px] border border-black/8 bg-white p-8 shadow-xs">
           <p className="text-sm uppercase tracking-[0.35em] text-black">Sustainability</p>
           <p className="mt-4 text-lg leading-8 text-[#6f6f6f]">We focus on practical products that help keep homes fresh and hygienic while supporting a more conscious, less wasteful way of living.</p>
         </div>

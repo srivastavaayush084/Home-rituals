@@ -285,21 +285,21 @@ export function ProfilePage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* User Hero Banner */}
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-[#1c2c22] via-[#223229] to-[#2d4237] p-8 text-white shadow-lg mb-8">
+        <div className="relative overflow-hidden rounded-[10px] bg-gradient-to-r from-[#1c2c22] via-[#223229] to-[#2d4237] p-8 text-white shadow-md mb-8">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-full bg-[#44D62C] text-[#111] flex items-center justify-center font-bold text-2xl shadow-md">
+              <div className="w-16 h-16 rounded-[10px] bg-[#44D62C] text-[#111827] flex items-center justify-center font-bold text-2xl shadow-sm">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-serif font-semibold text-white">{user.name}</h1>
                   {user.role === 'ADMIN' ? (
-                    <span className="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                    <span className="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs px-2.5 py-0.5 rounded-[4px] font-medium">
                       <ShieldCheck className="w-3.5 h-3.5" /> Admin
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 bg-white/10 border border-white/20 text-white/90 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                    <span className="inline-flex items-center gap-1 bg-white/10 border border-white/20 text-white/90 text-xs px-2.5 py-0.5 rounded-[4px] font-medium">
                       <Sparkles className="w-3.5 h-3.5 text-[#44D62C]" /> Customer
                     </span>
                   )}
@@ -312,14 +312,14 @@ export function ProfilePage() {
               {user.role === 'ADMIN' ? (
                 <Link
                   to="/admin"
-                  className="px-5 py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm transition shadow-sm"
+                  className="px-5 py-2.5 rounded-[6px] bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm transition shadow-xs"
                 >
                   Admin Panel
                 </Link>
               ) : null}
               <button
                 onClick={logout}
-                className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm border border-white/20 transition"
+                className="px-5 py-2.5 rounded-[6px] bg-white/10 hover:bg-white/20 text-white font-medium text-sm border border-white/20 transition"
               >
                 Sign Out
               </button>
@@ -332,50 +332,50 @@ export function ProfilePage() {
           
           {/* Navigation Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-[24px] border border-stone-200 p-4 shadow-sm space-y-1">
+            <div className="bg-white rounded-[8px] border border-stone-200 p-3 shadow-xs space-y-1">
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'orders' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[6px] text-sm font-medium transition text-left ${
+                  activeTab === 'orders' ? 'bg-[#44D62C] text-[#111827] shadow-xs font-semibold' : 'text-stone-700 hover:bg-stone-50'
                 }`}
               >
                 <Package className="w-4 h-4" />
                 My Orders
-                <span className="ml-auto text-xs opacity-80 bg-black/10 px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-xs opacity-80 bg-black/10 px-2 py-0.5 rounded-[4px]">
                   {orders.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('addresses')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'addresses' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[6px] text-sm font-medium transition text-left ${
+                  activeTab === 'addresses' ? 'bg-[#44D62C] text-[#111827] shadow-xs font-semibold' : 'text-stone-700 hover:bg-stone-50'
                 }`}
               >
                 <MapPin className="w-4 h-4" />
                 Saved Addresses
-                <span className="ml-auto text-xs opacity-80 bg-black/10 px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-xs opacity-80 bg-black/10 px-2 py-0.5 rounded-[4px]">
                   {addresses.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('wishlist')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'wishlist' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[6px] text-sm font-medium transition text-left ${
+                  activeTab === 'wishlist' ? 'bg-[#44D62C] text-[#111827] shadow-xs font-semibold' : 'text-stone-700 hover:bg-stone-50'
                 }`}
               >
                 <Heart className="w-4 h-4" />
                 Wishlist
-                <span className="ml-auto text-xs opacity-80 bg-black/10 px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-xs opacity-80 bg-black/10 px-2 py-0.5 rounded-[4px]">
                   {wishlistIds.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('account')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'account' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[6px] text-sm font-medium transition text-left ${
+                  activeTab === 'account' ? 'bg-[#44D62C] text-[#111827] shadow-xs font-semibold' : 'text-stone-700 hover:bg-stone-50'
                 }`}
               >
                 <UserIcon className="w-4 h-4" />
@@ -396,13 +396,13 @@ export function ProfilePage() {
                 </div>
 
                 {loadingOrders ? (
-                  <div className="bg-white rounded-[24px] p-12 border border-stone-200 text-center text-stone-500">
+                  <div className="bg-white rounded-[8px] p-12 border border-stone-200 text-center text-stone-500 shadow-xs">
                     <div className="w-8 h-8 border-4 border-[#44D62C] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                     Loading your order history...
                   </div>
                 ) : orders.length === 0 ? (
-                  <div className="bg-white rounded-[24px] p-12 border border-stone-200 text-center space-y-4 shadow-sm">
-                    <div className="w-16 h-16 bg-stone-100 text-stone-400 rounded-full flex items-center justify-center mx-auto">
+                  <div className="bg-white rounded-[8px] p-12 border border-stone-200 text-center space-y-4 shadow-xs">
+                    <div className="w-16 h-16 bg-stone-100 text-stone-400 rounded-[10px] flex items-center justify-center mx-auto">
                       <ShoppingBag className="w-8 h-8" />
                     </div>
                     <h3 className="text-xl font-semibold text-stone-800">No orders yet</h3>
@@ -411,7 +411,7 @@ export function ProfilePage() {
                     </p>
                     <Link
                       to="/shop"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#44D62C] text-white font-semibold rounded-full shadow-md hover:bg-[#3bc224] transition"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#44D62C] text-[#111827] font-semibold text-sm rounded-[6px] shadow-xs hover:bg-[#3bc224] transition"
                     >
                       Start Shopping
                     </Link>
@@ -421,14 +421,14 @@ export function ProfilePage() {
                     {orders.map((ord) => (
                       <div
                         key={ord.id}
-                        className="bg-white rounded-[24px] border border-stone-200 p-6 shadow-sm hover:shadow-md transition"
+                        className="bg-white rounded-[8px] border border-stone-200 p-6 shadow-xs hover:shadow-sm transition"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-100 gap-2">
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">Order ID</span>
                               {ord.invoiceNumber && (
-                                <span className="text-[11px] font-mono font-medium text-[#0B8F3C] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                <span className="text-[11px] font-mono font-medium text-[#0B8F3C] bg-emerald-50 px-2 py-0.5 rounded-[4px] border border-emerald-200">
                                   {ord.invoiceNumber}
                                 </span>
                               )}
@@ -441,7 +441,7 @@ export function ProfilePage() {
 
                           <div className="flex items-center gap-3">
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                              className={`px-2.5 py-0.5 rounded-[4px] text-[11px] font-semibold uppercase tracking-wider ${
                                 ord.status === 'Cancelled'
                                   ? 'bg-rose-100 text-rose-800 border border-rose-200'
                                   : ord.status === 'Delivered'
@@ -455,13 +455,13 @@ export function ProfilePage() {
                             >
                               {ord.status}
                             </span>
-                            <span className="text-lg font-bold text-stone-900">₹{ord.totalAmount}</span>
+                            <span className="text-lg font-bold text-stone-900 font-serif">₹{ord.totalAmount}</span>
                           </div>
                         </div>
 
                         {/* Cancellation and Refund Details for Cancelled Orders */}
                         {ord.status === 'Cancelled' && (
-                          <div className="my-3 p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn">
+                          <div className="my-3 p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-[6px] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn">
                             <div>
                               <div className="flex items-center gap-1.5 text-rose-900 font-semibold">
                                 <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -484,7 +484,7 @@ export function ProfilePage() {
                             <div className="flex items-center gap-2 flex-wrap sm:justify-end">
                               {ord.refundStatus && ord.refundStatus !== 'NOT_APPLICABLE' ? (
                                 <div
-                                  className={`px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 ${
+                                  className={`px-2.5 py-1 rounded-[4px] border text-xs font-medium flex items-center gap-1.5 ${
                                     ord.refundStatus === 'PROCESSED'
                                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                       : ord.refundStatus === 'FAILED'
@@ -507,13 +507,13 @@ export function ProfilePage() {
                                       : `Refund Processing: ₹${ord.refundAmount || ord.totalAmount}`}
                                   </span>
                                   {ord.refundId && (
-                                    <span className="font-mono text-[10px] bg-white/80 px-1.5 py-0.5 rounded border border-black/10">
+                                    <span className="font-mono text-[10px] bg-white/80 px-1.5 py-0.5 rounded-[4px] border border-black/10">
                                       {ord.refundId}
                                     </span>
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-stone-500 text-[11px] italic bg-stone-100 px-2.5 py-1 rounded-full">
+                                <span className="text-stone-500 text-[11px] italic bg-stone-100 px-2.5 py-0.5 rounded-[4px]">
                                   COD / Unpaid • No refund required
                                 </span>
                               )}
@@ -528,7 +528,7 @@ export function ProfilePage() {
                               <img
                                 src={item.product?.image || '/washing-machine-cleaner.png'}
                                 alt={item.product?.name || 'Product'}
-                                className="w-14 h-14 object-cover rounded-xl bg-stone-100 border border-stone-200"
+                                className="w-14 h-14 object-cover rounded-[6px] bg-stone-100 border border-stone-200"
                               />
                               <div className="flex-1 min-w-0">
                                 <h4 className="text-sm font-semibold text-stone-900 truncate">
@@ -566,7 +566,7 @@ export function ProfilePage() {
                             {(ord.status === 'Pending' || ord.status === 'Confirmed') && (
                               <button
                                 onClick={() => setOrderToCancel(ord)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 text-xs font-semibold text-rose-700 transition shadow-2xs"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 text-xs font-semibold text-rose-700 transition shadow-2xs"
                                 title="Cancel this order"
                               >
                                 <XCircle className="w-3.5 h-3.5 text-rose-600" />
@@ -578,7 +578,7 @@ export function ProfilePage() {
                               <button
                                 onClick={() => handleDownloadInvoice(ord.id, ord.invoiceNumber)}
                                 disabled={downloadingOrderId === ord.id}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-200 bg-stone-50 hover:bg-emerald-50 hover:border-emerald-200 hover:text-[#0B8F3C] text-xs font-semibold text-stone-700 transition shadow-2xs disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-stone-200 bg-stone-50 hover:bg-emerald-50 hover:border-emerald-200 hover:text-[#0B8F3C] text-xs font-semibold text-stone-700 transition shadow-2xs disabled:opacity-50"
                                 title="Download official branded PDF invoice"
                               >
                                 {downloadingOrderId === ord.id ? (
@@ -613,7 +613,7 @@ export function ProfilePage() {
                     ))}
 
                     {/* Support Help Banner */}
-                    <div className="mt-6 bg-stone-50 border border-stone-200/90 rounded-2xl p-4 text-xs text-stone-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                    <div className="mt-6 bg-stone-50 border border-stone-200/90 rounded-[8px] p-4 text-xs text-stone-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
                       <span className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-stone-400" />
                         Need help with your order cancellation or refund?
@@ -648,15 +648,15 @@ export function ProfilePage() {
                       resetAddressForm();
                       setIsAddressModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#44D62C] text-white font-semibold text-sm rounded-full shadow-sm hover:bg-[#3bc224] transition"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#44D62C] text-[#111827] font-semibold text-sm rounded-[6px] shadow-xs hover:bg-[#3bc224] transition"
                   >
                     <Plus className="w-4 h-4" /> Add New Address
                   </button>
                 </div>
 
                 {addresses.length === 0 ? (
-                  <div className="bg-white rounded-[24px] p-12 border border-stone-200 text-center space-y-4 shadow-sm">
-                    <div className="w-16 h-16 bg-stone-100 text-stone-400 rounded-full flex items-center justify-center mx-auto">
+                  <div className="bg-white rounded-[8px] p-12 border border-stone-200 text-center space-y-4 shadow-xs">
+                    <div className="w-16 h-16 bg-stone-100 text-stone-400 rounded-[10px] flex items-center justify-center mx-auto">
                       <MapPin className="w-8 h-8" />
                     </div>
                     <h3 className="text-xl font-semibold text-stone-800">No saved addresses</h3>
@@ -665,7 +665,7 @@ export function ProfilePage() {
                     </p>
                     <button
                       onClick={() => setIsAddressModalOpen(true)}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#44D62C] text-white font-semibold rounded-full shadow-md hover:bg-[#3bc224] transition"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#44D62C] text-[#111827] font-semibold rounded-[6px] shadow-xs hover:bg-[#3bc224] transition"
                     >
                       Add Address Now
                     </button>
@@ -675,7 +675,7 @@ export function ProfilePage() {
                     {addresses.map((addr) => (
                       <div
                         key={addr.id}
-                        className={`bg-white rounded-[24px] border p-6 shadow-sm relative flex flex-col justify-between transition ${
+                        className={`bg-white rounded-[8px] border p-6 shadow-xs relative flex flex-col justify-between transition ${
                           addr.isDefault ? 'border-[#44D62C] ring-1 ring-[#44D62C]' : 'border-stone-200'
                         }`}
                       >
@@ -683,7 +683,7 @@ export function ProfilePage() {
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-bold text-stone-900 text-base">{addr.fullName}</span>
                             {addr.isDefault ? (
-                              <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                              <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-[11px] px-2.5 py-0.5 rounded-[4px] font-semibold">
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Default
                               </span>
                             ) : null}
@@ -726,12 +726,12 @@ export function ProfilePage() {
             {activeTab === 'account' ? (
               <div className="space-y-8">
                 {/* Profile Edit */}
-                <div className="bg-white rounded-[24px] border border-stone-200 p-6 md:p-8 shadow-sm">
+                <div className="bg-white rounded-[8px] border border-stone-200 p-6 md:p-8 shadow-xs">
                   <h3 className="text-xl font-serif font-bold text-stone-900 mb-4">Personal Details</h3>
 
                   {profileMessage ? (
                     <div
-                      className={`mb-4 p-4 rounded-xl text-sm ${
+                      className={`mb-4 p-4 rounded-[6px] text-sm ${
                         profileMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
                       }`}
                     >
@@ -746,7 +746,7 @@ export function ProfilePage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -758,7 +758,7 @@ export function ProfilePage() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+91 98765 43210"
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                       />
                     </div>
 
@@ -768,7 +768,7 @@ export function ProfilePage() {
                         type="email"
                         value={user.email || ''}
                         disabled
-                        className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 cursor-not-allowed text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-stone-200 bg-stone-100 text-stone-500 cursor-not-allowed text-sm"
                       />
                       <span className="text-[11px] text-stone-400 mt-1 block">Email address cannot be changed.</span>
                     </div>
@@ -776,7 +776,7 @@ export function ProfilePage() {
                     <button
                       type="submit"
                       disabled={isUpdatingProfile}
-                      className="px-6 py-3 bg-[#44D62C] hover:bg-[#3bc224] text-white font-semibold text-sm rounded-full shadow-sm transition disabled:opacity-50"
+                      className="px-6 py-2.5 bg-[#44D62C] hover:bg-[#3bc224] text-[#111827] font-semibold text-sm rounded-[6px] shadow-xs transition disabled:opacity-50"
                     >
                       {isUpdatingProfile ? 'Saving...' : 'Save Profile Details'}
                     </button>
@@ -784,14 +784,14 @@ export function ProfilePage() {
                 </div>
 
                 {/* Password Change */}
-                <div className="bg-white rounded-[24px] border border-stone-200 p-6 md:p-8 shadow-sm">
+                <div className="bg-white rounded-[8px] border border-stone-200 p-6 md:p-8 shadow-xs">
                   <h3 className="text-xl font-serif font-bold text-stone-900 mb-4 flex items-center gap-2">
                     <Lock className="w-5 h-5 text-stone-700" /> Change Security Password
                   </h3>
 
                   {passwordMessage ? (
                     <div
-                      className={`mb-4 p-4 rounded-xl text-sm ${
+                      className={`mb-4 p-4 rounded-[6px] text-sm ${
                         passwordMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
                       }`}
                     >
@@ -806,7 +806,7 @@ export function ProfilePage() {
                         type="password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -817,7 +817,7 @@ export function ProfilePage() {
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -828,7 +828,7 @@ export function ProfilePage() {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -836,7 +836,7 @@ export function ProfilePage() {
                     <button
                       type="submit"
                       disabled={isChangingPassword}
-                      className="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-white font-semibold text-sm rounded-full shadow-sm transition disabled:opacity-50"
+                      className="px-6 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-semibold text-sm rounded-[6px] shadow-xs transition disabled:opacity-50"
                     >
                       {isChangingPassword ? 'Updating...' : 'Update Password'}
                     </button>
@@ -854,8 +854,8 @@ export function ProfilePage() {
                 </div>
 
                 {wishlistProducts.length === 0 ? (
-                  <div className="bg-white rounded-[24px] p-12 border border-stone-200 text-center space-y-4 shadow-sm">
-                    <div className="w-16 h-16 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center mx-auto">
+                  <div className="bg-white rounded-[8px] p-12 border border-stone-200 text-center space-y-4 shadow-xs">
+                    <div className="w-16 h-16 bg-pink-50 text-pink-500 rounded-[10px] flex items-center justify-center mx-auto">
                       <Heart className="w-8 h-8 fill-current" />
                     </div>
                     <h3 className="text-xl font-semibold text-stone-800">Your wishlist is empty</h3>
@@ -864,7 +864,7 @@ export function ProfilePage() {
                     </p>
                     <Link
                       to="/shop"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#44D62C] text-white font-semibold rounded-full shadow-md hover:bg-[#3bc224] transition"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#44D62C] text-[#111827] font-semibold text-sm rounded-[6px] shadow-xs hover:bg-[#3bc224] transition"
                     >
                       Browse Products
                     </Link>
@@ -893,10 +893,10 @@ export function ProfilePage() {
       {/* ADDRESS MODAL */}
       {isAddressModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-[28px] max-w-lg w-full p-6 md:p-8 shadow-2xl relative">
+          <div className="bg-white rounded-[10px] max-w-lg w-full p-6 md:p-8 shadow-2xl relative">
             <button
               onClick={() => setIsAddressModalOpen(false)}
-              className="absolute top-6 right-6 p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition"
+              className="absolute top-6 right-6 p-2 text-stone-400 hover:text-stone-700 rounded-[6px] hover:bg-stone-100 transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -913,7 +913,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.fullName}
                     onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                    className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -924,7 +924,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.phone}
                     onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                    className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -937,7 +937,7 @@ export function ProfilePage() {
                   value={addressForm.address1}
                   onChange={(e) => setAddressForm({ ...addressForm, address1: e.target.value })}
                   placeholder="House/Flat No., Building Name, Street"
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                  className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                   required
                 />
               </div>
@@ -949,7 +949,7 @@ export function ProfilePage() {
                   value={addressForm.address2}
                   onChange={(e) => setAddressForm({ ...addressForm, address2: e.target.value })}
                   placeholder="Apartment, suite, unit, etc."
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                  className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                 />
               </div>
 
@@ -960,7 +960,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.city}
                     onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                    className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -971,7 +971,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.state}
                     onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                    className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -984,7 +984,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.postalCode}
                     onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                    className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -996,7 +996,7 @@ export function ProfilePage() {
                     value={addressForm.landmark}
                     onChange={(e) => setAddressForm({ ...addressForm, landmark: e.target.value })}
                     placeholder="Near Park / Hospital"
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
+                    className="w-full px-3.5 py-2 rounded-[6px] border border-stone-300 focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C] outline-none text-sm"
                   />
                 </div>
               </div>
@@ -1007,7 +1007,7 @@ export function ProfilePage() {
                   id="isDefault"
                   checked={addressForm.isDefault}
                   onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
-                  className="w-4 h-4 text-[#44D62C] rounded focus:ring-[#44D62C]"
+                  className="w-4 h-4 text-[#44D62C] rounded-[4px] focus:ring-[#44D62C]"
                 />
                 <label htmlFor="isDefault" className="text-sm font-medium text-stone-700">
                   Set as default shipping address
@@ -1018,13 +1018,13 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setIsAddressModalOpen(false)}
-                  className="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-full font-medium text-sm transition"
+                  className="px-5 py-2.5 text-stone-600 hover:bg-stone-100 rounded-[6px] font-medium text-sm transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#44D62C] text-white hover:bg-[#3bc224] rounded-full font-semibold text-sm shadow-md transition"
+                  className="px-6 py-2.5 bg-[#44D62C] text-[#111827] hover:bg-[#3bc224] rounded-[6px] font-semibold text-sm shadow-xs transition"
                 >
                   Save Address
                 </button>

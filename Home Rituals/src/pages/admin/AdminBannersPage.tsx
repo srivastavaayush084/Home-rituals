@@ -175,7 +175,7 @@ export const AdminBannersPage: React.FC = () => {
                 <div className="absolute top-3 right-3 flex items-center gap-2">
                   <button
                     onClick={() => handleToggleActive(b)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-semibold shadow-md flex items-center gap-1 ${
+                    className={`px-2.5 py-1 rounded-[4px] text-xs font-semibold shadow-xs flex items-center gap-1 ${
                       b.active ? 'bg-emerald-600 text-white' : 'bg-stone-800 text-stone-300'
                     }`}
                   >

@@ -57,9 +57,9 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
           type="button"
           onClick={onClose}
           aria-label="Close media preview"
-          className="absolute right-6 top-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/25 hover:scale-105"
+          className="absolute right-6 top-6 z-50 flex h-10 w-10 items-center justify-center rounded-[6px] bg-white/10 text-white backdrop-blur transition hover:bg-white/25"
         >
-          <X size={22} />
+          <X size={20} />
         </button>
 
         {media.length > 1 && (
@@ -68,17 +68,17 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
               type="button"
               onClick={handlePrev}
               aria-label="Previous media"
-              className="absolute left-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/25 hover:scale-105"
+              className="absolute left-6 z-50 flex h-10 w-10 items-center justify-center rounded-[6px] bg-white/10 text-white backdrop-blur transition hover:bg-white/25"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={22} />
             </button>
             <button
               type="button"
               onClick={handleNext}
               aria-label="Next media"
-              className="absolute right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/25 hover:scale-105"
+              className="absolute right-6 z-50 flex h-10 w-10 items-center justify-center rounded-[6px] bg-white/10 text-white backdrop-blur transition hover:bg-white/25"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={22} />
             </button>
           </>
         )}
@@ -96,13 +96,13 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
               src={currentItem.url}
               controls
               autoPlay
-              className="max-h-[80vh] max-w-[85vw] rounded-2xl shadow-2xl object-contain bg-black"
+              className="max-h-[80vh] max-w-[85vw] rounded-[8px] shadow-2xl object-contain bg-black"
             />
           ) : (
             <img
               src={currentItem.url}
               alt={currentItem.title || 'Customer review photo'}
-              className="max-h-[80vh] max-w-[85vw] rounded-2xl object-contain shadow-2xl"
+              className="max-h-[80vh] max-w-[85vw] rounded-[8px] object-contain shadow-2xl"
             />
           )}
 
@@ -112,8 +112,8 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
                 <button
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`h-2.5 rounded-full transition-all ${
-                    idx === currentIndex ? 'w-8 bg-[#44D62C]' : 'w-2.5 bg-white/40 hover:bg-white/70'
+                  className={`h-1.5 rounded-[2px] transition-all ${
+                    idx === currentIndex ? 'w-8 bg-[#44D62C]' : 'w-3 bg-white/40 hover:bg-white/70'
                   }`}
                 />
               ))}

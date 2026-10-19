@@ -196,61 +196,61 @@ export function PaymentPage() {
       </p>
 
       {errorMessage && (
-        <div className="mt-6 rounded-2xl bg-red-50 p-4 border border-red-200 text-sm text-red-700 flex items-start gap-2">
+        <div className="mt-6 rounded-[8px] bg-red-50 p-4 border border-red-200 text-sm text-red-700 flex items-start gap-2">
           <span className="font-bold">Payment Error:</span>
           <span>{errorMessage}</span>
         </div>
       )}
 
       <div className="mt-6 space-y-6">
-        <div className="rounded-md border border-black/5 bg-white p-4">
+        <div className="rounded-[8px] border border-black/8 bg-white p-6 shadow-xs">
           <h2 className="font-semibold text-lg text-[#242424]">Shipping</h2>
           {shipping ? (
-            <div className="mt-2 text-sm text-[#333]">
-              <div>{shipping.fullName}</div>
+            <div className="mt-3 text-sm text-[#333] space-y-1">
+              <div className="font-medium text-[#223229]">{shipping.fullName}</div>
               <div>{shipping.address1} {shipping.address2}</div>
               {shipping.landmark ? <div>Landmark: {shipping.landmark}</div> : null}
               <div>{shipping.city}, {shipping.state} {shipping.postalCode}</div>
               <div>{shipping.country}</div>
-              <div>Phone: {shipping.phone}</div>
+              <div className="pt-1 text-[#6f6f6f]">Phone: {shipping.phone}</div>
             </div>
           ) : (
             <div className="mt-2 text-sm text-[#6f6f6f]">No shipping details provided.</div>
           )}
         </div>
 
-        <div className="rounded-md border border-black/5 bg-white p-4">
+        <div className="rounded-[8px] border border-black/8 bg-white p-6 shadow-xs">
           <h2 className="font-semibold text-lg text-[#242424]">Order Summary</h2>
-          <div className="mt-2 space-y-2 text-sm text-[#333]">
+          <div className="mt-3 space-y-2 text-sm text-[#333]">
             {cart.map((item) => (
-              <div key={item.productId} className="flex justify-between">
+              <div key={item.productId} className="flex justify-between py-1">
                 <div>{item.product.name} × {item.quantity}</div>
-                <div>₹{(item.product.price * item.quantity).toFixed(2)}</div>
+                <div className="font-medium">₹{(item.product.price * item.quantity).toFixed(2)}</div>
               </div>
             ))}
-            <div className="mt-4 border-t border-black/5 pt-2 flex justify-between font-semibold">
-              <span>Total Payable</span>
-              <span className="text-[#0B8F3C] text-lg">₹{subtotal.toFixed(2)}</span>
+            <div className="mt-4 border-t border-black/8 pt-3 flex justify-between font-semibold items-baseline">
+              <span className="text-[#242424]">Total Payable</span>
+              <span className="text-[#0B8F3C] text-xl font-serif">₹{subtotal.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
         {/* Razorpay Security Notice */}
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-800 flex items-center justify-between gap-4">
+        <div className="rounded-[8px] border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#44D62C] animate-pulse"></span>
             <span>Secured with <strong>Razorpay Payment Gateway</strong> (UPI, Cards, NetBanking, Wallets)</span>
           </div>
-          <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-700">
+          <span className="font-mono text-[11px] bg-white px-2.5 py-1 rounded-[4px] border border-emerald-200 text-emerald-700">
             256-bit Encrypted
           </span>
         </div>
 
-        <div className="flex gap-3">
-          <Button className="px-6 py-3" onClick={() => navigate(-1)} disabled={loading}>
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Button variant="secondary" className="px-6 py-3" onClick={() => navigate(-1)} disabled={loading}>
             Back
           </Button>
-          <Button className="px-6 py-3" onClick={placeOrder} disabled={loading || cart.length === 0}>
+          <Button className="flex-1 px-6 py-3 text-sm tracking-wide font-medium" onClick={placeOrder} disabled={loading || cart.length === 0}>
             {loading ? 'Processing Order...' : 'Place order & Pay with Razorpay'}
           </Button>
         </div>

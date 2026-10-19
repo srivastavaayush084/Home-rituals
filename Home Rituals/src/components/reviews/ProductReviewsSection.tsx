@@ -166,17 +166,17 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#44D62C] hover:bg-[#3ec428] px-6 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all"
+          className="inline-flex items-center justify-center gap-2 rounded-[6px] bg-[#44D62C] hover:bg-[#3ec428] px-5 py-2.5 text-sm font-semibold text-[#111827] shadow-xs transition-all"
         >
           <Star size={16} fill="currentColor" /> Write a Review
         </button>
       </div>
 
       {/* Ratings Overview Card */}
-      <div className="grid gap-6 rounded-[24px] border border-stone-200 bg-stone-50/70 p-6 sm:p-8 md:grid-cols-[240px_1fr]">
+      <div className="grid gap-6 rounded-[8px] border border-stone-200 bg-stone-50/70 p-6 sm:p-8 md:grid-cols-[240px_1fr]">
         {/* Score & stars */}
         <div className="flex flex-col items-center justify-center border-b border-stone-200 pb-6 md:border-b-0 md:border-r md:pr-8 md:pb-0">
-          <div className="text-5xl font-extrabold text-stone-900">
+          <div className="text-5xl font-extrabold text-stone-900 font-serif">
             {totalReviews > 0 ? averageRating.toFixed(1) : '0.0'}
           </div>
           <div className="mt-2 flex items-center gap-1 text-amber-400">
@@ -201,9 +201,9 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
             return (
               <div key={stars} className="flex items-center gap-3 text-xs">
                 <span className="w-12 font-semibold text-stone-700">{stars} Stars</span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-stone-200">
+                <div className="h-2 flex-1 overflow-hidden rounded-[3px] bg-stone-200">
                   <div
-                    className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                    className="h-full rounded-[3px] bg-amber-400 transition-all duration-500"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
@@ -228,7 +228,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
               <div
                 key={idx}
                 onClick={() => openLightbox(allCustomerMedia, idx)}
-                className="group relative h-24 w-24 flex-shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-sm transition hover:scale-105"
+                className="group relative h-24 w-24 flex-shrink-0 cursor-pointer overflow-hidden rounded-[6px] border border-stone-200 bg-stone-100 shadow-2xs transition hover:scale-105"
               >
                 {item.type === 'video' ? (
                   <div className="relative h-full w-full bg-black flex items-center justify-center">
@@ -251,9 +251,9 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
         <div className="mt-8 flex flex-wrap items-center gap-2 border-b border-stone-200 pb-4">
           <button
             onClick={() => setActiveFilter('all')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+            className={`rounded-[4px] px-3.5 py-1.5 text-xs font-semibold transition ${
               activeFilter === 'all'
-                ? 'bg-[#44D62C] text-white shadow-sm'
+                ? 'bg-[#44D62C] text-[#111827] shadow-xs'
                 : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
             }`}
           >
@@ -262,9 +262,9 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           {allCustomerMedia.length > 0 && (
             <button
               onClick={() => setActiveFilter('media')}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 rounded-[4px] px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeFilter === 'media'
-                  ? 'bg-[#44D62C] text-white shadow-sm'
+                  ? 'bg-[#44D62C] text-[#111827] shadow-xs'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
@@ -274,9 +274,9 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           {ratingCounts[5] > 0 && (
             <button
               onClick={() => setActiveFilter('5')}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-[4px] px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeFilter === '5'
-                  ? 'bg-[#44D62C] text-white shadow-sm'
+                  ? 'bg-[#44D62C] text-[#111827] shadow-xs'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
@@ -293,8 +293,8 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
             Loading customer reviews...
           </div>
         ) : filteredReviews.length === 0 ? (
-          <div className="rounded-[24px] border border-dashed border-stone-300 bg-stone-50/60 p-10 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-stone-400 shadow-sm border border-stone-200">
+          <div className="rounded-[8px] border border-dashed border-stone-300 bg-stone-50/60 p-10 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[8px] bg-white text-stone-400 shadow-2xs border border-stone-200">
               <MessageSquare size={24} />
             </div>
             <h4 className="mt-3 text-lg font-bold text-stone-900">
@@ -311,7 +311,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#44D62C] hover:bg-[#3ec428] px-5 py-2.5 text-xs font-bold text-white shadow-md transition"
+                className="mt-5 inline-flex items-center gap-2 rounded-[6px] bg-[#44D62C] hover:bg-[#3ec428] px-5 py-2.5 text-xs font-semibold text-[#111827] shadow-xs transition"
               >
                 <Star size={14} fill="currentColor" /> Be First to Review
               </button>
@@ -327,7 +327,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
             return (
               <div
                 key={rev.id}
-                className="rounded-[20px] border border-stone-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+                className="rounded-[8px] border border-stone-200 bg-white p-6 shadow-xs transition hover:shadow-sm"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -358,7 +358,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                 <div className="mt-1.5 flex items-center gap-2">
                   <span className="text-xs font-semibold text-stone-800">{rev.author}</span>
                   {rev.verifiedPurchase && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#44D62C]">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0B8F3C]">
                       <CheckCircle size={12} /> Verified Buyer
                     </span>
                   )}
@@ -376,7 +376,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                       <div
                         key={mIdx}
                         onClick={() => openLightbox(revMedia, mIdx)}
-                        className="group relative h-20 w-20 cursor-pointer overflow-hidden rounded-xl border border-stone-200 bg-stone-100 shadow-sm transition hover:scale-105"
+                        className="group relative h-20 w-20 cursor-pointer overflow-hidden rounded-[6px] border border-stone-200 bg-stone-100 shadow-2xs transition hover:scale-105"
                       >
                         {m.type === 'video' ? (
                           <div className="relative h-full w-full bg-black flex items-center justify-center">
@@ -384,7 +384,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                               <Play size={18} className="fill-white text-white drop-shadow" />
                             </div>
-                            <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-[8px] font-bold text-white uppercase">
+                            <span className="absolute bottom-1 right-1 rounded-[3px] bg-black/70 px-1 py-0.5 text-[8px] font-bold text-white uppercase">
                               Video
                             </span>
                           </div>

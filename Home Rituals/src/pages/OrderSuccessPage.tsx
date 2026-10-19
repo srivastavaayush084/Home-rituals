@@ -134,7 +134,7 @@ export function OrderSuccessPage() {
       <div className="mt-12 grid gap-6 md:grid-cols-2">
         {/* Left Hand Card: Order Info & Items */}
         <div className="space-y-6">
-          <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+          <div className="rounded-[8px] border border-black/8 bg-white p-6 shadow-xs">
             <h2 className="text-lg font-semibold text-[#242424]">Order details</h2>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between">
@@ -149,36 +149,36 @@ export function OrderSuccessPage() {
               )}
               <div className="flex justify-between">
                 <span className="text-[#6f6f6f]">Status:</span>
-                <span className="inline-flex items-center rounded-full bg-[#44D62C]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0B8F3C]">
+                <span className="inline-flex items-center rounded-[4px] bg-[#44D62C]/15 px-2.5 py-0.5 text-[11px] font-semibold text-[#0B8F3C] uppercase tracking-wider">
                   {order.status}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6f6f6f]">Payment Status:</span>
-                <span className="inline-flex items-center rounded-full bg-[#44D62C]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0B8F3C]">
+                <span className="inline-flex items-center rounded-[4px] bg-[#44D62C]/15 px-2.5 py-0.5 text-[11px] font-semibold text-[#0B8F3C] uppercase tracking-wider">
                   {order.paymentStatus}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-black/5 pt-3">
+              <div className="flex justify-between border-t border-black/8 pt-3">
                 <span className="font-medium text-[#242424]">Amount Paid:</span>
-                <span className="font-bold text-[#0B8F3C] text-lg">₹{order.totalAmount.toFixed(2)}</span>
+                <span className="font-bold text-[#0B8F3C] text-lg font-serif">₹{order.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+          <div className="rounded-[8px] border border-black/8 bg-white p-6 shadow-xs">
             <h2 className="text-lg font-semibold text-[#242424]">Items purchased</h2>
-            <div className="mt-4 divide-y divide-black/5">
+            <div className="mt-4 divide-y divide-black/8">
               {order.items && order.items.map((item) => (
-                <div key={item.id} className="flex py-3 first:pt-0 last:pb-0">
+                <div key={item.id} className="flex py-3 first:pt-0 last:pb-0 items-center">
                   {item.product?.image ? (
                     <img
                       src={item.product.image}
                       alt={item.product.name}
-                      className="h-12 w-12 rounded-lg object-cover border border-black/5"
+                      className="h-12 w-12 rounded-[6px] object-cover border border-black/5"
                     />
                   ) : (
-                    <div className="h-12 w-12 rounded-lg bg-gray-100 border border-black/5 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-[6px] bg-gray-100 border border-black/5 flex items-center justify-center">
                       <span className="text-xs text-gray-400">Box</span>
                     </div>
                   )}
@@ -197,7 +197,7 @@ export function OrderSuccessPage() {
 
         {/* Right Hand Card: Delivery Address & Summary */}
         <div className="space-y-6">
-          <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+          <div className="rounded-[8px] border border-black/8 bg-white p-6 shadow-xs">
             <h2 className="text-lg font-semibold text-[#242424]">Shipping address</h2>
             <div className="mt-4 text-sm text-[#333] space-y-1">
               <p className="font-semibold text-black">{order.fullName}</p>
@@ -206,16 +206,16 @@ export function OrderSuccessPage() {
               {order.landmark && <p className="text-xs text-[#6f6f6f]">Landmark: {order.landmark}</p>}
               <p>{order.city}, {order.state} - {order.postalCode}</p>
               <p className="text-[#6f6f6f]">{order.country}</p>
-              <p className="mt-3 font-medium text-black border-t border-black/5 pt-2">
+              <p className="mt-3 font-medium text-black border-t border-black/8 pt-2">
                 Phone: {order.phone}
               </p>
             </div>
           </div>
 
           {/* Invoice Card */}
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm">
+          <div className="rounded-[8px] border border-emerald-100 bg-emerald-50/50 p-6 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-emerald-200 text-[#0B8F3C] shadow-xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-white border border-emerald-200 text-[#0B8F3C] shadow-xs">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -227,7 +227,7 @@ export function OrderSuccessPage() {
             </div>
             
             {downloadError && (
-              <p className="mt-3 text-xs text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
+              <p className="mt-3 text-xs text-red-600 bg-red-50 p-2 rounded-[4px] border border-red-200">
                 {downloadError}
               </p>
             )}
@@ -235,7 +235,7 @@ export function OrderSuccessPage() {
             <button
               onClick={handleDownloadInvoice}
               disabled={downloadingInvoice}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0B8F3C] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#097330] transition disabled:opacity-50"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#0B8F3C] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#097330] transition disabled:opacity-50"
             >
               {downloadingInvoice ? (
                 <>
@@ -253,7 +253,7 @@ export function OrderSuccessPage() {
             </button>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-[#fdfefc] p-6 text-center border-dashed">
+          <div className="rounded-[8px] border border-black/10 bg-[#fdfefc] p-6 text-center border-dashed">
             <h3 className="font-semibold text-[#0B8F3C] text-sm uppercase tracking-wider">Next steps</h3>
             <p className="mt-2 text-xs text-[#6f6f6f] leading-relaxed">
               We have dispatched your order confirmation email along with your tax invoice. Once our logistics team prepares the package, we'll notify you with courier tracking information.
@@ -267,7 +267,7 @@ export function OrderSuccessPage() {
         <button
           onClick={handleDownloadInvoice}
           disabled={downloadingInvoice}
-          className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-[#1c2c22] hover:bg-[#283f31] text-white font-medium text-sm transition shadow-sm disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-[6px] bg-[#1c2c22] hover:bg-[#283f31] text-white font-medium text-sm transition shadow-xs disabled:opacity-50"
         >
           {downloadingInvoice ? (
             <>
@@ -284,12 +284,12 @@ export function OrderSuccessPage() {
           )}
         </button>
         <Link to="/shop" className="w-full sm:w-auto">
-          <Button className="w-full px-8 py-3 rounded-full">
+          <Button className="w-full px-6 py-2.5">
             Continue Shopping
           </Button>
         </Link>
         <Link to="/profile" className="w-full sm:w-auto">
-          <Button variant="secondary" className="w-full px-8 py-3 rounded-full border-black/10 hover:bg-black/5">
+          <Button variant="secondary" className="w-full px-6 py-2.5">
             View My Orders
           </Button>
         </Link>

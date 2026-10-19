@@ -29,8 +29,8 @@ export function ForgotPasswordPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-      <div className="grid w-full gap-8 rounded-[36px] border border-black/5 bg-white p-8 shadow-sm lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[28px] bg-[#EFE9DF] p-8">
+      <div className="grid w-full gap-8 rounded-[10px] border border-black/8 bg-white p-8 shadow-xs lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-[8px] bg-[#EFE9DF] p-8">
           <p className="text-sm uppercase tracking-[0.35em] text-black">Reset Password</p>
           <h1 className="mt-3 text-3xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>Forgot your password?</h1>
           <p className="mt-4 text-lg leading-8 text-[#6f6f6f]">Enter your registered email address, and we will send you a link to reset your password.</p>
@@ -38,12 +38,12 @@ export function ForgotPasswordPage() {
         <div className="p-2 flex flex-col justify-center">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600 border border-red-100">
+              <div className="rounded-[6px] bg-red-50 p-4 text-sm text-red-600 border border-red-100">
                 {error}
               </div>
             )}
             {success && (
-              <div className="rounded-xl bg-green-50 p-4 text-sm text-green-700 border border-green-100">
+              <div className="rounded-[6px] bg-green-50 p-4 text-sm text-green-700 border border-green-100">
                 If the email is registered, a password reset link has been sent. Please check your inbox. 🎉
               </div>
             )}
@@ -51,7 +51,7 @@ export function ForgotPasswordPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
+              className="w-full rounded-[6px] border border-black/10 bg-[#FAFAF8] px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C]"
               placeholder="Email address"
               required
               disabled={success}

@@ -57,15 +57,15 @@ export function ContactPage() {
             </Card>
           </div>
         </div>
-        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+        <div className="rounded-[10px] border border-black/8 bg-white p-8 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600 border border-red-100">
+              <div className="rounded-[6px] bg-red-50 p-4 text-sm text-red-600 border border-red-100">
                 {error}
               </div>
             )}
             {success && (
-              <div className="rounded-xl bg-green-50 p-4 text-sm text-green-700 border border-green-100">
+              <div className="rounded-[6px] bg-green-50 p-4 text-sm text-green-700 border border-green-100">
                 Message sent successfully! Our team will get back to you soon. 🎉
               </div>
             )}
@@ -73,7 +73,7 @@ export function ContactPage() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
+                className="rounded-[6px] border border-black/10 bg-[#FAFAF8] px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C]"
                 placeholder="Name"
                 required
               />
@@ -81,7 +81,7 @@ export function ContactPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
+                className="rounded-[6px] border border-black/10 bg-[#FAFAF8] px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C]"
                 placeholder="Email"
                 required
               />
@@ -89,21 +89,21 @@ export function ContactPage() {
             <input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full rounded-full border border-black/10 bg-[#FAFAF8] px-4 py-3"
+              className="w-full rounded-[6px] border border-black/10 bg-[#FAFAF8] px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C]"
               placeholder="Subject"
               required
             />
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="min-h-[140px] w-full rounded-[24px] border border-black/10 bg-[#FAFAF8] px-4 py-3"
+              className="min-h-[140px] w-full rounded-[6px] border border-black/10 bg-[#FAFAF8] px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-[#44D62C] focus:border-[#44D62C]"
               placeholder="Tell us about your concern"
               required
             />
             <button
               type="submit"
               disabled={loading}
-              className="rounded-full bg-[#44D62C] px-6 py-3 text-sm font-semibold text-white hover:bg-[#3ebe27] disabled:bg-gray-300"
+              className="rounded-[6px] bg-[#44D62C] px-6 py-2.5 text-sm font-semibold text-[#111827] hover:bg-[#3ebe27] transition shadow-xs disabled:opacity-50"
             >
               {loading ? 'Sending message...' : 'Send message'}
             </button>
@@ -112,18 +112,18 @@ export function ContactPage() {
       </div>
 
       <div className="mt-16">
-        <div className="rounded-[32px] border border-black/5 bg-[#EFE9DF] p-8 max-w-4xl mx-auto">
+        <div className="rounded-[10px] border border-black/8 bg-[#EFE9DF] p-8 max-w-4xl mx-auto">
           <p className="text-sm uppercase tracking-[0.35em] text-black font-semibold">Frequently Asked Questions</p>
           <div className="mt-6 grid gap-6 sm:grid-cols-3 text-sm text-[#5f5f5f]">
-            <div className="bg-white/60 p-5 rounded-[20px] border border-black/5">
+            <div className="bg-white/70 p-5 rounded-[8px] border border-black/5 shadow-2xs">
               <p className="font-semibold text-[#242424] text-base">Do you ship internationally?</p>
               <p className="mt-2 leading-relaxed">Yes, we deliver across India and select global regions.</p>
             </div>
-            <div className="bg-white/60 p-5 rounded-[20px] border border-black/5">
+            <div className="bg-white/70 p-5 rounded-[8px] border border-black/5 shadow-2xs">
               <p className="font-semibold text-[#242424] text-base">Are the products safe around pets?</p>
               <p className="mt-2 leading-relaxed">Most formulas are pet-friendly and clearly labeled for ease.</p>
             </div>
-            <div className="bg-white/60 p-5 rounded-[20px] border border-black/5">
+            <div className="bg-white/70 p-5 rounded-[8px] border border-black/5 shadow-2xs">
               <p className="font-semibold text-[#242424] text-base">Can I subscribe to refills?</p>
               <p className="mt-2 leading-relaxed">Absolutely. We offer recurring refills for everyday essentials.</p>
             </div>
