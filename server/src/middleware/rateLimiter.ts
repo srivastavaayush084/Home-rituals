@@ -89,3 +89,21 @@ export const reviewLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * Rate limiter for token refresh requests.
+ * Limits to 30 requests per 15 minutes per IP.
+ */
+export const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,
+  message: {
+    success: false,
+    error: {
+      message: 'Too many session refresh attempts from this IP address. Please try again after 15 minutes.',
+      code: 'REFRESH_RATE_LIMIT_EXCEEDED',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
