@@ -9,6 +9,10 @@ import { sendEmail, emailTemplates } from '../services/email';
 import { getJwtSecret } from '../utils/jwt';
 import { checkCompromisedPassword } from '../services/passwordSecurity';
 
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
 function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string }) {
   const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
   const secret = getJwtSecret();
@@ -57,10 +61,10 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Save refresh token to DB
+    // Save hashed refresh token to DB
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: { refreshToken: hashToken(refreshToken) },
     });
 
     // Send registration email if email was provided
@@ -116,10 +120,10 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Save refresh token to DB
+    // Save hashed refresh token to DB
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: { refreshToken: hashToken(refreshToken) },
     });
 
     const userProfile = {
@@ -150,16 +154,17 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       where: { id: decoded.id },
     });
 
-    if (!user || user.refreshToken !== refreshToken) {
+    const incomingHash = hashToken(refreshToken);
+    if (!user || user.refreshToken !== incomingHash) {
       throw new UnauthorizedError('Invalid or expired session. Please login again.');
     }
 
     const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
 
-    // Update refresh token in DB (Refresh token rotation for safety)
+    // Update refresh token in DB (Refresh token rotation with SHA-256 hashing)
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken: newRefreshToken },
+      data: { refreshToken: hashToken(newRefreshToken) },
     });
 
     return sendSuccess(res, { token: accessToken, refreshToken: newRefreshToken });
