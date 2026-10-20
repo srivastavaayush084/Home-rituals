@@ -43,6 +43,9 @@ getJwtSecret();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust reverse proxy (e.g. Nginx, Cloudflare) - required for accurate rate limiting and IP resolution
+app.set('trust proxy', 1);
+
 // Connect to Database
 connectDB();
 
