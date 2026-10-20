@@ -6,7 +6,8 @@ import { logger } from './logger';
  */
 export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isExplicitDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  const isProduction = !isExplicitDevOrTest;
   const isInsecure =
     !secret ||
     secret === 'supersecretjwtsecretkeyshouldbechangedinproduction' ||

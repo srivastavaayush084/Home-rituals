@@ -51,7 +51,8 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
 
     // Scenario A: Direct amount provided (e.g. developer test console or custom amount)
     if (amount !== undefined && amount !== null) {
-      if (process.env.NODE_ENV === 'production') {
+      const isExplicitDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+      if (!isExplicitDevOrTest) {
         return res.status(403).json({
           success: false,
           error: {
