@@ -13,6 +13,7 @@
     "prisma:studio": "prisma studio",
     "seed": "ts-node-dev prisma/seed.ts",
     "fix-indexes": "ts-node-dev --transpile-only src/scripts/fixIndexes.ts",
+    "detect-duplicate-phones": "ts-node src/scripts/detectDuplicatePhones.ts",
     "test": "ts-node src/scripts/testCancellationSystem.ts && ts-node src/scripts/testPhase6Verification.ts && ts-node src/scripts/testSecurityHardening.ts"
   },
   "dependencies": {

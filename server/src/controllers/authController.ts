@@ -313,7 +313,19 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response, ne
 
     const updateData: any = { name: String(name).trim() };
     if (phone !== undefined) {
-      updateData.phone = phone ? String(phone).trim() : null;
+      const normalizedPhone = phone ? String(phone).trim() : null;
+      if (normalizedPhone) {
+        const existingPhoneUser = await prisma.user.findFirst({
+          where: {
+            phone: normalizedPhone,
+            NOT: { id: userId },
+          },
+        });
+        if (existingPhoneUser) {
+          throw new ConflictError('This phone number is already associated with another account');
+        }
+      }
+      updateData.phone = normalizedPhone;
     }
 
     const updatedUser = await prisma.user.update({
