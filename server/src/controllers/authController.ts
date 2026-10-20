@@ -203,8 +203,8 @@ export async function forgotPassword(req: AuthenticatedRequest, res: Response, n
       },
     });
 
-    const clientUrl = req.headers.origin || req.get('origin') || 'http://localhost:5173';
-    const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
+    const baseUrl = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : '') || 'http://localhost:5173';
+    const resetUrl = `${baseUrl.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
 
     if (user.email) {
       await sendEmail({
@@ -230,10 +230,7 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
 
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { resetPasswordToken: hashedToken },
-          { resetPasswordToken: token }, // Backward compatibility
-        ],
+        resetPasswordToken: hashedToken,
         resetPasswordExp: {
           gt: new Date(),
         },
