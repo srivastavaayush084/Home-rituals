@@ -29,6 +29,30 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       });
     }
 
+    // Retrieve user profile early to verify account status & customer metadata
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, phone: true, email: true, emailVerified: true },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'User account not found', code: 'USER_NOT_FOUND' },
+      });
+    }
+
+    // Block order creation and payment initiation for unverified email accounts; phone-only exempt
+    if (user.email && !user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          message: 'Please verify your email address before initiating checkout or placing orders. Check your inbox for the verification link.',
+          code: 'EMAIL_VERIFICATION_REQUIRED',
+        },
+      });
+    }
+
     const { addressId, amount, receipt: customReceipt } = req.body;
 
     const config = getRazorpayConfig();
@@ -168,12 +192,6 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
         });
       }
     }
-
-    // Retrieve user profile for customer metadata
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, phone: true, email: true },
-    });
 
     const receipt = customReceipt || `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const notes: Record<string, string> = {

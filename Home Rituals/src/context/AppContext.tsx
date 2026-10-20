@@ -14,6 +14,7 @@ interface UserPayload {
   name: string;
   phone?: string | null;
   role: 'USER' | 'ADMIN';
+  emailVerified?: boolean;
 }
 
 interface Address {
@@ -40,6 +41,7 @@ interface AppContextValue {
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 
   // Products state
   products: Product[];
@@ -350,6 +352,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await apiRequest('/api/auth/reset-password', 'POST', { token: tkn, newPassword: newPass });
   };
 
+  const refreshUser = async () => {
+    try {
+      const freshUser = await apiRequest<UserPayload>('/api/auth/me');
+      setUser(freshUser);
+      localStorage.setItem('home-rituals-user', JSON.stringify(freshUser));
+    } catch {
+      // ignore
+    }
+  };
+
   // Cart operations
   const addToCart = async (product: Product, quantity = 1) => {
     if (user) {
@@ -452,6 +464,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     logout,
     forgotPassword,
     resetPassword,
+    refreshUser,
     products,
     isLoadingProducts,
     productsError,

@@ -13,8 +13,8 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string }) {
-  const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
+function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string; emailVerified?: boolean }) {
+  const payload = { id: user.id, email: user.email, role: user.role, name: user.name, emailVerified: Boolean(user.emailVerified) };
   const secret = getJwtSecret();
   const accessToken = jwt.sign(payload, secret, { expiresIn: '15m', algorithm: 'HS256' });
   const refreshToken = jwt.sign({ id: user.id }, secret, { expiresIn: '7d', algorithm: 'HS256' });
@@ -51,8 +51,16 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       passwordHash,
       name,
       role: 'USER',
+      emailVerified: false,
     };
-    if (email) userData.email = email;
+
+    let rawVerificationToken: string | null = null;
+    if (email) {
+      userData.email = email;
+      rawVerificationToken = crypto.randomBytes(32).toString('hex');
+      userData.emailVerificationToken = hashToken(rawVerificationToken);
+      userData.emailVerificationExp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours validity
+    }
     if (phone) userData.phone = phone;
 
     const user = await prisma.user.create({
@@ -67,14 +75,16 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       data: { refreshToken: hashToken(refreshToken) },
     });
 
-    // Send registration email if email was provided
-    if (user.email) {
+    // Send email verification link if email was provided (Welcome email is sent only after verification!)
+    if (user.email && rawVerificationToken) {
       try {
+        const baseUrl = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : '') || 'http://localhost:5173';
+        const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify-email?token=${rawVerificationToken}`;
         await sendEmail({
           to: user.email,
-          subject: 'Welcome to Home Rituals!',
-          html: emailTemplates.getRegistrationHtml(user.name),
-          text: `Hello ${user.name},\n\nWelcome to Home Rituals! Your account has been successfully created.`,
+          subject: 'Verify your email - Home Rituals',
+          html: emailTemplates.getEmailVerificationHtml(user.name, verifyUrl),
+          text: `Hello ${user.name},\n\nPlease verify your email address by clicking this link: ${verifyUrl}\nThis link is valid for 24 hours.`,
         });
       } catch (emailErr) {
         // Log email error but don't fail registration
@@ -87,6 +97,7 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       phone: user.phone,
       name: user.name,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     };
 
@@ -132,6 +143,7 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
       phone: user.phone,
       name: user.name,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     };
 
@@ -289,6 +301,104 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
+export async function verifyEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = (req.body?.token || req.query?.token) as string;
+    if (!token || typeof token !== 'string') {
+      throw new BadRequestError('Verification token is required');
+    }
+
+    const hashedToken = hashToken(token);
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: hashedToken,
+        emailVerificationExp: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestError('Invalid or expired email verification link');
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExp: null,
+      },
+    });
+
+    // Send Welcome Email only after verification!
+    if (user.email) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Welcome to Home Rituals!',
+          html: emailTemplates.getRegistrationHtml(user.name),
+          text: `Hello ${user.name},\n\nWelcome to Home Rituals! Your account and email have been successfully verified.`,
+        });
+      } catch (emailErr) {
+        // Log but don't fail
+      }
+    }
+
+    return sendSuccess(res, { emailVerified: true }, 200, 'Email verified successfully. You can now place orders.');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resendVerificationEmail(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const email = (req.body?.email || req.user?.email) as string | undefined;
+
+    // Generic response message to prevent account enumeration
+    const genericMessage = 'If this email is registered and unverified, a verification link has been sent.';
+
+    if (!email || typeof email !== 'string') {
+      return sendSuccess(res, null, 200, genericMessage);
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user || user.emailVerified) {
+      return sendSuccess(res, null, 200, genericMessage);
+    }
+
+    const rawVerificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerificationToken = hashToken(rawVerificationToken);
+    const verificationExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: hashedVerificationToken,
+        emailVerificationExp: verificationExp,
+      },
+    });
+
+    const baseUrl = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : '') || 'http://localhost:5173';
+    const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify-email?token=${rawVerificationToken}`;
+
+    await sendEmail({
+      to: user.email!,
+      subject: 'Verify your email - Home Rituals',
+      html: emailTemplates.getEmailVerificationHtml(user.name, verifyUrl),
+      text: `Hello ${user.name},\n\nPlease verify your email address by clicking this link: ${verifyUrl}\nThis link is valid for 24 hours.`,
+    });
+
+    return sendSuccess(res, null, 200, genericMessage);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getMe(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.user) {
@@ -296,7 +406,7 @@ export async function getMe(req: AuthenticatedRequest, res: Response, next: Next
     }
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true } as any,
+      select: { id: true, name: true, email: true, phone: true, role: true, emailVerified: true, createdAt: true } as any,
     });
     if (!user) {
       throw new NotFoundError('User not found');
@@ -336,7 +446,7 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response, ne
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
-      select: { id: true, name: true, email: true, phone: true, role: true } as any,
+      select: { id: true, name: true, email: true, phone: true, role: true, emailVerified: true } as any,
     });
 
     return sendSuccess(res, updatedUser, 200, 'Profile updated successfully');

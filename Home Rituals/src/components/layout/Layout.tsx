@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Button } from '../ui/Button';
+import { EmailVerificationBanner } from '../ui/EmailVerificationBanner';
 import { apiRequest } from '../../utils/apiClient';
 
 interface ImageBanner {
@@ -191,6 +192,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-300">
+      <EmailVerificationBanner />
       <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-sm backdrop-blur-xl' : 'backdrop-blur'}`} style={{ backgroundColor: 'var(--surface)' }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-3">

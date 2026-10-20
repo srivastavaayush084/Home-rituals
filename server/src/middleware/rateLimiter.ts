@@ -107,3 +107,21 @@ export const refreshLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * Rate limiter for resending email verification requests.
+ * Limits to 5 requests per 15 minutes per IP to mitigate spam and email flooding.
+ */
+export const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: {
+    success: false,
+    error: {
+      message: 'Too many verification email requests from this IP address. Please try again in 15 minutes.',
+      code: 'RESEND_VERIFICATION_RATE_LIMIT_EXCEEDED',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

@@ -35,6 +35,16 @@ export const authSchemas = {
       newPassword: z.string().min(8, 'New password must be at least 8 characters long').max(128, 'Password cannot exceed 128 characters'),
     }),
   }),
+  verifyEmail: z.object({
+    body: z.object({
+      token: z.string().min(1, 'Verification token is required'),
+    }),
+  }),
+  resendVerification: z.object({
+    body: z.object({
+      email: z.string().email('Invalid email address').optional(),
+    }),
+  }),
 };
 
 export const categorySchemas = {
