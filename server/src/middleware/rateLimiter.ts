@@ -35,3 +35,57 @@ export const passwordResetLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * Strict rate limiter for contact message submissions to mitigate spam and inbox flooding.
+ * Limits to 5 submissions per 15 minutes per IP.
+ */
+export const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: {
+    success: false,
+    error: {
+      message: 'Too many messages sent from this IP address. Please wait a few minutes before submitting again.',
+      code: 'CONTACT_RATE_LIMIT_EXCEEDED',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/**
+ * Strict rate limiter for newsletter signups to prevent automated email list poisoning.
+ * Limits to 5 subscriptions per 15 minutes per IP.
+ */
+export const newsletterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: {
+    success: false,
+    error: {
+      message: 'Too many subscription attempts from this IP address. Please try again later.',
+      code: 'NEWSLETTER_RATE_LIMIT_EXCEEDED',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/**
+ * Rate limiter for customer review submissions.
+ * Limits to 10 review submissions per 15 minutes per IP.
+ */
+export const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: {
+    success: false,
+    error: {
+      message: 'Too many reviews submitted from this IP address. Please wait a while before submitting another review.',
+      code: 'REVIEW_RATE_LIMIT_EXCEEDED',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

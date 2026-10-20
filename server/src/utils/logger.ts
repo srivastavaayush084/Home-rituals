@@ -31,6 +31,12 @@ const SENSITIVE_KEYS = [
   'keysecret',
   'webhooksecret',
   'apikey',
+  'credit_card',
+  'card_number',
+  'cvv',
+  'pan',
+  'cookie',
+  'privatekey',
 ];
 
 function redactSensitive(obj: any): any {

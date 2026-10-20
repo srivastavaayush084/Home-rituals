@@ -38,9 +38,12 @@ export function errorHandler(
     err.message?.includes('10061')
   ) {
     logger.error('Database connection failed. MongoDB is not running or unreachable.');
+    const isProduction = process.env.NODE_ENV === 'production';
     return sendError(
       res,
-      'Database is offline: MongoDB is not running on localhost:27017. Please start your local MongoDB service or provide a MongoDB Atlas URI in server/.env.',
+      isProduction
+        ? 'Database service is temporarily unavailable. Please try again later.'
+        : 'Database is offline: MongoDB is not running on localhost:27017. Please start your local MongoDB service or provide a MongoDB Atlas URI in server/.env.',
       503,
       'DATABASE_OFFLINE'
     );

@@ -5,7 +5,7 @@ export const authSchemas = {
     body: z.object({
       email: z.string().email('Invalid email address').optional().nullable(),
       phone: z.string().min(10, 'Phone number must be at least 10 digits').optional().nullable(),
-      password: z.string().min(6, 'Password must be at least 6 characters long'),
+      password: z.string().min(8, 'Password must be at least 8 characters long').max(128, 'Password cannot exceed 128 characters'),
       name: z.string().min(1, 'Name is required'),
     }).refine(data => data.email || data.phone, {
       message: 'Either email or phone number is required',
@@ -26,7 +26,13 @@ export const authSchemas = {
   resetPassword: z.object({
     body: z.object({
       token: z.string().min(1, 'Token is required'),
-      newPassword: z.string().min(6, 'Password must be at least 6 characters long'),
+      newPassword: z.string().min(8, 'Password must be at least 8 characters long').max(128, 'Password cannot exceed 128 characters'),
+    }),
+  }),
+  changePassword: z.object({
+    body: z.object({
+      currentPassword: z.string().min(1, 'Current password is required'),
+      newPassword: z.string().min(8, 'New password must be at least 8 characters long').max(128, 'Password cannot exceed 128 characters'),
     }),
   }),
 };
@@ -229,3 +235,26 @@ export const newsletterSchemas = {
     }),
   }),
 };
+
+export const cartSchemas = {
+  add: z.object({
+    body: z.object({
+      productId: z.string().min(1, 'Product ID is required'),
+      quantity: z.number().int().min(1, 'Quantity must be at least 1').max(99, 'Quantity cannot exceed 99').optional().default(1),
+    }),
+  }),
+  update: z.object({
+    body: z.object({
+      quantity: z.number().int().min(1, 'Quantity must be at least 1').max(99, 'Quantity cannot exceed 99'),
+    }),
+  }),
+};
+
+export const wishlistSchemas = {
+  toggle: z.object({
+    body: z.object({
+      productId: z.string().min(1, 'Product ID is required'),
+    }),
+  }),
+};
+

@@ -76,9 +76,33 @@ export async function updateAddress(req: AuthenticatedRequest, res: Response, ne
       });
     }
 
+    const {
+      fullName,
+      address1,
+      address2,
+      city,
+      state,
+      postalCode,
+      country,
+      landmark,
+      phone,
+      isDefault,
+    } = body;
+
     const updated = await prisma.address.update({
       where: { id },
-      data: body,
+      data: {
+        ...(fullName !== undefined && { fullName }),
+        ...(address1 !== undefined && { address1 }),
+        ...(address2 !== undefined && { address2 }),
+        ...(city !== undefined && { city }),
+        ...(state !== undefined && { state }),
+        ...(postalCode !== undefined && { postalCode }),
+        ...(country !== undefined && { country }),
+        ...(landmark !== undefined && { landmark }),
+        ...(phone !== undefined && { phone }),
+        ...(isDefault !== undefined && { isDefault }),
+      },
     });
 
     return sendSuccess(res, updated, 200, 'Address updated successfully');

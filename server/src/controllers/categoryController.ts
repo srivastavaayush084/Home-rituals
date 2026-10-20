@@ -10,7 +10,7 @@ export async function listCategories(req: Request, res: Response, next: NextFunc
     const skip = (page - 1) * limit;
 
     const notDeleted = { OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] };
-    const [categories, total] = await prisma.$transaction([
+    const [categories, total] = await Promise.all([
       prisma.category.findMany({
         where: notDeleted,
         skip,

@@ -39,7 +39,7 @@ export async function listContactMessages(req: Request, res: Response, next: Nex
       where.status = String(status);
     }
 
-    const [messages, total] = await prisma.$transaction([
+    const [messages, total] = await Promise.all([
       prisma.contactMessage.findMany({
         where,
         skip,
@@ -156,7 +156,7 @@ export async function listNewsletterSubscribers(req: Request, res: Response, nex
     const limit = Math.max(1, Number(req.query.limit) || 10);
     const skip = (page - 1) * limit;
 
-    const [subscribers, total] = await prisma.$transaction([
+    const [subscribers, total] = await Promise.all([
       prisma.newsletterSubscriber.findMany({
         skip,
         take: limit,

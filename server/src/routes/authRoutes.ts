@@ -15,6 +15,6 @@ router.post('/refresh', refresh);
 router.post('/logout', requireAuth, logout);
 router.get('/me', requireAuth, getMe);
 router.put('/profile', requireAuth, updateProfile);
-router.put('/change-password', requireAuth, changePassword);
+router.put('/change-password', requireAuth, validateRequest(authSchemas.changePassword), changePassword);
 
 export default router;

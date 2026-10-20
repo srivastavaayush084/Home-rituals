@@ -7,12 +7,13 @@ import { sendSuccess, ConflictError, BadRequestError, UnauthorizedError, NotFoun
 import { AuthenticatedRequest } from '../middleware/auth';
 import { sendEmail, emailTemplates } from '../services/email';
 import { getJwtSecret } from '../utils/jwt';
+import { checkCompromisedPassword } from '../services/passwordSecurity';
 
 function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string }) {
   const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
   const secret = getJwtSecret();
-  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
+  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m', algorithm: 'HS256' });
+  const refreshToken = jwt.sign({ id: user.id }, secret, { expiresIn: '7d', algorithm: 'HS256' });
   return { accessToken, refreshToken };
 }
 
@@ -20,17 +21,23 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
   try {
     const { email, phone, password, name } = req.body;
 
+    // Check if password has appeared in public breaches
+    const breachCheck = await checkCompromisedPassword(password);
+    if (breachCheck.isCompromised) {
+      throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
+    }
+
     if (email) {
       const existingEmail = await prisma.user.findUnique({ where: { email } });
       if (existingEmail) {
-        throw new ConflictError('A user with this email address already exists');
+        throw new ConflictError('An account with these credentials already exists. Please log in or reset your password.');
       }
     }
 
     if (phone) {
       const existingPhone = await prisma.user.findFirst({ where: { phone } });
       if (existingPhone) {
-        throw new ConflictError('A user with this mobile number already exists');
+        throw new ConflictError('An account with these credentials already exists. Please log in or reset your password.');
       }
     }
 
@@ -137,7 +144,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       throw new BadRequestError('Refresh token is required');
     }
 
-    const decoded = jwt.verify(refreshToken, getJwtSecret()) as any;
+    const decoded = jwt.verify(refreshToken, getJwtSecret(), { algorithms: ['HS256'] }) as any;
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -237,6 +244,12 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
       throw new BadRequestError('Invalid or expired password reset token');
     }
 
+    // Check if new password has appeared in public breaches
+    const breachCheck = await checkCompromisedPassword(newPassword);
+    if (breachCheck.isCompromised) {
+      throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
+    }
+
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     // Invalidate reset token and revoke active sessions
@@ -327,8 +340,12 @@ export async function changePassword(req: AuthenticatedRequest, res: Response, n
       throw new BadRequestError('Current password and new password are required');
     }
 
-    if (String(newPassword).length < 6) {
-      throw new BadRequestError('New password must be at least 6 characters long');
+    if (currentPassword === newPassword) {
+      throw new BadRequestError('New password must be different from your current password');
+    }
+
+    if (String(newPassword).length < 8) {
+      throw new BadRequestError('New password must be at least 8 characters long');
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -339,6 +356,12 @@ export async function changePassword(req: AuthenticatedRequest, res: Response, n
     const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isValid) {
       throw new BadRequestError('Incorrect current password');
+    }
+
+    // Check if new password has appeared in public breaches
+    const breachCheck = await checkCompromisedPassword(newPassword);
+    if (breachCheck.isCompromised) {
+      throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);

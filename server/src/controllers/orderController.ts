@@ -24,7 +24,7 @@ export async function listUserOrders(req: AuthenticatedRequest, res: Response, n
     const limit = Math.max(1, Number(req.query.limit) || 10);
     const skip = (page - 1) * limit;
 
-    const [orders, total] = await prisma.$transaction([
+    const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where: { userId } as any,
         skip,
@@ -100,7 +100,7 @@ export async function listAllOrders(req: AuthenticatedRequest, res: Response, ne
       where.refundStatus = String(refundStatus);
     }
 
-    const [orders, total] = await prisma.$transaction([
+    const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where,
         skip,

@@ -3,6 +3,7 @@ import { listReviewsForProduct, listAllReviews, createReview, approveReview, del
 import { requireAuth, requireAdmin, authenticateToken } from '../middleware/auth';
 import { validateRequest } from '../middleware/validator';
 import { reviewSchemas } from '../validations/schemas';
+import { reviewLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -10,7 +11,7 @@ const router = Router();
 router.get('/product/:productId', listReviewsForProduct);
 
 // Customer route to add reviews
-router.post('/product/:productId', authenticateToken, validateRequest(reviewSchemas.create), createReview);
+router.post('/product/:productId', reviewLimiter, authenticateToken, validateRequest(reviewSchemas.create), createReview);
 
 // User/Admin route to delete reviews
 router.delete('/:id', requireAuth, deleteReview);

@@ -47,12 +47,69 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Security HTTP headers
-app.use(helmet());
+const isProduction = process.env.NODE_ENV === 'production';
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for Swagger UI scripts
+          'https://checkout.razorpay.com',
+          'https://cdnjs.cloudflare.com',
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://fonts.googleapis.com',
+          'https://cdnjs.cloudflare.com',
+        ],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+        connectSrc: [
+          "'self'",
+          'https://api.razorpay.com',
+          'https://lumberjack.razorpay.com',
+          'https://api.pwnedpasswords.com',
+        ],
+        frameSrc: ["'self'", 'https://api.razorpay.com'],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: isProduction ? [] : null,
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: isProduction
+      ? {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        }
+      : false,
+    frameguard: { action: 'deny' },
+    hidePoweredBy: true,
+  })
+);
 
-// CORS configuration
+// CORS configuration supporting single or comma-separated origins
+const rawClientUrls = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawClientUrls
+  .split(',')
+  .map((url) => url.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      const normalizedOrigin = origin.trim().replace(/\/$/, '');
+      if (allowedOrigins.includes(normalizedOrigin) || !isProduction) {
+        return callback(null, true);
+      }
+      logger.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+      return callback(new Error('CORS policy: Access denied from this origin.'));
+    },
     credentials: true,
   })
 );

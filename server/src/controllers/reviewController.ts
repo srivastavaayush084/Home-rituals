@@ -22,7 +22,7 @@ export async function listReviewsForProduct(req: Request, res: Response, next: N
       }
     }
 
-    const [reviews, total] = await prisma.$transaction([
+    const [reviews, total] = await Promise.all([
       prisma.review.findMany({
         where: { productId: targetProductId, isApproved: true },
         skip,
@@ -54,7 +54,7 @@ export async function listAllReviews(req: Request, res: Response, next: NextFunc
       where.isApproved = approved === 'true';
     }
 
-    const [reviews, total] = await prisma.$transaction([
+    const [reviews, total] = await Promise.all([
       prisma.review.findMany({
         where,
         skip,

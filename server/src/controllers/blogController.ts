@@ -30,7 +30,7 @@ export async function listBlogs(req: Request, res: Response, next: NextFunction)
 
     const where: any = { AND: andConditions };
 
-    const [blogs, total] = await prisma.$transaction([
+    const [blogs, total] = await Promise.all([
       prisma.blogPost.findMany({
         where,
         skip,

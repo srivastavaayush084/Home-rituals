@@ -35,8 +35,31 @@ export function xssSanitizer(req: Request, _res: Response, next: NextFunction) {
   next();
 }
 
+const SENSITIVE_RAW_KEYS = new Set([
+  'password',
+  'newPassword',
+  'currentPassword',
+  'token',
+  'refreshToken',
+  'razorpaySignature',
+  'signature',
+]);
+
+const PROTOTYPE_POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 function sanitizeObject(obj: any) {
-  for (const key in obj) {
+  if (!obj || typeof obj !== 'object') return;
+
+  for (const key of Object.keys(obj)) {
+    if (PROTOTYPE_POLLUTION_KEYS.has(key)) {
+      delete obj[key];
+      continue;
+    }
+
+    if (SENSITIVE_RAW_KEYS.has(key)) {
+      continue;
+    }
+
     if (typeof obj[key] === 'string') {
       // Basic HTML escape to prevent script tags and HTML injection attacks
       obj[key] = obj[key]

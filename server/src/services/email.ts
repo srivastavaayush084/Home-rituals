@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { Transporter } from 'nodemailer';
 import { logger } from '../utils/logger';
 
 // Create nodemailer transporter
@@ -8,7 +8,7 @@ const user = process.env.EMAIL_USER;
 const pass = process.env.EMAIL_PASS;
 const from = process.env.EMAIL_FROM || '"Home Rituals" <no-reply@homerituals.com>';
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: Transporter | null = null;
 
 if (host && user && pass) {
   transporter = nodemailer.createTransport({

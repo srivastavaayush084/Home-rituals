@@ -95,7 +95,7 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
       }
     }
 
-    const [products, total] = await prisma.$transaction([
+    const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
         skip,

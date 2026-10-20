@@ -33,7 +33,7 @@ export async function authenticateToken(
       return next();
     }
 
-    const decoded = jwt.verify(token, getJwtSecret()) as UserPayload;
+    const decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] }) as UserPayload;
     
     // Validate that the user still exists in database
     const user = await prisma.user.findUnique({
