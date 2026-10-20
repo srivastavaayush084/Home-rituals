@@ -41,7 +41,7 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       }
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const userData: any = {
       passwordHash,
@@ -247,7 +247,7 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
       throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const passwordHash = await bcrypt.hash(newPassword, 12);
 
     // Invalidate reset token and revoke active sessions
     await prisma.user.update({
@@ -361,7 +361,7 @@ export async function changePassword(req: AuthenticatedRequest, res: Response, n
       throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const passwordHash = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: userId },
       data: {

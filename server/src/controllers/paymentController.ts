@@ -29,7 +29,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       });
     }
 
-    const { addressId, amount, currency, receipt: customReceipt } = req.body;
+    const { addressId, amount, receipt: customReceipt } = req.body;
 
     const config = getRazorpayConfig();
     if (!config.isConfigured) {
@@ -181,11 +181,11 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       ...(addressId ? { addressId: String(addressId) } : {}),
     };
 
-    // Create Razorpay order via official SDK
+    // Create Razorpay order via official SDK (currency hardcoded to 'INR')
     const rzpOrder = await createRazorpayOrder({
       amount: payableRupees,
       amountInPaise: payablePaise,
-      currency: currency || 'INR',
+      currency: 'INR',
       receipt,
       notes,
     });
@@ -196,7 +196,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
         userId,
         gatewayOrderId: rzpOrder.orderId,
         receipt: rzpOrder.receipt,
-        currency: rzpOrder.currency || 'INR',
+        currency: 'INR',
         amountInPaise: payablePaise,
         subtotal: payableRupees,
         tax: 0,
@@ -225,7 +225,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       order_id: rzpOrder.orderId,
       orderId: rzpOrder.orderId,
       amount: rzpOrder.amount, // in paise
-      currency: rzpOrder.currency,
+      currency: 'INR',
       receipt: rzpOrder.receipt,
       keyId: rzpOrder.keyId,
       key_id: rzpOrder.keyId,
@@ -234,7 +234,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
         order_id: rzpOrder.orderId,
         amount: rzpOrder.amount,
         amountInRupees: payableRupees,
-        currency: rzpOrder.currency,
+        currency: 'INR',
         receipt: rzpOrder.receipt,
         keyId: rzpOrder.keyId,
         key_id: rzpOrder.keyId,
@@ -251,7 +251,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
     return res.status(500).json({
       success: false,
       error: {
-        message: error?.message || 'Failed to create Razorpay order',
+        message: 'Failed to create payment order. Please try again later.',
         code: 'RAZORPAY_ORDER_CREATION_FAILED',
       },
     });
@@ -434,7 +434,7 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
     return res.status(500).json({
       success: false,
       error: {
-        message: error?.message || 'Internal error during payment verification',
+        message: 'Internal error during payment verification. Please contact support.',
         code: 'PAYMENT_VERIFICATION_ERROR',
       },
     });

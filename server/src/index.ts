@@ -50,7 +50,8 @@ app.set('trust proxy', 1);
 connectDB();
 
 // Security HTTP headers
-const isProduction = process.env.NODE_ENV === 'production';
+const isExplicitDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+const isProduction = !isExplicitDevOrTest;
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -172,9 +173,11 @@ try {
   logger.warn('Failed to load Swagger documentation file:', error);
 }
 
-if (swaggerDocument) {
+if (swaggerDocument && !isProduction) {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   logger.info(`Swagger API docs available at http://localhost:${PORT}/api-docs`);
+} else if (swaggerDocument) {
+  logger.info('Swagger API docs disabled in production');
 }
 
 // Root Route Welcome Message
@@ -183,7 +186,7 @@ app.get('/', (_req, res) => {
     success: true,
     message: 'Welcome to the Home Rituals API Server',
     version: '1.0.0',
-    documentation: '/api-docs',
+    ...(isProduction ? {} : { documentation: '/api-docs' }),
     health: '/api/health',
   });
 });
