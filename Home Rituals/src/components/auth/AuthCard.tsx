@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Phone, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { TurnstileWidget } from '../ui/TurnstileWidget';
 
 interface AuthCardProps {
   initialMode?: 'signin' | 'signup';
@@ -24,6 +25,7 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
   const [rememberMe, setRememberMe] = useState(true);
   const [signInLoading, setSignInLoading] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
+  const [signInTurnstileToken, setSignInTurnstileToken] = useState('');
 
   // Sign Up Form States
   const [name, setName] = useState('');
@@ -34,6 +36,16 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [signUpLoading, setSignUpLoading] = useState(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
+  const [signUpTurnstileToken, setSignUpTurnstileToken] = useState('');
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Redirect handling
   const requestedFrom = location.state?.from;
@@ -76,7 +88,7 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
     setSignInLoading(true);
 
     try {
-      await login(emailOrPhone, signInPassword);
+      await login(emailOrPhone, signInPassword, signInTurnstileToken);
       navigate(from, { replace: true });
     } catch (err: any) {
       setSignInError(err.message || 'Login failed. Please check your credentials.');
@@ -93,7 +105,7 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
     try {
       const emailValue = regType === 'email' ? email : null;
       const phoneValue = regType === 'phone' ? phone : null;
-      await register(emailValue, phoneValue, signUpPassword, name);
+      await register(emailValue, phoneValue, signUpPassword, name, signUpTurnstileToken);
       navigate(from, { replace: true });
     } catch (err: any) {
       setSignUpError(err.message || 'Registration failed. Please try again.');
@@ -181,6 +193,10 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
                     Forgot password?
                   </Link>
                 </div>
+
+                {!isMobile && !isSignUp && (
+                  <TurnstileWidget onVerify={setSignInTurnstileToken} />
+                )}
 
                 {/* Sign In Button */}
                 <button
@@ -333,6 +349,10 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
                     <span className="text-[11px] text-[#8c8578] ml-1">Use 8 characters or more.</span>
                   </div>
                 </div>
+
+                {!isMobile && isSignUp && (
+                  <TurnstileWidget onVerify={setSignUpTurnstileToken} />
+                )}
 
                 {/* Create Account Button */}
                 <button
@@ -604,6 +624,10 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
                       </Link>
                     </div>
 
+                    {isMobile && !isSignUp && (
+                      <TurnstileWidget onVerify={setSignInTurnstileToken} />
+                    )}
+
                     <button
                       type="submit"
                       disabled={signInLoading}
@@ -707,6 +731,10 @@ export function AuthCard({ initialMode = 'signin' }: AuthCardProps) {
                         {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+
+                    {isMobile && isSignUp && (
+                      <TurnstileWidget onVerify={setSignUpTurnstileToken} />
+                    )}
 
                     <button
                       type="submit"

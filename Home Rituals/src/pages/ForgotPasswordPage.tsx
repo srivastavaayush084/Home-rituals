@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/Button';
+import { TurnstileWidget } from '../components/ui/TurnstileWidget';
 
 export function ForgotPasswordPage() {
   const { forgotPassword } = useApp();
   const [email, setEmail] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await forgotPassword(email);
+      await forgotPassword(email, turnstileToken);
       setSuccess(true);
       setEmail('');
     } catch (err: any) {
@@ -56,6 +58,7 @@ export function ForgotPasswordPage() {
               required
               disabled={success}
             />
+            {!success && <TurnstileWidget onVerify={setTurnstileToken} />}
             <Button className="w-full" type="submit" disabled={loading || success}>
               {loading ? 'Sending link...' : 'Send reset link'}
             </Button>

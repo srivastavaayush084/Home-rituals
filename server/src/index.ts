@@ -62,6 +62,7 @@ app.use(
           "'unsafe-inline'", // Required for Swagger UI scripts
           'https://checkout.razorpay.com',
           'https://cdnjs.cloudflare.com',
+          'https://challenges.cloudflare.com',
         ],
         styleSrc: [
           "'self'",
@@ -76,8 +77,9 @@ app.use(
           'https://api.razorpay.com',
           'https://lumberjack.razorpay.com',
           'https://api.pwnedpasswords.com',
+          'https://challenges.cloudflare.com',
         ],
-        frameSrc: ["'self'", 'https://api.razorpay.com'],
+        frameSrc: ["'self'", 'https://api.razorpay.com', 'https://challenges.cloudflare.com'],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: isProduction ? [] : null,
       },

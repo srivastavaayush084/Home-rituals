@@ -16,12 +16,13 @@ import { requireAuth } from '../middleware/auth';
 import { validateRequest } from '../middleware/validator';
 import { authSchemas } from '../validations/schemas';
 import { authLimiter, passwordResetLimiter, refreshLimiter, resendVerificationLimiter } from '../middleware/rateLimiter';
+import { verifyTurnstile } from '../middleware/turnstile';
 
 const router = Router();
 
-router.post('/register', authLimiter, validateRequest(authSchemas.register), register);
-router.post('/login', authLimiter, validateRequest(authSchemas.login), login);
-router.post('/forgot-password', passwordResetLimiter, validateRequest(authSchemas.forgotPassword), forgotPassword);
+router.post('/register', authLimiter, verifyTurnstile, validateRequest(authSchemas.register), register);
+router.post('/login', authLimiter, verifyTurnstile, validateRequest(authSchemas.login), login);
+router.post('/forgot-password', passwordResetLimiter, verifyTurnstile, validateRequest(authSchemas.forgotPassword), forgotPassword);
 router.post('/reset-password', passwordResetLimiter, validateRequest(authSchemas.resetPassword), resetPassword);
 router.post('/verify-email', validateRequest(authSchemas.verifyEmail), verifyEmail);
 router.get('/verify-email', verifyEmail);

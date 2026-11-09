@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card } from '../components/ui/Card';
+import { TurnstileWidget } from '../components/ui/TurnstileWidget';
 import { apiRequest } from '../utils/apiClient';
 
 export function ContactPage() {
@@ -7,6 +8,7 @@ export function ContactPage() {
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export function ContactPage() {
         email,
         subject,
         message,
+        ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
       });
       setSuccess(true);
       setName('');
@@ -100,6 +103,7 @@ export function ContactPage() {
               placeholder="Tell us about your concern"
               required
             />
+            <TurnstileWidget onVerify={setTurnstileToken} />
             <button
               type="submit"
               disabled={loading}

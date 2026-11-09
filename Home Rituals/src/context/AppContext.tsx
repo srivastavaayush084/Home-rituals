@@ -36,10 +36,10 @@ interface AppContextValue {
   user: UserPayload | null;
   token: string | null;
   isAuthLoading: boolean;
-  login: (emailOrPhone: string, password: string) => Promise<void>;
-  register: (email: string | null, phone: string | null, password: string, name: string) => Promise<void>;
+  login: (emailOrPhone: string, password: string, turnstileToken?: string) => Promise<void>;
+  register: (email: string | null, phone: string | null, password: string, name: string, turnstileToken?: string) => Promise<void>;
   logout: () => void;
-  forgotPassword: (email: string) => Promise<void>;
+  forgotPassword: (email: string, turnstileToken?: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 
@@ -301,8 +301,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearShipping = () => setShipping(null);
 
   // Authentication Flow
-  const login = async (emailOrPhone: string, password: string) => {
-    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/login', 'POST', { emailOrPhone, password });
+  const login = async (emailOrPhone: string, password: string, turnstileToken?: string) => {
+    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/login', 'POST', {
+      emailOrPhone,
+      password,
+      ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+    });
     localStorage.setItem('home-rituals-token', data.token);
     localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
@@ -322,8 +326,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string | null, phone: string | null, password: string, name: string) => {
-    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/register', 'POST', { email, phone, password, name });
+  const register = async (
+    email: string | null,
+    phone: string | null,
+    password: string,
+    name: string,
+    turnstileToken?: string
+  ) => {
+    const data = await apiRequest<{ user: UserPayload; token: string }>('/api/auth/register', 'POST', {
+      email,
+      phone,
+      password,
+      name,
+      ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+    });
     localStorage.setItem('home-rituals-token', data.token);
     localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
@@ -344,8 +360,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToastMessage('Signed out successfully');
   };
 
-  const forgotPassword = async (email: string) => {
-    await apiRequest('/api/auth/forgot-password', 'POST', { email });
+  const forgotPassword = async (email: string, turnstileToken?: string) => {
+    await apiRequest('/api/auth/forgot-password', 'POST', {
+      email,
+      ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+    });
   };
 
   const resetPassword = async (tkn: string, newPass: string) => {

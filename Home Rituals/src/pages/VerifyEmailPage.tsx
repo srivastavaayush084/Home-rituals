@@ -27,7 +27,7 @@ export function VerifyEmailPage() {
     async function verify() {
       setStatus('loading');
       try {
-        const res = await apiRequest<{ emailVerified: boolean }>('/api/auth/verify-email', 'POST', { token });
+        await apiRequest<{ emailVerified: boolean }>('/api/auth/verify-email', 'POST', { token });
         if (!isMounted) return;
         setStatus('success');
         setMessage('Your email address has been successfully verified! You can now checkout and place orders.');
