@@ -7,7 +7,7 @@ import { deleteImage, getPublicIdFromUrl } from '../services/cloudinary';
 export async function listProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 12);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 12));
     const skip = (page - 1) * limit;
 
     const {
@@ -95,7 +95,7 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
       }
     }
 
-    const [products, total] = await prisma.$transaction([
+    const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
         skip,

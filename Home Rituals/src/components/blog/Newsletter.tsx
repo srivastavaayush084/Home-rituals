@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { apiRequest } from '../../utils/apiClient';
+import { TurnstileWidget } from '../ui/TurnstileWidget';
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -15,7 +17,10 @@ export function Newsletter() {
     setSent(false);
 
     try {
-      await apiRequest('/api/newsletter', 'POST', { email });
+      await apiRequest('/api/newsletter', 'POST', {
+        email,
+        ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+      });
       setSent(true);
       setEmail('');
     } catch (err: any) {
@@ -47,6 +52,8 @@ export function Newsletter() {
           {loading ? 'Subscribing...' : 'Subscribe'}
         </button>
       </form>
+
+      {!sent && <TurnstileWidget onVerify={setTurnstileToken} className="my-2" />}
 
       {sent && <div className="mt-4 text-sm text-[#0B8F3C]">Thanks — check your inbox! 🎉</div>}
       {error && <div className="mt-4 text-sm text-red-500">{error}</div>}

@@ -8,7 +8,7 @@ export async function listReviewsForProduct(req: Request, res: Response, next: N
   try {
     const { productId } = req.params;
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 20);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
     const skip = (page - 1) * limit;
 
     let targetProductId = productId;
@@ -22,7 +22,7 @@ export async function listReviewsForProduct(req: Request, res: Response, next: N
       }
     }
 
-    const [reviews, total] = await prisma.$transaction([
+    const [reviews, total] = await Promise.all([
       prisma.review.findMany({
         where: { productId: targetProductId, isApproved: true },
         skip,
@@ -45,7 +45,7 @@ export async function listReviewsForProduct(req: Request, res: Response, next: N
 export async function listAllReviews(req: Request, res: Response, next: NextFunction) {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 10);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
     const skip = (page - 1) * limit;
     const { approved } = req.query;
 
@@ -54,7 +54,7 @@ export async function listAllReviews(req: Request, res: Response, next: NextFunc
       where.isApproved = approved === 'true';
     }
 
-    const [reviews, total] = await prisma.$transaction([
+    const [reviews, total] = await Promise.all([
       prisma.review.findMany({
         where,
         skip,

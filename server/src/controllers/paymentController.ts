@@ -29,7 +29,31 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       });
     }
 
-    const { addressId, amount, currency, receipt: customReceipt } = req.body;
+    // Retrieve user profile early to verify account status & customer metadata
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, phone: true, email: true, emailVerified: true },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'User account not found', code: 'USER_NOT_FOUND' },
+      });
+    }
+
+    // Block order creation and payment initiation for unverified email accounts; phone-only exempt
+    if (user.email && !user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          message: 'Please verify your email address before initiating checkout or placing orders. Check your inbox for the verification link.',
+          code: 'EMAIL_VERIFICATION_REQUIRED',
+        },
+      });
+    }
+
+    const { addressId, amount, receipt: customReceipt } = req.body;
 
     const config = getRazorpayConfig();
     if (!config.isConfigured) {
@@ -51,7 +75,8 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
 
     // Scenario A: Direct amount provided (e.g. developer test console or custom amount)
     if (amount !== undefined && amount !== null) {
-      if (process.env.NODE_ENV === 'production') {
+      const isExplicitDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+      if (!isExplicitDevOrTest) {
         return res.status(403).json({
           success: false,
           error: {
@@ -168,23 +193,17 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       }
     }
 
-    // Retrieve user profile for customer metadata
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, phone: true, email: true },
-    });
-
     const receipt = customReceipt || `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const notes: Record<string, string> = {
       userId,
       ...(addressId ? { addressId: String(addressId) } : {}),
     };
 
-    // Create Razorpay order via official SDK
+    // Create Razorpay order via official SDK (currency hardcoded to 'INR')
     const rzpOrder = await createRazorpayOrder({
       amount: payableRupees,
       amountInPaise: payablePaise,
-      currency: currency || 'INR',
+      currency: 'INR',
       receipt,
       notes,
     });
@@ -195,7 +214,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
         userId,
         gatewayOrderId: rzpOrder.orderId,
         receipt: rzpOrder.receipt,
-        currency: rzpOrder.currency || 'INR',
+        currency: 'INR',
         amountInPaise: payablePaise,
         subtotal: payableRupees,
         tax: 0,
@@ -224,7 +243,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       order_id: rzpOrder.orderId,
       orderId: rzpOrder.orderId,
       amount: rzpOrder.amount, // in paise
-      currency: rzpOrder.currency,
+      currency: 'INR',
       receipt: rzpOrder.receipt,
       keyId: rzpOrder.keyId,
       key_id: rzpOrder.keyId,
@@ -233,7 +252,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
         order_id: rzpOrder.orderId,
         amount: rzpOrder.amount,
         amountInRupees: payableRupees,
-        currency: rzpOrder.currency,
+        currency: 'INR',
         receipt: rzpOrder.receipt,
         keyId: rzpOrder.keyId,
         key_id: rzpOrder.keyId,
@@ -250,7 +269,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
     return res.status(500).json({
       success: false,
       error: {
-        message: error?.message || 'Failed to create Razorpay order',
+        message: 'Failed to create payment order. Please try again later.',
         code: 'RAZORPAY_ORDER_CREATION_FAILED',
       },
     });
@@ -433,7 +452,7 @@ export async function verifyPaymentDirect(req: AuthenticatedRequest, res: Respon
     return res.status(500).json({
       success: false,
       error: {
-        message: error?.message || 'Internal error during payment verification',
+        message: 'Internal error during payment verification. Please contact support.',
         code: 'PAYMENT_VERIFICATION_ERROR',
       },
     });

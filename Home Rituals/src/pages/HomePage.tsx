@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Leaf, ShieldCheck, Sparkles, Star, Truck, Waves } from 'lucide-react';
+import { ArrowRight, Coins, Heart, Home, Layers, Leaf, Settings, ShieldCheck, Sparkles, Star, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -8,13 +8,15 @@ import { ProductCard } from '../components/ui/ProductCard';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useApp } from '../context/AppContext';
 
+import whyChooseBg from '../assets/why-choose-bg.jpg';
+
 const concerns = [
   { title: 'Powerful Cleaning', text: 'Fast-acting formulas that remove dirt, odor, and grime with ease.', icon: Sparkles },
   { title: 'Hygiene Focused', text: 'Made to support cleaner kitchens, bathrooms, and everyday high-touch areas.', icon: ShieldCheck },
-  { title: 'Easy to Use', text: 'Simple solutions for busy homes and effortless daily upkeep.', icon: BadgeCheck },
-  { title: 'Reliable Results', text: 'Consistent performance you can count on for regular maintenance.', icon: Waves },
-  { title: 'Affordable Essentials', text: 'Practical products that keep homes fresh without overcomplicating routines.', icon: Truck },
-  { title: 'Thoughtful Care', text: 'Designed for families who want healthier spaces with less effort.', icon: Leaf },
+  { title: 'Easy to Use', text: 'Simple solutions for busy homes and effortless daily upkeep.', icon: Settings },
+  { title: 'Reliable Results', text: 'Consistent performance you can count on for regular maintenance.', icon: TrendingUp },
+  { title: 'Affordable Essentials', text: 'Practical products that keep homes fresh without overcomplicating routines.', icon: Coins },
+  { title: 'Thoughtful Care', text: 'Designed for families who want healthier spaces with less effort.', icon: Heart },
 ];
 
 const instagramReels = [
@@ -204,68 +206,79 @@ export function HomePage() {
         )}
       </section>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[40px] bg-gradient-to-br from-[#162C20] to-[#0E1B14] p-8 text-white shadow-[0_30px_70px_rgba(22,44,32,0.15)] sm:p-10 lg:p-14 relative z-0">
-          {/* Subtle background glow accents */}
-          <div className="absolute top-0 right-0 w-[350px] h-[350px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
-          <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-amber-500/5 rounded-full blur-[80px] pointer-events-none -z-10" />
-
+        <div
+          className="relative overflow-hidden rounded-[40px] bg-[#0E2618] bg-cover bg-center p-8 text-white shadow-[0_30px_70px_rgba(7,24,14,0.3)] sm:p-10 lg:p-14 z-0"
+          style={{ backgroundImage: `url(${whyChooseBg})` }}
+        >
           <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] relative z-10">
             <div className="flex flex-col justify-between">
               <div>
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-[#A8D5BA] bg-white/5 border border-white/10 rounded-full px-3.5 py-1.5 mb-4 shadow-sm">
-                  Why choose Home Rituals
+                <div className="flex items-center justify-center gap-3.5 mb-4">
+                  <div className="w-8 sm:w-12 h-[1.5px] bg-[#D4AF37]/70" />
+                  <span className="text-[11px] sm:text-[11.5px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
+                    Why choose Home Rituals
+                  </span>
+                  <div className="w-8 sm:w-12 h-[1.5px] bg-[#D4AF37]/70" />
                 </div>
-                <h2 className="text-3xl font-semibold leading-tight sm:text-4xl text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Reliable cleaning, <span className="italic font-serif font-normal text-[#A8D5BA]">made simple</span> for modern homes.
+                <h2 className="text-3xl font-normal leading-[1.18] sm:text-4xl lg:text-[42px] text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Reliable cleaning,<br />
+                  <span className="italic font-normal text-[#96B87E]">made simple</span> for<br />
+                  modern homes.
                 </h2>
-                <p className="mt-4 max-w-xl text-base leading-8 text-emerald-100/75">
+                <p className="mt-4 max-w-xl text-[14.5px] sm:text-base leading-relaxed text-[#B7C9BB]/85">
                   We combine effective sanitation, practical performance, and easy-to-use essentials for kitchens, bathrooms, laundry, and beyond.
                 </p>
               </div>
 
-              <div className="mt-8 space-y-6">
-                {/* Stats Grid */}
+              <div className="mt-8 space-y-7">
+                {/* Stats Grid - Borderless typography */}
                 <div className="grid gap-4 grid-cols-3">
                   {[
-                    { value: 30, label: 'Cleaning essentials', suffix: '+' },
-                    { value: 99.9, label: 'Hygiene confidence', suffix: '%' },
-                    { value: 100, label: 'Everyday value', suffix: '%' },
+                    { value: '30+', label: 'Cleaning Essentials' },
+                    { value: '99.9%', label: 'Hygiene Confidence' },
+                    { value: '100%', label: 'Everyday Value' },
                   ].map((stat) => (
-                    <div key={stat.label} className="rounded-[20px] border border-white/10 bg-white/5 p-4 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-md">
-                      <p className="text-2xl font-bold leading-tight text-white">{stat.value}{stat.suffix}</p>
-                      <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.18em] text-emerald-200/80 leading-snug">{stat.label}</p>
+                    <div key={stat.label}>
+                      <p className="text-2xl sm:text-3xl font-serif font-bold leading-tight text-white">{stat.value}</p>
+                      <p className="mt-1.5 text-[9px] sm:text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#9EB2A1] leading-snug">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Core values cards */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-3.5 sm:grid-cols-3">
                   {[
-                    { title: 'Thoughtful ingredients', text: 'Botanical, transparent, and consciously chosen.' },
-                    { title: 'Quiet luxury', text: 'Textural packaging and elevated everyday design.' },
-                    { title: 'Home-first', text: 'Made to bring calm to each room and ritual.' },
-                  ].map((item) => (
-                    <div key={item.title} className="rounded-[20px] border border-white/10 bg-white/5 p-5 text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/10 hover:shadow-md text-left">
-                      <p className="text-xs font-bold tracking-wide text-white uppercase">{item.title}</p>
-                      <p className="mt-2 text-[11px] leading-relaxed text-emerald-100/70">{item.text}</p>
-                    </div>
-                  ))}
+                    { title: 'Thoughtful\nIngredients', text: 'Botanical, transparent, and consciously chosen.', icon: Leaf },
+                    { title: 'Quiet Luxury', text: 'Textural packaging and elevated everyday design.', icon: Layers },
+                    { title: 'Home-First', text: 'Made to bring calm to each room and ritual.', icon: Home },
+                  ].map((item) => {
+                    const ItemIcon = item.icon;
+                    return (
+                      <div key={item.title} className="rounded-[22px] border border-[#2D4A35]/50 bg-[#0B2215]/40 backdrop-blur-sm p-4 sm:p-5 text-white shadow-sm transition-all duration-300 hover:border-[#4B7356]/60 hover:bg-[#0E2A1B]/60 text-left">
+                        <div className="mb-2.5 text-[#96B87E]">
+                          <ItemIcon size={20} strokeWidth={1.6} />
+                        </div>
+                        <p className="text-xs sm:text-[13px] font-bold tracking-wide text-white whitespace-pre-line">{item.title}</p>
+                        <p className="mt-2 text-[11px] leading-relaxed text-[#9EB2A1]/80">{item.text}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Cards Grid */}
+            {/* Right Column: Warm Cream Feature Cards Grid */}
             <div className="flex items-center justify-center">
               <div className="grid gap-4 sm:grid-cols-2 w-full">
                 {concerns.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.title} className="rounded-[24px] bg-white border border-stone-100/85 p-6 text-stone-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-700 mb-4">
-                        <Icon size={20} />
+                    <div key={item.title} className="rounded-[26px] bg-[#F4F0E6] border border-[#E4DDCF] p-6 text-stone-900 shadow-[0_10px_28px_-6px_rgba(5,20,10,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                      <div className="w-10 h-10 rounded-full bg-[#E5ECE3] flex items-center justify-center text-[#214327] mb-3.5 shadow-xs">
+                        <Icon size={19} strokeWidth={1.75} />
                       </div>
-                      <p className="font-bold text-sm text-[#223229] tracking-wide">{item.title}</p>
-                      <p className="mt-2 text-xs leading-6 text-stone-500">{item.text}</p>
+                      <p className="font-semibold text-[15px] sm:text-base text-[#1A2E1F] tracking-tight" style={{ fontFamily: 'Playfair Display, serif' }}>{item.title}</p>
+                      <p className="mt-2 text-xs leading-relaxed text-[#58665B]">{item.text}</p>
                     </div>
                   );
                 })}

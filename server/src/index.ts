@@ -43,16 +43,79 @@ getJwtSecret();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust reverse proxy (e.g. Nginx, Cloudflare) - required for accurate rate limiting and IP resolution
+app.set('trust proxy', 1);
+
 // Connect to Database
 connectDB();
 
 // Security HTTP headers
-app.use(helmet());
+const isExplicitDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+const isProduction = !isExplicitDevOrTest;
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for Swagger UI scripts
+          'https://checkout.razorpay.com',
+          'https://cdnjs.cloudflare.com',
+          'https://challenges.cloudflare.com',
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://fonts.googleapis.com',
+          'https://cdnjs.cloudflare.com',
+        ],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+        connectSrc: [
+          "'self'",
+          'https://api.razorpay.com',
+          'https://lumberjack.razorpay.com',
+          'https://api.pwnedpasswords.com',
+          'https://challenges.cloudflare.com',
+        ],
+        frameSrc: ["'self'", 'https://api.razorpay.com', 'https://challenges.cloudflare.com'],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: isProduction ? [] : null,
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: isProduction
+      ? {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        }
+      : false,
+    frameguard: { action: 'deny' },
+    hidePoweredBy: true,
+  })
+);
 
-// CORS configuration
+// CORS configuration supporting single or comma-separated origins
+const rawClientUrls = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawClientUrls
+  .split(',')
+  .map((url) => url.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      const normalizedOrigin = origin.trim().replace(/\/$/, '');
+      if (allowedOrigins.includes(normalizedOrigin) || !isProduction) {
+        return callback(null, true);
+      }
+      logger.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+      return callback(new Error('CORS policy: Access denied from this origin.'));
+    },
     credentials: true,
   })
 );
@@ -112,9 +175,11 @@ try {
   logger.warn('Failed to load Swagger documentation file:', error);
 }
 
-if (swaggerDocument) {
+if (swaggerDocument && !isProduction) {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   logger.info(`Swagger API docs available at http://localhost:${PORT}/api-docs`);
+} else if (swaggerDocument) {
+  logger.info('Swagger API docs disabled in production');
 }
 
 // Root Route Welcome Message
@@ -123,7 +188,7 @@ app.get('/', (_req, res) => {
     success: true,
     message: 'Welcome to the Home Rituals API Server',
     version: '1.0.0',
-    documentation: '/api-docs',
+    ...(isProduction ? {} : { documentation: '/api-docs' }),
     health: '/api/health',
   });
 });

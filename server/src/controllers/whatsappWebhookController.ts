@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { prisma } from '../utils/db';
 import { logger } from '../utils/logger';
@@ -9,6 +10,19 @@ import {
 } from '../services/whatsappService';
 
 /**
+ * Validates Meta's HMAC-SHA256 signature from x-hub-signature-256
+ */
+export function verifyMetaSignature(rawBody: Buffer | string | undefined, signatureHeader: string | undefined, appSecret: string): boolean {
+  if (!signatureHeader || !rawBody) return false;
+  const parts = signatureHeader.split('=');
+  if (parts.length !== 2 || parts[0] !== 'sha256') return false;
+  const signature = parts[1];
+  const hmac = crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex');
+  if (signature.length !== hmac.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(signature, 'utf8'), Buffer.from(hmac, 'utf8'));
+}
+
+/**
  * Handles Meta Webhook Verification Handshake (GET /api/whatsapp/webhook)
  */
 export async function verifyWebhook(req: Request, res: Response): Promise<any> {
@@ -16,14 +30,19 @@ export async function verifyWebhook(req: Request, res: Response): Promise<any> {
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
-  const expectedToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'hr_wa_verify_9b83f01c7a8e42d65e90';
+  const expectedToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
+
+  if (!expectedToken) {
+    logger.warn('[WhatsApp Webhook] WHATSAPP_WEBHOOK_VERIFY_TOKEN is not configured in server environment.');
+    return res.status(503).json({ error: 'WhatsApp webhook verification token is not configured on server' });
+  }
 
   if (mode === 'subscribe' && token === expectedToken) {
     logger.info('[WhatsApp Webhook] Handshake verified successfully with Meta!');
     return res.status(200).send(challenge);
   }
 
-  logger.warn('[WhatsApp Webhook] Verification token mismatch received:', token);
+  logger.warn('[WhatsApp Webhook] Verification token mismatch received.');
   return res.status(403).json({ error: 'Verification token mismatch' });
 }
 
@@ -31,6 +50,18 @@ export async function verifyWebhook(req: Request, res: Response): Promise<any> {
  * Handles Incoming WhatsApp Messages, Quick Replies, and List Clicks (POST /api/whatsapp/webhook)
  */
 export async function handleIncomingWebhook(req: Request, res: Response): Promise<any> {
+  // Validate Meta App Secret signature if configured
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+  if (appSecret) {
+    const signature = req.headers['x-hub-signature-256'] as string | undefined;
+    const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+    const isValid = verifyMetaSignature(rawBody, signature, appSecret);
+    if (!isValid) {
+      logger.warn('[WhatsApp Webhook] Invalid or missing x-hub-signature-256 signature. Rejecting forged request.');
+      return res.status(401).json({ error: 'Invalid webhook signature' });
+    }
+  }
+
   // Acknowledge Meta immediately to avoid timeouts
   res.status(200).json({ status: 'EVENT_RECEIVED' });
 

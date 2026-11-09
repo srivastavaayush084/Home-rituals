@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { Transporter } from 'nodemailer';
 import { logger } from '../utils/logger';
 
 // Create nodemailer transporter
@@ -8,7 +8,7 @@ const user = process.env.EMAIL_USER;
 const pass = process.env.EMAIL_PASS;
 const from = process.env.EMAIL_FROM || '"Home Rituals" <no-reply@homerituals.com>';
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: Transporter | null = null;
 
 if (host && user && pass) {
   transporter = nodemailer.createTransport({
@@ -83,6 +83,21 @@ export const emailTemplates = {
         <a href="https://homerituals.co" style="background-color: #44D62C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: bold;">Start Shopping</a>
       </div>
       <p>If you have any questions, simply reply to this email.</p>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #888;">&copy; Home Rituals. All rights reserved.</p>
+    </div>
+  `,
+
+  getEmailVerificationHtml: (name: string, verifyUrl: string) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e8efe7; border-radius: 12px;">
+      <h2 style="color: #0B8F3C;">Verify Your Email Address - Home Rituals</h2>
+      <p>Hello ${name},</p>
+      <p>Thank you for creating an account with Home Rituals. Please click the button below to verify your email address. This verification link is valid for 24 hours.</p>
+      <div style="margin: 25px 0;">
+        <a href="${verifyUrl}" style="background-color: #0B8F3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: bold; display: inline-block;">Verify Email</a>
+      </div>
+      <p style="font-size: 13px; color: #555;">Or paste this link into your browser:<br/><a href="${verifyUrl}" style="color: #0B8F3C; word-break: break-all;">${verifyUrl}</a></p>
+      <p>If you did not create a Home Rituals account, please disregard this email.</p>
       <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
       <p style="font-size: 12px; color: #888;">&copy; Home Rituals. All rights reserved.</p>
     </div>

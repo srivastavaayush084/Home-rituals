@@ -3,10 +3,12 @@ import { subscribeNewsletter, listNewsletterSubscribers, updateNewsletterSubscri
 import { requireAdmin } from '../middleware/auth';
 import { validateRequest } from '../middleware/validator';
 import { newsletterSchemas } from '../validations/schemas';
+import { newsletterLimiter } from '../middleware/rateLimiter';
+import { verifyTurnstile } from '../middleware/turnstile';
 
 const router = Router();
 
-router.post('/', validateRequest(newsletterSchemas.subscribe), subscribeNewsletter);
+router.post('/', newsletterLimiter, verifyTurnstile, validateRequest(newsletterSchemas.subscribe), subscribeNewsletter);
 router.get('/', requireAdmin, listNewsletterSubscribers);
 router.put('/:id/status', requireAdmin, updateNewsletterSubscriberStatus);
 router.delete('/:id', requireAdmin, deleteNewsletterSubscriber);

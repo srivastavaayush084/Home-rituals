@@ -21,10 +21,10 @@ export async function listUserOrders(req: AuthenticatedRequest, res: Response, n
   try {
     const userId = req.user!.id;
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 10);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
     const skip = (page - 1) * limit;
 
-    const [orders, total] = await prisma.$transaction([
+    const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where: { userId } as any,
         skip,
@@ -88,7 +88,7 @@ export async function getOrderById(req: AuthenticatedRequest, res: Response, nex
 export async function listAllOrders(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 10);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
     const skip = (page - 1) * limit;
     const { status, refundStatus } = req.query;
 
@@ -100,7 +100,7 @@ export async function listAllOrders(req: AuthenticatedRequest, res: Response, ne
       where.refundStatus = String(refundStatus);
     }
 
-    const [orders, total] = await prisma.$transaction([
+    const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where,
         skip,

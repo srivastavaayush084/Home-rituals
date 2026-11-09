@@ -6,7 +6,7 @@ import { logger } from '../utils/logger';
 export async function listBlogs(req: Request, res: Response, next: NextFunction) {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 9);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 9));
     const skip = (page - 1) * limit;
     const { category, search } = req.query;
 
@@ -30,7 +30,7 @@ export async function listBlogs(req: Request, res: Response, next: NextFunction)
 
     const where: any = { AND: andConditions };
 
-    const [blogs, total] = await prisma.$transaction([
+    const [blogs, total] = await Promise.all([
       prisma.blogPost.findMany({
         where,
         skip,

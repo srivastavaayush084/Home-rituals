@@ -100,10 +100,10 @@ export async function getDashboardAnalytics(_req: Request, res: Response, next: 
 export async function listAllUsers(req: Request, res: Response, next: NextFunction) {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.max(1, Number(req.query.limit) || 10);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
     const skip = (page - 1) * limit;
 
-    const [users, total] = await prisma.$transaction([
+    const [users, total] = await Promise.all([
       prisma.user.findMany({
         skip,
         take: limit,
@@ -127,7 +127,7 @@ export async function listAllUsers(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export async function toggleUserRole(req: Request, res: Response, next: NextFunction) {
+export async function toggleUserRole(req: any, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
 
@@ -141,6 +141,33 @@ export async function toggleUserRole(req: Request, res: Response, next: NextFunc
 
     const nextRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
 
+    // Prevent administrator self-demotion
+    if (req.user && req.user.id === id && nextRole === 'USER') {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'You cannot demote your own administrator account.',
+          code: 'SELF_DEMOTION_FORBIDDEN',
+        },
+      });
+    }
+
+    // Prevent demoting the only remaining administrator
+    if (nextRole === 'USER') {
+      const activeAdminCount = await prisma.user.count({
+        where: { role: 'ADMIN', id: { not: id } } as any,
+      });
+      if (activeAdminCount === 0) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Cannot demote the only remaining administrator account.',
+            code: 'CANNOT_REMOVE_LAST_ADMIN',
+          },
+        });
+      }
+    }
+
     const updated = await prisma.user.update({
       where: { id } as any,
       data: { role: nextRole },
@@ -152,7 +179,7 @@ export async function toggleUserRole(req: Request, res: Response, next: NextFunc
       },
     });
 
-    logger.info(`Admin toggled role of User ID: ${id} to ${nextRole}`);
+    logger.info(`Admin ${req.user?.id || 'unknown'} toggled role of User ID: ${id} to ${nextRole}`);
     return sendSuccess(res, updated, 200, `User role changed to ${nextRole}`);
   } catch (error) {
     next(error);

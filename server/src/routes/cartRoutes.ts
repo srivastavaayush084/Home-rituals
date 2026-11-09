@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getCart, addToCart, updateCartItem, removeFromCart, clearCart } from '../controllers/cartController';
 import { requireAuth } from '../middleware/auth';
+import { validateRequest } from '../middleware/validator';
+import { cartSchemas } from '../validations/schemas';
 
 const router = Router();
 
@@ -8,8 +10,8 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', getCart);
-router.post('/', addToCart);
-router.put('/:productId', updateCartItem);
+router.post('/', validateRequest(cartSchemas.add), addToCart);
+router.put('/:productId', validateRequest(cartSchemas.update), updateCartItem);
 router.delete('/:productId', removeFromCart);
 router.delete('/', clearCart);
 

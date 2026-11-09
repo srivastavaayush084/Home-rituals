@@ -7,12 +7,17 @@ import { sendSuccess, ConflictError, BadRequestError, UnauthorizedError, NotFoun
 import { AuthenticatedRequest } from '../middleware/auth';
 import { sendEmail, emailTemplates } from '../services/email';
 import { getJwtSecret } from '../utils/jwt';
+import { checkCompromisedPassword } from '../services/passwordSecurity';
 
-function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string }) {
-  const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function generateTokens(user: { id: string; email: string | null; role: 'USER' | 'ADMIN'; name: string; emailVerified?: boolean }) {
+  const payload = { id: user.id, email: user.email, role: user.role, name: user.name, emailVerified: Boolean(user.emailVerified) };
   const secret = getJwtSecret();
-  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
+  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m', algorithm: 'HS256' });
+  const refreshToken = jwt.sign({ id: user.id }, secret, { expiresIn: '7d', algorithm: 'HS256' });
   return { accessToken, refreshToken };
 }
 
@@ -20,28 +25,42 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
   try {
     const { email, phone, password, name } = req.body;
 
+    // Check if password has appeared in public breaches
+    const breachCheck = await checkCompromisedPassword(password);
+    if (breachCheck.isCompromised) {
+      throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
+    }
+
     if (email) {
       const existingEmail = await prisma.user.findUnique({ where: { email } });
       if (existingEmail) {
-        throw new ConflictError('A user with this email address already exists');
+        throw new ConflictError('An account with these credentials already exists. Please log in or reset your password.');
       }
     }
 
     if (phone) {
       const existingPhone = await prisma.user.findFirst({ where: { phone } });
       if (existingPhone) {
-        throw new ConflictError('A user with this mobile number already exists');
+        throw new ConflictError('An account with these credentials already exists. Please log in or reset your password.');
       }
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const userData: any = {
       passwordHash,
       name,
       role: 'USER',
+      emailVerified: false,
     };
-    if (email) userData.email = email;
+
+    let rawVerificationToken: string | null = null;
+    if (email) {
+      userData.email = email;
+      rawVerificationToken = crypto.randomBytes(32).toString('hex');
+      userData.emailVerificationToken = hashToken(rawVerificationToken);
+      userData.emailVerificationExp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours validity
+    }
     if (phone) userData.phone = phone;
 
     const user = await prisma.user.create({
@@ -50,20 +69,22 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Save refresh token to DB
+    // Save hashed refresh token to DB
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: { refreshToken: hashToken(refreshToken) },
     });
 
-    // Send registration email if email was provided
-    if (user.email) {
+    // Send email verification link if email was provided (Welcome email is sent only after verification!)
+    if (user.email && rawVerificationToken) {
       try {
+        const baseUrl = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : '') || 'http://localhost:5173';
+        const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify-email?token=${rawVerificationToken}`;
         await sendEmail({
           to: user.email,
-          subject: 'Welcome to Home Rituals!',
-          html: emailTemplates.getRegistrationHtml(user.name),
-          text: `Hello ${user.name},\n\nWelcome to Home Rituals! Your account has been successfully created.`,
+          subject: 'Verify your email - Home Rituals',
+          html: emailTemplates.getEmailVerificationHtml(user.name, verifyUrl),
+          text: `Hello ${user.name},\n\nPlease verify your email address by clicking this link: ${verifyUrl}\nThis link is valid for 24 hours.`,
         });
       } catch (emailErr) {
         // Log email error but don't fail registration
@@ -76,6 +97,7 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       phone: user.phone,
       name: user.name,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     };
 
@@ -109,10 +131,10 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Save refresh token to DB
+    // Save hashed refresh token to DB
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: { refreshToken: hashToken(refreshToken) },
     });
 
     const userProfile = {
@@ -121,6 +143,7 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
       phone: user.phone,
       name: user.name,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     };
 
@@ -137,22 +160,23 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       throw new BadRequestError('Refresh token is required');
     }
 
-    const decoded = jwt.verify(refreshToken, getJwtSecret()) as any;
+    const decoded = jwt.verify(refreshToken, getJwtSecret(), { algorithms: ['HS256'] }) as any;
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
     });
 
-    if (!user || user.refreshToken !== refreshToken) {
+    const incomingHash = hashToken(refreshToken);
+    if (!user || user.refreshToken !== incomingHash) {
       throw new UnauthorizedError('Invalid or expired session. Please login again.');
     }
 
     const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
 
-    // Update refresh token in DB (Refresh token rotation for safety)
+    // Update refresh token in DB (Refresh token rotation with SHA-256 hashing)
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken: newRefreshToken },
+      data: { refreshToken: hashToken(newRefreshToken) },
     });
 
     return sendSuccess(res, { token: accessToken, refreshToken: newRefreshToken });
@@ -196,8 +220,8 @@ export async function forgotPassword(req: AuthenticatedRequest, res: Response, n
       },
     });
 
-    const clientUrl = req.headers.origin || req.get('origin') || 'http://localhost:5173';
-    const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
+    const baseUrl = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : '') || 'http://localhost:5173';
+    const resetUrl = `${baseUrl.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
 
     if (user.email) {
       await sendEmail({
@@ -223,10 +247,7 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
 
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { resetPasswordToken: hashedToken },
-          { resetPasswordToken: token }, // Backward compatibility
-        ],
+        resetPasswordToken: hashedToken,
         resetPasswordExp: {
           gt: new Date(),
         },
@@ -237,7 +258,13 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
       throw new BadRequestError('Invalid or expired password reset token');
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    // Check if new password has appeared in public breaches
+    const breachCheck = await checkCompromisedPassword(newPassword);
+    if (breachCheck.isCompromised) {
+      throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
 
     // Invalidate reset token and revoke active sessions
     await prisma.user.update({
@@ -274,6 +301,104 @@ export async function resetPassword(req: AuthenticatedRequest, res: Response, ne
   }
 }
 
+export async function verifyEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = (req.body?.token || req.query?.token) as string;
+    if (!token || typeof token !== 'string') {
+      throw new BadRequestError('Verification token is required');
+    }
+
+    const hashedToken = hashToken(token);
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: hashedToken,
+        emailVerificationExp: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestError('Invalid or expired email verification link');
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExp: null,
+      },
+    });
+
+    // Send Welcome Email only after verification!
+    if (user.email) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Welcome to Home Rituals!',
+          html: emailTemplates.getRegistrationHtml(user.name),
+          text: `Hello ${user.name},\n\nWelcome to Home Rituals! Your account and email have been successfully verified.`,
+        });
+      } catch (emailErr) {
+        // Log but don't fail
+      }
+    }
+
+    return sendSuccess(res, { emailVerified: true }, 200, 'Email verified successfully. You can now place orders.');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resendVerificationEmail(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const email = (req.body?.email || req.user?.email) as string | undefined;
+
+    // Generic response message to prevent account enumeration
+    const genericMessage = 'If this email is registered and unverified, a verification link has been sent.';
+
+    if (!email || typeof email !== 'string') {
+      return sendSuccess(res, null, 200, genericMessage);
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user || user.emailVerified) {
+      return sendSuccess(res, null, 200, genericMessage);
+    }
+
+    const rawVerificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerificationToken = hashToken(rawVerificationToken);
+    const verificationExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: hashedVerificationToken,
+        emailVerificationExp: verificationExp,
+      },
+    });
+
+    const baseUrl = (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : '') || 'http://localhost:5173';
+    const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify-email?token=${rawVerificationToken}`;
+
+    await sendEmail({
+      to: user.email!,
+      subject: 'Verify your email - Home Rituals',
+      html: emailTemplates.getEmailVerificationHtml(user.name, verifyUrl),
+      text: `Hello ${user.name},\n\nPlease verify your email address by clicking this link: ${verifyUrl}\nThis link is valid for 24 hours.`,
+    });
+
+    return sendSuccess(res, null, 200, genericMessage);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getMe(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.user) {
@@ -281,7 +406,7 @@ export async function getMe(req: AuthenticatedRequest, res: Response, next: Next
     }
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true } as any,
+      select: { id: true, name: true, email: true, phone: true, role: true, emailVerified: true, createdAt: true } as any,
     });
     if (!user) {
       throw new NotFoundError('User not found');
@@ -303,13 +428,25 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response, ne
 
     const updateData: any = { name: String(name).trim() };
     if (phone !== undefined) {
-      updateData.phone = phone ? String(phone).trim() : null;
+      const normalizedPhone = phone ? String(phone).trim() : null;
+      if (normalizedPhone) {
+        const existingPhoneUser = await prisma.user.findFirst({
+          where: {
+            phone: normalizedPhone,
+            NOT: { id: userId },
+          },
+        });
+        if (existingPhoneUser) {
+          throw new ConflictError('This phone number is already associated with another account');
+        }
+      }
+      updateData.phone = normalizedPhone;
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
-      select: { id: true, name: true, email: true, phone: true, role: true } as any,
+      select: { id: true, name: true, email: true, phone: true, role: true, emailVerified: true } as any,
     });
 
     return sendSuccess(res, updatedUser, 200, 'Profile updated successfully');
@@ -327,8 +464,12 @@ export async function changePassword(req: AuthenticatedRequest, res: Response, n
       throw new BadRequestError('Current password and new password are required');
     }
 
-    if (String(newPassword).length < 6) {
-      throw new BadRequestError('New password must be at least 6 characters long');
+    if (currentPassword === newPassword) {
+      throw new BadRequestError('New password must be different from your current password');
+    }
+
+    if (String(newPassword).length < 8) {
+      throw new BadRequestError('New password must be at least 8 characters long');
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -341,7 +482,13 @@ export async function changePassword(req: AuthenticatedRequest, res: Response, n
       throw new BadRequestError('Incorrect current password');
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    // Check if new password has appeared in public breaches
+    const breachCheck = await checkCompromisedPassword(newPassword);
+    if (breachCheck.isCompromised) {
+      throw new BadRequestError('This password has been exposed in public data breaches. Please choose a different, more secure password.');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: userId },
       data: {
