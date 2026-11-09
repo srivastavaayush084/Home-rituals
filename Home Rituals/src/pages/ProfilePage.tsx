@@ -444,6 +444,10 @@ export function ProfilePage() {
                               className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
                                 ord.status === 'Cancelled'
                                   ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                  : ord.status === 'Returned'
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-200 font-bold'
+                                  : ord.status === 'Refunded'
+                                  ? 'bg-teal-100 text-teal-800 border border-teal-200 font-bold'
                                   : ord.status === 'Delivered'
                                   ? 'bg-green-100 text-green-800'
                                   : ord.status === 'Shipped'
@@ -459,13 +463,13 @@ export function ProfilePage() {
                           </div>
                         </div>
 
-                        {/* Cancellation and Refund Details for Cancelled Orders */}
-                        {ord.status === 'Cancelled' && (
+                        {/* Cancellation and Refund Details for Cancelled or Returned Orders */}
+                        {(ord.status === 'Cancelled' || ord.status === 'Returned' || ord.status === 'Refunded' || Boolean(ord.refundStatus && ord.refundStatus !== 'NOT_APPLICABLE')) && (
                           <div className="my-3 p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn">
                             <div>
                               <div className="flex items-center gap-1.5 text-rose-900 font-semibold">
                                 <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                                <span>Order Cancelled</span>
+                                <span>{ord.status === 'Returned' ? 'Order Returned' : ord.status === 'Refunded' ? 'Order Refunded' : 'Order Cancelled'}</span>
                                 {ord.cancelledAt && (
                                   <span className="text-stone-500 font-normal">
                                     • {new Date(ord.cancelledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -563,7 +567,7 @@ export function ProfilePage() {
 
                           <div className="flex items-center gap-3 flex-wrap">
                             {/* Cancel Order Action */}
-                            {(ord.status === 'Pending' || ord.status === 'Confirmed') && (
+                            {(ord.status === 'Pending' || ord.status === 'Confirmed' || ord.status === 'Processing') && (
                               <button
                                 onClick={() => setOrderToCancel(ord)}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 text-xs font-semibold text-rose-700 transition shadow-2xs"

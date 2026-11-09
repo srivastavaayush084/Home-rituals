@@ -159,6 +159,8 @@ export const AdminOrdersPage: React.FC = () => {
             <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>
             <option value="Cancelled">Cancelled</option>
+            <option value="Returned">Returned</option>
+            <option value="Refunded">Refunded</option>
             <option value="refund_pending">Refund: Pending</option>
             <option value="refund_processing">Refund: Processing</option>
             <option value="refund_processed">Refund: Completed</option>
@@ -233,6 +235,10 @@ export const AdminOrdersPage: React.FC = () => {
                           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                             order.status === 'Cancelled'
                               ? 'bg-rose-100 text-rose-800 border border-rose-200 font-bold'
+                              : order.status === 'Returned'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200 font-bold'
+                              : order.status === 'Refunded'
+                              ? 'bg-teal-100 text-teal-800 border border-teal-200 font-bold'
                               : order.status === 'Delivered'
                               ? 'bg-emerald-100 text-emerald-800'
                               : order.status === 'Shipped'
@@ -301,7 +307,7 @@ export const AdminOrdersPage: React.FC = () => {
               </div>
 
               {/* Cancellation & Refund Audit Section */}
-              {(selectedOrder.status === 'Cancelled' || selectedOrder.refundStatus) && (
+              {(selectedOrder.status === 'Cancelled' || selectedOrder.status === 'Returned' || selectedOrder.status === 'Refunded' || selectedOrder.refundStatus) && (
                 <div className="bg-rose-50/60 border border-rose-200/80 p-4 rounded-xl space-y-2 text-xs">
                   <div className="flex items-center justify-between pb-1.5 border-b border-rose-200/60 font-semibold text-rose-950">
                     <span className="uppercase tracking-wider">Cancellation & Refund Audit</span>
@@ -449,6 +455,8 @@ export const AdminOrdersPage: React.FC = () => {
                   <option value="Shipped">Shipped</option>
                   <option value="Delivered">Delivered</option>
                   <option value="Cancelled">Cancelled</option>
+                  <option value="Returned">Returned</option>
+                  <option value="Refunded">Refunded</option>
                 </select>
               </div>
 
