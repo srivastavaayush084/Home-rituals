@@ -1,10 +1,21 @@
 import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 import { ProductCard } from '../components/ui/ProductCard';
 import { useApp } from '../context/AppContext';
 
 export function ShopPage() {
   const { products, addToCart, toggleWishlist, wishlistIds, isLoadingProducts, isFallbackMode, refreshProducts } = useApp();
+  const bannerVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = bannerVideoRef.current;
+    if (v) {
+      v.defaultMuted = true;
+      v.muted = true;
+      v.play().catch(() => {});
+    }
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
@@ -29,15 +40,18 @@ export function ShopPage() {
         className="relative overflow-hidden rounded-[32px] border border-stone-200/80 bg-stone-100 shadow-sm mb-12 aspect-[16/9] max-h-[460px] w-full flex items-center justify-center"
       >
         <video
+          ref={bannerVideoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           className="h-full w-full object-cover rounded-[32px]"
         >
           <source src="/Animation1.mp4" type="video/mp4" />
           <source src="/animation1.mp4" type="video/mp4" />
-          <source src="/Animation 1.mp4" type="video/mp4" />
+          <source src="/Animation.mp4" type="video/mp4" />
+          <source src="/animation.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </motion.div>
