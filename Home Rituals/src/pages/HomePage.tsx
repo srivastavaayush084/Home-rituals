@@ -155,9 +155,7 @@ export function HomePage() {
                 preload="auto"
                 className="h-full w-full object-cover rounded-2xl"
               >
-                <source src="/Animation1.mp4?v=2" type="video/mp4" />
-                <source src="/Animation1.mp4" type="video/mp4" />
-                <source src="/animation1.mp4" type="video/mp4" />
+                <source src="/Animation.mp4?v=3" type="video/mp4" />
                 <source src="/Animation.mp4" type="video/mp4" />
                 <source src="/animation.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
