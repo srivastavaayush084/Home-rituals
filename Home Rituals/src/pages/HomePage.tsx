@@ -213,11 +213,12 @@ export function HomePage() {
           <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] relative z-10">
             <div className="flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-[#C6B89D]">
+                <div className="flex items-center justify-center gap-3.5 mb-4">
+                  <div className="w-8 sm:w-12 h-[1.5px] bg-[#D4AF37]/70" />
+                  <span className="text-[11px] sm:text-[11.5px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]">
                     Why choose Home Rituals
                   </span>
-                  <div className="w-12 h-[1px] bg-[#C6B89D]/50" />
+                  <div className="w-8 sm:w-12 h-[1.5px] bg-[#D4AF37]/70" />
                 </div>
                 <h2 className="text-3xl font-normal leading-[1.18] sm:text-4xl lg:text-[42px] text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
                   Reliable cleaning,<br />
