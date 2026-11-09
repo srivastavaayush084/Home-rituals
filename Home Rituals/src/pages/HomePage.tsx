@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Coins, Heart, Home, Layers, Leaf, Settings, ShieldCheck, Sparkles, Star, TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -69,6 +69,16 @@ export function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredReelId, setHoveredReelId] = useState<number | null>(null);
   const [realReviews, setRealReviews] = useState<any[]>([]);
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = heroVideoRef.current;
+    if (v) {
+      v.defaultMuted = true;
+      v.muted = true;
+      v.play().catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsLoading(false), 700);
@@ -137,12 +147,16 @@ export function HomePage() {
             {/* Video Container matching previous animation area with rounded edges */}
             <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.08)] border border-stone-200/80 bg-white">
               <video
+                ref={heroVideoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
+                preload="auto"
                 className="h-full w-full object-cover rounded-2xl"
               >
+                <source src="/Animation1.mp4" type="video/mp4" />
+                <source src="/animation1.mp4" type="video/mp4" />
                 <source src="/Animation.mp4" type="video/mp4" />
                 <source src="/animation.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
