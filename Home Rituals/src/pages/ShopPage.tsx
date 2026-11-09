@@ -48,6 +48,7 @@ export function ShopPage() {
           preload="auto"
           className="h-full w-full object-cover rounded-[32px]"
         >
+          <source src="/Animation1.mp4?v=2" type="video/mp4" />
           <source src="/Animation1.mp4" type="video/mp4" />
           <source src="/animation1.mp4" type="video/mp4" />
           <source src="/Animation.mp4" type="video/mp4" />
