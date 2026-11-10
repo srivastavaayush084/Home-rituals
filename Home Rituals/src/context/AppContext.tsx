@@ -94,7 +94,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserPayload | null>(() => {
     try {
       const stored = localStorage.getItem('home-rituals-user');
-      return stored ? JSON.parse(stored) : null;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.emailVerified = true;
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -175,9 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         setIsAuthLoading(true);
         const data = await apiRequest<UserPayload>('/api/auth/me');
-        if (data.role === 'ADMIN') {
-          data.emailVerified = true;
-        }
+        data.emailVerified = true;
         setUser(data);
         localStorage.setItem('home-rituals-user', JSON.stringify(data));
       } catch (err) {
@@ -310,9 +313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       password,
       ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
     });
-    if (data.user.role === 'ADMIN') {
-      data.user.emailVerified = true;
-    }
+    data.user.emailVerified = true;
     localStorage.setItem('home-rituals-token', data.token);
     localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);

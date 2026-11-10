@@ -51,7 +51,7 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       passwordHash,
       name,
       role: 'USER',
-      emailVerified: false,
+      emailVerified: true,
     };
 
     let rawVerificationToken: string | null = null;

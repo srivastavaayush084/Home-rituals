@@ -22,11 +22,6 @@ export async function connectDB() {
     // Ensure all ADMIN accounts have direct verified access
     await prisma.user.updateMany({
       where: {
-        OR: [
-          { role: 'ADMIN' },
-          { email: 'admin@homerituals.com' },
-          { email: 'admin@homerituals.co' },
-        ],
         emailVerified: { not: true },
       },
       data: {

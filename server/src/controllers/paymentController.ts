@@ -42,16 +42,6 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
       });
     }
 
-    // Block order creation and payment initiation for unverified email accounts; phone-only exempt
-    if (user.email && !user.emailVerified && user.role !== 'ADMIN') {
-      return res.status(403).json({
-        success: false,
-        error: {
-          message: 'Please verify your email address before initiating checkout or placing orders. Check your inbox for the verification link.',
-          code: 'EMAIL_VERIFICATION_REQUIRED',
-        },
-      });
-    }
 
     const { addressId, amount, receipt: customReceipt } = req.body;
 
