@@ -120,7 +120,7 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
       }
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new BadRequestError('Invalid email/mobile number or password');
     }
 
