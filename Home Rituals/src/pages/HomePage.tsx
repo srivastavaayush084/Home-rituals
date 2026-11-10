@@ -73,11 +73,34 @@ export function HomePage() {
 
   useEffect(() => {
     const v = heroVideoRef.current;
-    if (v) {
-      v.defaultMuted = true;
+    if (!v) return;
+
+    v.defaultMuted = true;
+    v.muted = true;
+    v.playsInline = true;
+
+    const tryPlay = () => {
       v.muted = true;
       v.play().catch(() => {});
-    }
+    };
+
+    tryPlay();
+
+    const onUserInteraction = () => {
+      if (v.paused) {
+        tryPlay();
+      }
+    };
+
+    window.addEventListener('touchstart', onUserInteraction, { once: true, passive: true });
+    window.addEventListener('click', onUserInteraction, { once: true, passive: true });
+    window.addEventListener('scroll', onUserInteraction, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onUserInteraction);
+      window.removeEventListener('click', onUserInteraction);
+      window.removeEventListener('scroll', onUserInteraction);
+    };
   }, []);
 
   useEffect(() => {
@@ -147,12 +170,29 @@ export function HomePage() {
             {/* Video Container matching previous animation area with rounded edges */}
             <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden shadow-[0_20px_45px_rgba(0,0,0,0.08)] border border-stone-200/80 bg-white">
               <video
-                ref={heroVideoRef}
+                ref={(el) => {
+                  heroVideoRef.current = el;
+                  if (el) {
+                    el.muted = true;
+                    el.defaultMuted = true;
+                  }
+                }}
+                src="/Animation.mp4"
                 autoPlay
                 loop
                 muted
                 playsInline
                 preload="auto"
+                onLoadedMetadata={(e) => {
+                  const el = e.currentTarget;
+                  el.muted = true;
+                  el.play().catch(() => {});
+                }}
+                onCanPlay={(e) => {
+                  const el = e.currentTarget;
+                  el.muted = true;
+                  el.play().catch(() => {});
+                }}
                 className="h-full w-full object-cover rounded-2xl"
               >
                 <source src="/Animation.mp4?v=3" type="video/mp4" />

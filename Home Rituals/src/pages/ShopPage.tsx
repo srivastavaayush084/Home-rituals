@@ -10,11 +10,34 @@ export function ShopPage() {
 
   useEffect(() => {
     const v = bannerVideoRef.current;
-    if (v) {
-      v.defaultMuted = true;
+    if (!v) return;
+
+    v.defaultMuted = true;
+    v.muted = true;
+    v.playsInline = true;
+
+    const tryPlay = () => {
       v.muted = true;
       v.play().catch(() => {});
-    }
+    };
+
+    tryPlay();
+
+    const onUserInteraction = () => {
+      if (v.paused) {
+        tryPlay();
+      }
+    };
+
+    window.addEventListener('touchstart', onUserInteraction, { once: true, passive: true });
+    window.addEventListener('click', onUserInteraction, { once: true, passive: true });
+    window.addEventListener('scroll', onUserInteraction, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onUserInteraction);
+      window.removeEventListener('click', onUserInteraction);
+      window.removeEventListener('scroll', onUserInteraction);
+    };
   }, []);
 
   return (
@@ -40,12 +63,29 @@ export function ShopPage() {
         className="relative overflow-hidden rounded-[32px] border border-stone-200/80 bg-stone-100 shadow-sm mb-12 aspect-[16/9] max-h-[460px] w-full flex items-center justify-center"
       >
         <video
-          ref={bannerVideoRef}
+          ref={(el) => {
+            bannerVideoRef.current = el;
+            if (el) {
+              el.muted = true;
+              el.defaultMuted = true;
+            }
+          }}
+          src="/Animation1.mp4"
           autoPlay
           loop
           muted
           playsInline
           preload="auto"
+          onLoadedMetadata={(e) => {
+            const el = e.currentTarget;
+            el.muted = true;
+            el.play().catch(() => {});
+          }}
+          onCanPlay={(e) => {
+            const el = e.currentTarget;
+            el.muted = true;
+            el.play().catch(() => {});
+          }}
           className="h-full w-full object-cover rounded-[32px]"
         >
           <source src="/Animation1.mp4?v=3" type="video/mp4" />

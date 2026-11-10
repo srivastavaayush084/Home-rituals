@@ -76,7 +76,9 @@ const redactFilter = winston.format((info) => {
 const format = winston.format.combine(
   redactFilter(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-  winston.format.colorize({ all: true }),
+  process.env.NODE_ENV === 'production'
+    ? winston.format.uncolorize()
+    : winston.format.colorize(),
   winston.format.printf(
     (info) => `${info.timestamp} ${info.level}: ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`
   )

@@ -1,9 +1,33 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
+import fs from 'fs'
+import path from 'path'
+
+function caseInsensitiveAssetsPlugin(): Plugin {
+  return {
+    name: 'case-insensitive-assets',
+    closeBundle() {
+      const distDir = path.resolve(process.cwd(), 'dist');
+      const pairs = [
+        ['Animation.mp4', 'animation.mp4'],
+        ['Animation1.mp4', 'animation1.mp4'],
+      ];
+      pairs.forEach(([src, dest]) => {
+        const srcPath = path.join(distDir, src);
+        const destPath = path.join(distDir, dest);
+        if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
+          try {
+            fs.copyFileSync(srcPath, destPath);
+          } catch {}
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), caseInsensitiveAssetsPlugin()],
   server: {
     proxy: {
       '/api': {

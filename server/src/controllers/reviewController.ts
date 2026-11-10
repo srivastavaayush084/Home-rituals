@@ -19,6 +19,9 @@ export async function listReviewsForProduct(req: Request, res: Response, next: N
       });
       if (product) {
         targetProductId = product.id;
+      } else {
+        // Product not found by slug and invalid ObjectID - return empty reviews instead of throwing MongoDB malformed ObjectID error
+        return sendPaginated(res, [], { page, limit, total: 0, pages: 0 });
       }
     }
 

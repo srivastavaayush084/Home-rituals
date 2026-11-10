@@ -98,22 +98,49 @@ app.use(
   })
 );
 
-// CORS configuration supporting single or comma-separated origins
-const rawClientUrls = process.env.CLIENT_URL || 'http://localhost:5173';
-const allowedOrigins = rawClientUrls
-  .split(',')
-  .map((url) => url.trim().replace(/\/$/, ''))
+// Built-in whitelisted production & local origins for Home Rituals
+const defaultAllowedOrigins = [
+  'https://homerituals.co',
+  'https://www.homerituals.co',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+];
+
+const envOrigins = [
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+  process.env.ALLOWED_ORIGINS,
+]
+  .filter(Boolean)
+  .flatMap((val) => val!.split(','))
+  .map((url) => url.trim().replace(/\/$/, '').toLowerCase())
   .filter(Boolean);
+
+const allowedOriginsSet = new Set([
+  ...defaultAllowedOrigins.map((o) => o.toLowerCase()),
+  ...envOrigins,
+]);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server, webhooks)
       if (!origin) return callback(null, true);
-      const normalizedOrigin = origin.trim().replace(/\/$/, '');
-      if (allowedOrigins.includes(normalizedOrigin) || !isProduction) {
+
+      const normalizedOrigin = origin.trim().replace(/\/$/, '').toLowerCase();
+
+      // Explicitly allow apex domain, www subdomain, and any *.homerituals.co subdomains
+      if (
+        allowedOriginsSet.has(normalizedOrigin) ||
+        /^https:\/\/([a-z0-9-]+\.)?homerituals\.co$/.test(normalizedOrigin) ||
+        !isProduction
+      ) {
         return callback(null, true);
       }
+
       logger.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
       return callback(new Error('CORS policy: Access denied from this origin.'));
     },
@@ -127,6 +154,7 @@ const apiLimiter = rateLimit({
   max: 1000, // Limit each IP to 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: {
     success: false,
     error: {
