@@ -32,7 +32,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
     // Retrieve user profile early to verify account status & customer metadata
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, phone: true, email: true, emailVerified: true },
+      select: { name: true, phone: true, email: true, emailVerified: true, role: true },
     });
 
     if (!user) {
@@ -43,7 +43,7 @@ export async function initiatePaymentDirect(req: AuthenticatedRequest, res: Resp
     }
 
     // Block order creation and payment initiation for unverified email accounts; phone-only exempt
-    if (user.email && !user.emailVerified) {
+    if (user.email && !user.emailVerified && user.role !== 'ADMIN') {
       return res.status(403).json({
         success: false,
         error: {

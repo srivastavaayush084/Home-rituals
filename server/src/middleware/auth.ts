@@ -43,6 +43,9 @@ export async function authenticateToken(
     });
 
     if (user) {
+      if (user.role === 'ADMIN') {
+        user.emailVerified = true;
+      }
       req.user = user as UserPayload;
     }
   } catch (error) {

@@ -8,7 +8,8 @@ export function EmailVerificationBanner() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  if (!user || !user.email || user.emailVerified) {
+  // Never show verification banner for admin accounts or verified users
+  if (!user || !user.email || user.emailVerified || user.role === 'ADMIN') {
     return null;
   }
 

@@ -175,6 +175,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         setIsAuthLoading(true);
         const data = await apiRequest<UserPayload>('/api/auth/me');
+        if (data.role === 'ADMIN') {
+          data.emailVerified = true;
+        }
         setUser(data);
         localStorage.setItem('home-rituals-user', JSON.stringify(data));
       } catch (err) {
@@ -307,6 +310,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       password,
       ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
     });
+    if (data.user.role === 'ADMIN') {
+      data.user.emailVerified = true;
+    }
     localStorage.setItem('home-rituals-token', data.token);
     localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
