@@ -414,5 +414,240 @@ export const emailTemplates = {
       </p>
     </div>
   `,
+
+  getReturnRequestedHtml: ({
+    orderId,
+    customerName,
+    reason,
+    itemsCount,
+    returnId,
+  }: {
+    orderId: string;
+    customerName: string;
+    reason: string;
+    itemsCount: number;
+    returnId: string;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          Return Request Received
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        We have received your return request for Order <strong>#${orderId}</strong>. Our team is currently reviewing your request and submitted details.
+      </p>
+
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Return ID:</strong> <span style="font-family: monospace;">${returnId}</span></p>
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Reason:</strong> ${reason}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Items:</strong> ${itemsCount} product(s)</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Status:</strong> Under Review (Typically 24 hours)</p>
+      </div>
+
+      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
+        You will receive another update once our team approves your request and schedules reverse pickup.
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
+
+  getReturnReviewedHtml: ({
+    orderId,
+    customerName,
+    action,
+    rejectionReason,
+    returnId,
+  }: {
+    orderId: string;
+    customerName: string;
+    action: 'APPROVED' | 'REJECTED';
+    rejectionReason?: string | null;
+    returnId: string;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: ${action === 'APPROVED' ? '#dcfce7' : '#fee2e2'}; color: ${action === 'APPROVED' ? '#166534' : '#991b1b'}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          Return ${action === 'APPROVED' ? 'Approved' : 'Declined'}
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        ${action === 'APPROVED' 
+          ? `Your return request for Order <strong>#${orderId}</strong> has been approved! Our logistics partner will coordinate reverse pickup from your delivery address.`
+          : `We regret to inform you that your return request for Order <strong>#${orderId}</strong> could not be approved.`}
+      </p>
+
+      ${rejectionReason ? `
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+          <p style="margin: 0; font-size: 13px; color: #991b1b;"><strong>Reason for Decline:</strong> ${rejectionReason}</p>
+        </div>
+      ` : ''}
+
+      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
+        If you have any questions or require assistance, please write to <strong>info@homerituals.co</strong> with Return ID #${returnId}.
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
+
+  getReversePickupScheduledHtml: ({
+    orderId,
+    customerName,
+    courier,
+    awb,
+    scheduledAt,
+    returnId,
+  }: {
+    orderId: string;
+    customerName: string;
+    courier: string;
+    awb: string;
+    scheduledAt?: string | null;
+    returnId: string;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          Reverse Pickup Scheduled
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        A reverse pickup has been scheduled for your return items on Order <strong>#${orderId}</strong>.
+      </p>
+
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Return ID:</strong> #${returnId}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Courier Partner:</strong> ${courier}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Reverse AWB / Tracking:</strong> <span style="font-family: monospace;">${awb}</span></p>
+        ${scheduledAt ? `<p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Expected Pickup:</strong> ${scheduledAt}</p>` : ''}
+      </div>
+
+      <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+        <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.5;">
+          <strong>Pickup Instructions:</strong> Please keep the product securely packaged with all original tags, accessories, and packaging intact for the pickup executive.
+        </p>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
+
+  getReturnInspectionCompletedHtml: ({
+    orderId,
+    customerName,
+    result,
+    notes,
+    refundAmount,
+    refundType,
+    returnId,
+  }: {
+    orderId: string;
+    customerName: string;
+    result: 'PASSED' | 'FAILED';
+    notes: string;
+    refundAmount?: number;
+    refundType?: string | null;
+    returnId: string;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: ${result === 'PASSED' ? '#dcfce7' : '#fee2e2'}; color: ${result === 'PASSED' ? '#166534' : '#991b1b'}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          Quality Inspection ${result === 'PASSED' ? 'Passed' : 'Failed'}
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        ${result === 'PASSED'
+          ? `Your returned item(s) for Order <strong>#${orderId}</strong> have passed our warehouse quality inspection! Your refund of <strong>₹${refundAmount ? refundAmount.toFixed(2) : '0.00'}</strong> has been initiated.`
+          : `Your returned item(s) for Order <strong>#${orderId}</strong> did not pass our warehouse quality inspection.`}
+      </p>
+
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Return ID:</strong> #${returnId}</p>
+        ${refundType ? `<p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Refund Mode:</strong> ${refundType === "COD_MANUAL" ? "Direct Bank / UPI Payout" : "Original Payment Method"}</p>` : ""}
+        <p style="margin: 4px 0; font-size: 13px; color: #334155;"><strong>Inspection Remarks:</strong> ${notes}</p>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
+
+  getCodRefundProcessedHtml: ({
+    orderId,
+    customerName,
+    refundAmount,
+    payoutReference,
+    returnId,
+  }: {
+    orderId: string;
+    customerName: string;
+    refundAmount: number;
+    payoutReference: string;
+    returnId: string;
+  }) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e8efe7; border-radius: 16px; background-color: #ffffff;">
+      <div style="border-bottom: 2px solid #f0f4f1; padding-bottom: 16px; margin-bottom: 20px;">
+        <h1 style="color: #111827; font-size: 22px; margin: 0 0 6px 0;">Home Rituals</h1>
+        <span style="display: inline-block; background-color: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+          COD Refund Completed
+        </span>
+      </div>
+
+      <p style="color: #374151; font-size: 15px; margin: 0 0 16px 0;">
+        Hello <strong>${customerName}</strong>,
+      </p>
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+        We have transferred your refund for Order <strong>#${orderId}</strong> directly to your provided UPI / Bank account.
+      </p>
+
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Refund Amount:</strong> ₹${refundAmount.toFixed(2)}</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Bank / UPI Reference (UTR):</strong> <span style="font-family: monospace;">${payoutReference}</span></p>
+        <p style="margin: 4px 0; font-size: 13px; color: #15803d;"><strong>Return ID:</strong> #${returnId}</p>
+      </div>
+
+      <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0 0 16px 0;">
+        Thank you for choosing Home Rituals. For any queries, please write to <strong>info@homerituals.co</strong>.
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Home Rituals. All rights reserved.
+      </p>
+    </div>
+  `,
 };
 

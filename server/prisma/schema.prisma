@@ -34,6 +34,7 @@ model User {
   checkoutSessions   CheckoutSession[]
   addresses          Address[]
   refunds            Refund[]
+  returnRequests     ReturnRequest[]
 }
 
 model Category {
@@ -201,6 +202,7 @@ model Order {
   updatedAt          DateTime    @updatedAt
   items              OrderItem[]
   refunds            Refund[]
+  returnRequests     ReturnRequest[]
 
   @@index([userId])
   @@index([status])
@@ -315,3 +317,42 @@ model CheckoutSession {
   @@index([createdAt])
 }
 
+
+
+model ReturnRequest {
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId               String    @db.ObjectId
+  order                 Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId                String    @db.ObjectId
+  user                  User      @relation(fields: [userId], references: [id])
+  items                 Json      // Array of { orderItemId: string, productId: string, name: string, quantity: number, price: number }
+  reason                String
+  description           String?
+  images                String[]  @default([])
+  status                String    @default("REQUESTED") // REQUESTED, APPROVED, REJECTED, PICKUP_SCHEDULED, PICKED_UP, RECEIVED_AT_WAREHOUSE, INSPECTION_PASSED, INSPECTION_FAILED, REFUNDED
+  adminNotes            String?
+  rejectionReason       String?
+  reverseCourier        String?
+  reversePickupAwb      String?
+  pickupScheduledAt     DateTime?
+  pickedUpAt            DateTime?
+  receivedAtWarehouseAt DateTime?
+  inspectionResult      String?   // PASSED, FAILED
+  inspectionNotes       String?
+  inspectedAt           DateTime?
+  stockRestored         Boolean   @default(false)
+  refundType            String?   // GATEWAY, COD_MANUAL
+  refundAmount          Float?
+  refundId              String?
+  codUpiId              String?
+  codAccountDetails     Json?
+  codPayoutReference    String?
+  codPaidAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}

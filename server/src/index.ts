@@ -34,6 +34,7 @@ import adminRoutes from './routes/adminRoutes';
 import bannerRoutes from './routes/bannerRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import whatsappRoutes from './routes/whatsappRoutes';
+import returnRoutes from './routes/returnRoutes';
 import { initiatePaymentDirect, verifyPaymentDirect } from './controllers/paymentController';
 import { getJwtSecret } from './utils/jwt';
 
@@ -148,6 +149,9 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
+// Serve persistent uploads (return photos, invoices, assets)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Custom XSS Sanitizer middleware
 app.use(xssSanitizer);
 
@@ -236,6 +240,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/banners', bannerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/returns', returnRoutes);
 
 // Direct Checkout Routes
 app.post('/api/create-order', requireAuth, initiatePaymentDirect);

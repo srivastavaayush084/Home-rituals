@@ -22,11 +22,13 @@ import {
   AlertTriangle,
   AlertCircle,
   RefreshCw,
+  RotateCcw,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { apiRequest, downloadInvoicePdf } from '../utils/apiClient';
 import { ProductCard } from '../components/ui/ProductCard';
 import { CancelOrderModal } from '../components/ui/CancelOrderModal';
+import { ReturnRequestModal } from '../components/ui/ReturnRequestModal';
 
 interface OrderItem {
   id: string;
@@ -56,6 +58,7 @@ interface Order {
   carrier?: string;
   courierName?: string;
   createdAt: string;
+  deliveredAt?: string | null;
   shippingAddress?: any;
   items: OrderItem[];
   cancelledAt?: string | null;
@@ -81,6 +84,15 @@ export function ProfilePage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+  const [orderToReturn, setOrderToReturn] = useState<Order | null>(null);
+  const [myReturns, setMyReturns] = useState<any[]>([]);
+
+  const handleReturnSuccess = (createdReturn: any, message?: string) => {
+    setMyReturns((prev) => [createdReturn, ...prev]);
+    if (message && showToast) {
+      showToast(message);
+    }
+  };
 
   const handleCancellationSuccess = (cancelledOrder: any, message?: string) => {
     setOrders((prev) =>
@@ -151,6 +163,11 @@ export function ProfilePage() {
         const data = await apiRequest<any>('/api/orders');
         const list = Array.isArray(data) ? data : (data?.data || data?.orders || []);
         setOrders(list);
+
+        try {
+          const retData = await apiRequest<any>('/api/returns/my-returns');
+          setMyReturns(Array.isArray(retData) ? retData : (retData?.data || []));
+        } catch {}
       } catch (err) {
         console.warn('Failed to load user orders:', err);
       } finally {
@@ -578,6 +595,40 @@ export function ProfilePage() {
                               </button>
                             )}
 
+                            {/* Return Order Action */}
+                            {(() => {
+                              const existingReturn = myReturns.find((r) => r.orderId === ord.id);
+                              const isDelivered = ord.status === 'Delivered';
+                              const deliveredTime = ord.deliveredAt ? new Date(ord.deliveredAt).getTime() : new Date(ord.createdAt).getTime();
+                              const within48h = Date.now() - deliveredTime <= 48 * 60 * 60 * 1000;
+
+                              if (existingReturn) {
+                                return (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50/80 text-xs font-semibold text-indigo-800 shadow-2xs">
+                                    <RotateCcw className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>
+                                      Return: {existingReturn.status === 'REQUESTED' ? 'Under Review' : existingReturn.status === 'APPROVED' ? 'Approved' : existingReturn.status === 'PICKUP_SCHEDULED' ? `Pickup Scheduled (${existingReturn.reversePickupAwb || ''})` : existingReturn.status === 'INSPECTION_PASSED' ? 'Inspection Passed' : existingReturn.status === 'REFUNDED' ? 'Refunded' : existingReturn.status}
+                                    </span>
+                                  </span>
+                                );
+                              }
+
+                              if (isDelivered && within48h) {
+                                return (
+                                  <button
+                                    onClick={() => setOrderToReturn(ord)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition shadow-2xs"
+                                    title="Submit return request (within 48 hours of delivery)"
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Request Return</span>
+                                  </button>
+                                );
+                              }
+
+                              return null;
+                            })()}
+
                             {(ord.status === 'Confirmed' || ord.status === 'Delivered' || ord.status === 'Shipped' || ord.paymentStatus === 'Paid') && (
                               <button
                                 onClick={() => handleDownloadInvoice(ord.id, ord.invoiceNumber)}
@@ -629,6 +680,14 @@ export function ProfilePage() {
                         Contact Home Rituals Support (info@homerituals.co)
                       </a>
                     </div>
+
+                    {/* Return Order Modal */}
+                    <ReturnRequestModal
+                      isOpen={Boolean(orderToReturn)}
+                      onClose={() => setOrderToReturn(null)}
+                      order={orderToReturn}
+                      onSuccess={handleReturnSuccess}
+                    />
 
                     {/* Cancel Order Modal */}
                     <CancelOrderModal

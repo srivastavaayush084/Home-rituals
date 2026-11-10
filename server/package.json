@@ -14,7 +14,7 @@
     "seed": "ts-node-dev prisma/seed.ts",
     "fix-indexes": "ts-node-dev --transpile-only src/scripts/fixIndexes.ts",
     "detect-duplicate-phones": "ts-node src/scripts/detectDuplicatePhones.ts",
-    "test": "ts-node src/scripts/testCancellationSystem.ts && ts-node src/scripts/testPhase6Verification.ts && ts-node src/scripts/testSecurityHardening.ts"
+    "test": "ts-node src/scripts/testCancellationSystem.ts && ts-node src/scripts/testPhase6Verification.ts && ts-node src/scripts/testSecurityHardening.ts && ts-node src/scripts/testCompleteReturnRefundSystem.ts && ts-node src/scripts/testReturnConcurrencyAndStorage.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

@@ -268,3 +268,81 @@ export const wishlistSchemas = {
   }),
 };
 
+
+export const returnSchemas = {
+  create: z.object({
+    body: z.object({
+      orderId: z.string().min(1, 'Order ID is required'),
+      items: z.array(
+        z.object({
+          orderItemId: z.string().min(1, 'Order item ID is required'),
+          quantity: z.number().int().min(1, 'Quantity must be at least 1'),
+        })
+      ).min(1, 'At least one item must be selected for return'),
+      reason: z.string().min(1, 'Return reason is required'),
+      description: z.string().min(5, 'Please provide at least 5 characters describing the issue'),
+      images: z.array(z.string()).optional().default([]),
+      codUpiId: z.string().optional().nullable(),
+      codAccountDetails: z.record(z.any()).optional().nullable(),
+    }),
+  }),
+  review: z.object({
+    body: z.object({
+      action: z.enum(['APPROVE', 'REJECT']),
+      rejectionReason: z.string().optional().nullable(),
+      notes: z.string().optional().nullable(),
+    }).refine(
+      (data) => data.action !== 'REJECT' || (data.rejectionReason && data.rejectionReason.trim().length > 0),
+      {
+        message: 'Rejection reason is required when rejecting a return request',
+        path: ['rejectionReason'],
+      }
+    ),
+  }),
+  reversePickup: z.object({
+    body: z.object({
+      courier: z.string().min(1, 'Courier name is required'),
+      awb: z.string().min(1, 'AWB / Tracking number is required'),
+      scheduledAt: z.string().optional().nullable(),
+    }),
+  }),
+  updatePickupStatus: z.object({
+    body: z.object({
+      status: z.enum(['PICKUP_SCHEDULED', 'PICKED_UP']),
+      notes: z.string().optional().nullable(),
+    }),
+  }),
+  receive: z.object({
+    body: z.object({
+      notes: z.string().optional().nullable(),
+    }),
+  }),
+  inspect: z.object({
+    body: z.object({
+      result: z.enum(['PASSED', 'FAILED']),
+      notes: z.string().min(1, 'Inspection notes are required'),
+      restoreStock: z.boolean().optional().default(true),
+    }),
+  }),
+  codPayout: z.object({
+    body: z.object({
+      amount: z.number().positive('Refund amount must be positive'),
+      payoutReference: z
+        .string()
+        .trim()
+        .min(6, 'Bank UTR or UPI transaction reference must be at least 6 characters')
+        .refine(
+          (ref) => !['unpaid', 'pending', 'none', 'n/a', 'na', 'nil', 'null', '0', 'test'].includes(ref.toLowerCase()),
+          {
+            message: 'A real, completed bank or UPI transaction reference (UTR) is required. Unpaid or placeholder status is strictly prohibited.',
+          }
+        ),
+      notes: z.string().optional().nullable(),
+    }),
+  }),
+  retryRefund: z.object({
+    body: z.object({
+      notes: z.string().optional().nullable(),
+    }).optional(),
+  }),
+};
