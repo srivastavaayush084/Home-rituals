@@ -329,7 +329,7 @@ export function RazorpayDemoPage() {
           <div className="rounded-3xl border border-black/5 bg-slate-900 p-6 shadow-md text-slate-300 flex flex-col justify-between">
             <div>
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#44D62C] animate-pulse"></span>
+                <span className="h-2 w-2 rounded-full bg-[#2D5A43] animate-pulse"></span>
                 Checkout Lifecycle Log
               </h2>
 
@@ -344,7 +344,7 @@ export function RazorpayDemoPage() {
                       )}
                       {step.status === 'active' && (
                         <div className="h-5 w-5 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center">
-                          <span className="h-2 w-2 rounded-full bg-[#44D62C] animate-ping"></span>
+                          <span className="h-2 w-2 rounded-full bg-[#2D5A43] animate-ping"></span>
                         </div>
                       )}
                       {step.status === 'success' && (

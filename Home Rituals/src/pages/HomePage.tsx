@@ -127,7 +127,7 @@ export function HomePage() {
       <section className="w-full bg-[#E7E2D6] relative">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-24 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center relative overflow-visible">
           {/* Background ambient lighting */}
-          <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#44D62C]/5 rounded-full blur-3xl -z-10" />
+          
           <div className="absolute bottom-12 right-1/4 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl -z-10" />
 
           {/* Left Column (Content) */}
@@ -151,7 +151,7 @@ export function HomePage() {
               <Button to="/shop" icon={<ArrowRight size={16} />} className="group shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                 Shop cleaning essentials
               </Button>
-              <Button to="/shop" variant="primary" className="bg-[#44D62C]/10 border border-[#44D62C]/30 text-emerald-800 hover:bg-[#44D62C]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+              <Button to="/shop" variant="primary" className="bg-[#14291D] text-[#FBF9F5] hover:bg-[#203D2D] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
                 Explore shop
               </Button>
             </div>
@@ -388,7 +388,7 @@ export function HomePage() {
                     </div>
 
                     <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-[#44D62C]">Instagram Reel</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#2D5A43]">Instagram Reel</p>
                       <p className="mt-0.5 text-sm font-semibold leading-snug drop-shadow">{reel.title}</p>
                     </div>
                   </a>
@@ -412,7 +412,7 @@ export function HomePage() {
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">{review.author}</p>
                   {review.verifiedPurchase && (
-                    <span className="text-[11px] font-semibold text-[#44D62C]">Verified Buyer</span>
+                    <span className="text-[11px] font-semibold text-[#2D5A43]">Verified Buyer</span>
                   )}
                 </div>
               </Card>
@@ -426,7 +426,7 @@ export function HomePage() {
             </p>
             <Link
               to="/shop"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#44D62C] hover:bg-[#3ec428] px-5 py-2 text-xs font-bold text-white transition shadow-sm"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#14291D] hover:bg-[#203D2D] px-5 py-2 text-xs font-bold text-[#FBF9F5] transition shadow-sm"
             >
               Explore Products & Reviews
             </Link>

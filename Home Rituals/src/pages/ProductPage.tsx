@@ -108,7 +108,7 @@ export function ProductPage() {
               <button className="p-2" onClick={handleIncrement}><Plus size={16} /></button>
             </div>
             <Button icon={<ArrowRight size={16} />} onClick={() => addToCart(product, quantity)}>Add to cart</Button>
-            <button onClick={() => toggleWishlist(product.id)} className={`rounded-full p-3 ${wishlistIds.includes(product.id) ? 'bg-[#44D62C] text-white' : 'bg-[#EFE9DF] text-black'}`}><Heart size={16} /></button>
+            <button onClick={() => toggleWishlist(product.id)} className={`rounded-full p-3 ${wishlistIds.includes(product.id) ? 'bg-[#14291D] text-white' : 'bg-[#EFE9DF] text-black'}`}><Heart size={16} /></button>
           </div>
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">

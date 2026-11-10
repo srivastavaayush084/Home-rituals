@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Heart, Star, MessageSquarePlus } from 'lucide-react';
+import { Eye, Heart, Star, MessageSquarePlus, ShoppingBag } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { Product } from '../../data/content';
 import { ReviewModal } from '../reviews/ReviewModal';
@@ -48,25 +48,36 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
     });
   };
 
+  const discountPercent = product.originalPrice && product.originalPrice > product.price
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
   return (
     <>
       <motion.article
-        whileHover={{ y: -6, scale: 1.01 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
         onClick={() => openQuickView(product)}
-        className={`group relative cursor-pointer overflow-hidden rounded-[20px] border border-[#EAEAEA] bg-white p-4 shadow-[0_8px_25px_rgba(0,0,0,0.08)] transition-all duration-300 hover:shadow-[0_18px_40px_rgba(0,0,0,0.12)] ${className}`}
+        className={`group relative cursor-pointer overflow-hidden rounded-2xl border border-[#E8E4DC] bg-white p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(20,41,29,0.04)] transition-all duration-300 hover:border-[#D5CFC3] hover:shadow-[0_12px_32px_rgba(20,41,29,0.08)] ${className}`}
       >
         <div className="relative">
-          <div className="relative overflow-hidden rounded-[16px] bg-[#f7f7f5] p-3">
+          <div className="relative overflow-hidden rounded-xl bg-[#F5F1EA] p-2">
             <img
               src={product.image}
               alt={product.name}
-              className="aspect-square w-full rounded-[12px] object-cover transition duration-300 group-hover:scale-105"
+              className="aspect-square w-full rounded-lg object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+              loading="lazy"
             />
 
             {product.badge ? (
-              <span className="absolute left-6 top-6 rounded-full bg-[#44D62C] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white shadow-lg">
+              <span className="absolute left-4 top-4 rounded-full bg-[#14291D]/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FBF9F5] shadow-sm backdrop-blur-sm border border-[#C5A880]/30">
                 {product.badge}
+              </span>
+            ) : null}
+
+            {discountPercent > 0 && !product.badge ? (
+              <span className="absolute left-4 top-4 rounded-full bg-[#2D5A43]/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#FBF9F5] shadow-sm backdrop-blur-sm">
+                {discountPercent}% OFF
               </span>
             ) : null}
 
@@ -79,11 +90,11 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
                 event.stopPropagation();
                 onToggleWishlist(product.id);
               }}
-              className={`absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/90 text-[#111827] shadow-lg backdrop-blur transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
-                isWishlisted ? 'text-black' : 'text-[#111827]'
+              className={`absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/80 bg-white/90 shadow-sm backdrop-blur-md transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43] ${
+                isWishlisted ? 'text-red-600' : 'text-[#14291D] hover:text-red-600'
               }`}
             >
-              <Heart size={16} fill={isWishlisted ? 'currentColor' : 'none'} />
+              <Heart size={15} fill={isWishlisted ? 'currentColor' : 'none'} />
             </button>
 
             <button
@@ -94,44 +105,44 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
                 event.stopPropagation();
                 openQuickView(product);
               }}
-              className="absolute inset-0 z-10 flex items-center justify-center rounded-[16px] bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/10 group-hover:opacity-100 focus-visible:opacity-100"
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-black/15 opacity-0 backdrop-blur-[2px] transition-all duration-200 group-hover:opacity-100 focus-visible:opacity-100"
             >
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-[#111827] shadow-lg">
-                <Eye size={14} /> Quick view
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-[#14291D] shadow-md">
+                <Eye size={13} /> Quick view
               </span>
             </button>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3">
-          <div className="min-h-[3.2rem]">
-            <h3 className="line-clamp-2 text-[18px] font-[700] leading-6 text-[#111827] sm:text-[24px]">
+        <div className="mt-3.5 flex flex-col gap-2.5">
+          <div className="min-h-[2.8rem]">
+            <h3 className="line-clamp-2 text-sm sm:text-base font-semibold text-[#14291D] leading-snug">
               {product.name}
             </h3>
           </div>
 
-          <div className="h-px w-full bg-[#EAEAEA]" />
+          <div className="h-px w-full bg-[#F0ECE4]" />
 
           {/* Rating & Write Review button */}
-          <div className="flex items-center justify-between gap-2 text-sm text-[#6B7280]">
+          <div className="flex items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <div className="flex items-center gap-0.5 text-[#f4b942]">
+              <div className="flex items-center gap-0.5 text-[#C5A880]">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <Star
                     key={index}
-                    size={13}
+                    size={12}
                     className={
                       reviewsCount > 0 && index < Math.round(currentRating)
-                        ? 'fill-[#f4b942] text-[#f4b942]'
+                        ? 'fill-[#C5A880] text-[#C5A880]'
                         : 'text-stone-300'
                     }
                   />
                 ))}
               </div>
-              <span className="font-medium text-[#111827]">
+              <span className="font-medium text-[#14291D]">
                 {reviewsCount > 0 ? currentRating.toFixed(1) : 'New'}
               </span>
-              <span className="text-xs text-stone-500">
+              <span className="text-[11px] text-[#5C6860]">
                 ({reviewsCount})
               </span>
             </div>
@@ -144,20 +155,29 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
                 event.stopPropagation();
                 setIsReviewModalOpen(true);
               }}
-              className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-700 shadow-sm transition hover:border-[#44D62C] hover:bg-emerald-50 hover:text-[#0B8F3C]"
+              className="inline-flex items-center gap-1 rounded-full border border-[#E8E4DC] bg-[#F5F1EA] px-2.5 py-0.5 text-[11px] font-medium text-[#2D5A43] transition hover:bg-[#EAE4D7] hover:border-[#D5CFC3]"
             >
-              <MessageSquarePlus size={13} />
+              <MessageSquarePlus size={11} />
               <span>Review</span>
             </button>
           </div>
 
-          <div className="flex items-end justify-between gap-3">
-            <div>
+          <div className="flex items-baseline justify-between pt-0.5">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#14291D]">
+                ₹{product.price}
+              </span>
               {product.originalPrice ? (
-                <p className="text-[20px] text-[#6B7280] line-through">₹{product.originalPrice}</p>
+                <span className="text-xs text-[#8A968F] line-through">
+                  ₹{product.originalPrice}
+                </span>
               ) : null}
-              <p className="text-[32px] font-bold leading-none text-[#111827]">₹{product.price}</p>
             </div>
+            {discountPercent > 0 ? (
+              <span className="text-[11px] font-medium text-[#2D5A43] bg-[#2D5A43]/10 px-2 py-0.5 rounded-md">
+                Save ₹{product.originalPrice! - product.price}
+              </span>
+            ) : null}
           </div>
 
           <button
@@ -167,9 +187,10 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
               event.stopPropagation();
               onAddToCart(product);
             }}
-            className="flex h-14 w-full items-center justify-center rounded-full bg-[linear-gradient(90deg,#44D62C_0%,#44D62C_100%)] text-[20px] font-semibold text-[#111] shadow-[0_10px_24px_rgba(41,211,0,0.25)] transition-all duration-300 hover:scale-[1.02] hover:bg-[linear-gradient(90deg,#44D62C_0%,#44D62C_100%)] hover:shadow-[0_14px_30px_rgba(41,211,0,0.35)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#44D62C]"
+            className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#14291D] text-xs sm:text-sm font-semibold tracking-wide text-[#FBF9F5] shadow-sm transition-all duration-200 hover:bg-[#203D2D] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43]"
           >
-            Add To Box
+            <ShoppingBag size={14} />
+            <span>Add to Bag</span>
           </button>
         </div>
       </motion.article>
@@ -184,4 +205,3 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
     </>
   );
 }
-

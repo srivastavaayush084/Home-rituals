@@ -80,7 +80,7 @@ export function OrderSuccessPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#44D62C] border-t-transparent"></div>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#2D5A43] border-t-transparent"></div>
         <p className="mt-4 text-sm font-medium text-[#6f6f6f]">Confirming order details...</p>
       </div>
     );
@@ -116,8 +116,8 @@ export function OrderSuccessPage() {
       <div className="text-center">
         <div className="relative inline-flex">
           {/* Animated rings for premium feel */}
-          <span className="absolute inline-flex h-20 w-20 animate-ping rounded-full bg-[#44D62C]/10 opacity-75"></span>
-          <div className="relative inline-flex h-20 w-20 items-center justify-center rounded-full bg-[#44D62C] text-white shadow-lg shadow-[#44D62C]/30">
+          <span className="absolute inline-flex h-20 w-20 animate-ping rounded-full bg-[#2D5A43]/10 opacity-75"></span>
+          <div className="relative inline-flex h-20 w-20 items-center justify-center rounded-full bg-[#14291D] text-[#C5A880] shadow-lg border border-[#C5A880]/30">
             <svg className="h-10 w-10 animate-[bounce_1s_ease-in-out_1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
             </svg>
@@ -144,24 +144,24 @@ export function OrderSuccessPage() {
               {order.invoiceNumber && (
                 <div className="flex justify-between">
                   <span className="text-[#6f6f6f]">Invoice Number:</span>
-                  <span className="font-mono font-medium text-[#0B8F3C]">{order.invoiceNumber}</span>
+                  <span className="font-mono font-medium text-[#2D5A43]">{order.invoiceNumber}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-[#6f6f6f]">Status:</span>
-                <span className="inline-flex items-center rounded-full bg-[#44D62C]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0B8F3C]">
+                <span className="inline-flex items-center rounded-full bg-[#2D5A43]/10 px-2.5 py-0.5 text-xs font-semibold text-[#2D5A43]">
                   {order.status}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6f6f6f]">Payment Status:</span>
-                <span className="inline-flex items-center rounded-full bg-[#44D62C]/10 px-2.5 py-0.5 text-xs font-semibold text-[#0B8F3C]">
+                <span className="inline-flex items-center rounded-full bg-[#2D5A43]/10 px-2.5 py-0.5 text-xs font-semibold text-[#2D5A43]">
                   {order.paymentStatus}
                 </span>
               </div>
               <div className="flex justify-between border-t border-black/5 pt-3">
                 <span className="font-medium text-[#242424]">Amount Paid:</span>
-                <span className="font-bold text-[#0B8F3C] text-lg">₹{order.totalAmount.toFixed(2)}</span>
+                <span className="font-bold text-[#2D5A43] text-lg">₹{order.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -215,7 +215,7 @@ export function OrderSuccessPage() {
           {/* Invoice Card */}
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-emerald-200 text-[#0B8F3C] shadow-xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-emerald-200 text-[#2D5A43] shadow-xs">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -254,7 +254,7 @@ export function OrderSuccessPage() {
           </div>
 
           <div className="rounded-2xl border border-black/5 bg-[#fdfefc] p-6 text-center border-dashed">
-            <h3 className="font-semibold text-[#0B8F3C] text-sm uppercase tracking-wider">Next steps</h3>
+            <h3 className="font-semibold text-[#2D5A43] text-sm uppercase tracking-wider">Next steps</h3>
             <p className="mt-2 text-xs text-[#6f6f6f] leading-relaxed">
               We have dispatched your order confirmation email along with your tax invoice. Once our logistics team prepares the package, we'll notify you with courier tracking information.
             </p>

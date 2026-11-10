@@ -187,7 +187,7 @@ export function QuickViewModalContent() {
                       aria-label={`Show image ${index + 1}`}
                       onClick={() => setSelectedImageIndex(index)}
                       className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[14px] border-2 bg-stone-100 p-1 transition ${
-                        selectedImageIndex === index ? 'border-[#44D62C] shadow-sm' : 'border-transparent'
+                        selectedImageIndex === index ? 'border-[#2D5A43] shadow-sm' : 'border-transparent'
                       }`}
                     >
                       <img src={image} alt={`${quickViewProduct.name} thumbnail ${index + 1}`} loading="lazy" className="h-full w-full rounded-[10px] object-cover" />
@@ -199,7 +199,7 @@ export function QuickViewModalContent() {
 
             {/* Product Details */}
             <div className="flex flex-col">
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#44D62C]">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#2D5A43]">
                 {categoryName}
               </p>
 
@@ -209,7 +209,7 @@ export function QuickViewModalContent() {
 
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-stone-600">
                 {quickViewProduct.variant ? (
-                  <span className="rounded-full bg-green-50 text-[#44D62C] border border-green-200 px-3 py-1">{String(quickViewProduct.variant)}</span>
+                  <span className="rounded-full bg-green-50 text-[#2D5A43] border border-green-200 px-3 py-1">{String(quickViewProduct.variant)}</span>
                 ) : null}
                 {quickViewProduct.packSize ? (
                   <span className="rounded-full border border-stone-200 px-3 py-1">{String(quickViewProduct.packSize)}</span>
@@ -249,7 +249,7 @@ export function QuickViewModalContent() {
                 <button
                   type="button"
                   onClick={() => setIsReviewModalOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-[#44D62C] hover:bg-emerald-50 hover:text-[#0B8F3C] transition-colors"
+                  className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:border-[#2D5A43] hover:bg-emerald-50 hover:text-[#0B8F3C] transition-colors"
                 >
                   <MessageSquarePlus size={13} />
                   Write Review
@@ -261,7 +261,7 @@ export function QuickViewModalContent() {
                   <ul className="grid gap-2 text-xs font-semibold text-stone-800 sm:grid-cols-2">
                     {features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[#44D62C]">•</span>
+                        <span className="mt-0.5 text-[#2D5A43]">•</span>
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -277,14 +277,14 @@ export function QuickViewModalContent() {
 
               {highlights.length > 0 ? (
                 <div className="mt-4 rounded-[18px] border border-stone-200 bg-stone-50 p-4">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#44D62C]">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[#2D5A43]">
                     <Check size={14} />
                     Product Highlights
                   </div>
                   <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
                     {highlights.map((highlight, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-stone-800">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-[#44D62C]">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-[#2D5A43]">
                           <Check size={12} />
                         </span>
                         {highlight}
@@ -303,7 +303,7 @@ export function QuickViewModalContent() {
                   <div className="flex items-center gap-3">
                     <p className="text-3xl font-bold text-stone-900">₹{price}</p>
                     {originalPrice > price ? (
-                      <span className="rounded-full bg-[#44D62C] px-3 py-0.5 text-xs font-bold text-white">
+                      <span className="rounded-full bg-[#2D5A43] px-3 py-0.5 text-xs font-bold text-white">
                         {Math.round(((originalPrice - price) / originalPrice) * 100)}% OFF
                       </span>
                     ) : null}
@@ -336,7 +336,7 @@ export function QuickViewModalContent() {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex items-center justify-center gap-2 rounded-full bg-[#44D62C] hover:bg-[#3bc224] px-5 py-3.5 text-sm font-semibold text-white shadow-md transition"
+                  className="flex items-center justify-center gap-2 rounded-full bg-[#14291D] hover:bg-[#203D2D] px-5 py-3.5 text-sm font-semibold text-[#FBF9F5] shadow-md transition"
                 >
                   <ShoppingBag size={17} />
                   Add to Cart
@@ -353,11 +353,11 @@ export function QuickViewModalContent() {
               {/* Features badges */}
               <div className="mt-6 grid gap-3 rounded-[18px] border border-stone-200 bg-stone-50 p-4 text-xs font-medium text-stone-600 sm:grid-cols-2">
                 <div className="flex items-center gap-2">
-                  <Truck size={16} className="text-[#44D62C]" />
+                  <Truck size={16} className="text-[#2D5A43]" />
                   Free Express Shipping
                 </div>
                 <div className="flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-[#44D62C]" />
+                  <ShieldCheck size={16} className="text-[#2D5A43]" />
                   100% Quality Guaranteed
                 </div>
               </div>
