@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 type ButtonProps = {
   children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
+  variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   to?: string;
   className?: string;
@@ -11,35 +11,18 @@ type ButtonProps = {
   onClick?: () => void;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export function Button({
-  children,
-  variant = 'primary',
-  size = 'md',
-  to,
-  className = '',
-  icon,
-  onClick,
-  ...props
-}: ButtonProps) {
+export function Button({ children, variant = 'primary', size = 'md', to, className = '', icon, onClick, ...props }: ButtonProps) {
   const hasHidden = className.split(' ').includes('hidden');
-  const base = `${hasHidden ? '' : 'inline-flex'} items-center justify-center font-medium tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43] disabled:opacity-50 disabled:pointer-events-none cursor-pointer`;
-  
+  const base = `${hasHidden ? '' : 'inline-flex'} items-center justify-center rounded-full font-semibold tracking-[0.02em] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-black/20`;
   const variants = {
-    primary: 'bg-[#14291D] text-[#FBF9F5] hover:bg-[#203D2D] active:scale-[0.98] shadow-sm hover:shadow',
-    secondary: 'bg-[#F5F1EA] text-[#14291D] border border-[#E8E4DC] hover:bg-[#ECE6DC] hover:border-[#D5CFC3] active:scale-[0.98]',
-    ghost: 'bg-transparent text-[#14291D] hover:bg-[#14291D]/5 active:scale-[0.98]',
-    outline: 'border border-[#14291D] text-[#14291D] hover:bg-[#14291D] hover:text-[#FBF9F5] active:scale-[0.98]',
+    primary: 'bg-[#44D62C] text-white hover:bg-[#44D62C] shadow-lg shadow-[#44D62C]/20',
+    secondary: 'bg-[#7a9683] text-white hover:bg-[#44D62C] shadow-lg shadow-[#7a9683]/20',
+    ghost: 'bg-transparent text-black hover:bg-[#f4f4f5]',
   };
-  
-  const sizes = {
-    sm: 'px-4 py-2 text-xs rounded-full',
-    md: 'px-5 py-2.5 text-sm rounded-full',
-    lg: 'px-7 py-3.5 text-base rounded-full',
-  };
-
+  const sizes = { sm: 'px-4 py-2 text-sm', md: 'px-6 py-3 text-sm', lg: 'px-8 py-4 text-base' };
   const content = (
     <>
-      {icon ? <span className="mr-2 inline-flex items-center">{icon}</span> : null}
+      {icon ? <span className="mr-2">{icon}</span> : null}
       {children}
     </>
   );

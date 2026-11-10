@@ -305,7 +305,7 @@ export function ProfilePage() {
         <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-[#1c2c22] via-[#223229] to-[#2d4237] p-8 text-white shadow-lg mb-8">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-full bg-[#14291D] text-[#C5A880] flex items-center justify-center font-bold text-2xl shadow-md">
+              <div className="w-16 h-16 rounded-full bg-[#44D62C] text-[#111] flex items-center justify-center font-bold text-2xl shadow-md">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -317,7 +317,7 @@ export function ProfilePage() {
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 bg-white/10 border border-white/20 text-white/90 text-xs px-2.5 py-0.5 rounded-full font-medium">
-                      <Sparkles className="w-3.5 h-3.5 text-[#2D5A43]" /> Customer
+                      <Sparkles className="w-3.5 h-3.5 text-[#44D62C]" /> Customer
                     </span>
                   )}
                 </div>
@@ -353,7 +353,7 @@ export function ProfilePage() {
               <button
                 onClick={() => setActiveTab('orders')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'orders' ? 'bg-[#14291D] text-[#FBF9F5] shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                  activeTab === 'orders' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
                 <Package className="w-4 h-4" />
@@ -366,7 +366,7 @@ export function ProfilePage() {
               <button
                 onClick={() => setActiveTab('addresses')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'addresses' ? 'bg-[#14291D] text-[#FBF9F5] shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                  activeTab === 'addresses' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
                 <MapPin className="w-4 h-4" />
@@ -379,7 +379,7 @@ export function ProfilePage() {
               <button
                 onClick={() => setActiveTab('wishlist')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'wishlist' ? 'bg-[#14291D] text-[#FBF9F5] shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                  activeTab === 'wishlist' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
                 <Heart className="w-4 h-4" />
@@ -392,7 +392,7 @@ export function ProfilePage() {
               <button
                 onClick={() => setActiveTab('account')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                  activeTab === 'account' ? 'bg-[#14291D] text-[#FBF9F5] shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                  activeTab === 'account' ? 'bg-[#44D62C] text-white shadow-sm font-semibold' : 'text-stone-700 hover:bg-stone-100'
                 }`}
               >
                 <UserIcon className="w-4 h-4" />
@@ -414,7 +414,7 @@ export function ProfilePage() {
 
                 {loadingOrders ? (
                   <div className="bg-white rounded-[24px] p-12 border border-stone-200 text-center text-stone-500">
-                    <div className="w-8 h-8 border-4 border-[#2D5A43] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <div className="w-8 h-8 border-4 border-[#44D62C] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                     Loading your order history...
                   </div>
                 ) : orders.length === 0 ? (
@@ -428,7 +428,7 @@ export function ProfilePage() {
                     </p>
                     <Link
                       to="/shop"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#14291D] text-[#FBF9F5] font-semibold rounded-full shadow-md hover:bg-[#203D2D] transition"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#44D62C] text-white font-semibold rounded-full shadow-md hover:bg-[#3bc224] transition"
                     >
                       Start Shopping
                     </Link>
@@ -658,7 +658,7 @@ export function ProfilePage() {
                                   }
                                 });
                               }}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111] hover:text-[#2D5A43] transition self-start sm:self-auto"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111] hover:text-[#44D62C] transition self-start sm:self-auto"
                             >
                               Reorder All Items <ChevronRight className="w-4 h-4" />
                             </button>
@@ -711,7 +711,7 @@ export function ProfilePage() {
                       resetAddressForm();
                       setIsAddressModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#14291D] text-[#FBF9F5] font-semibold text-sm rounded-full shadow-sm hover:bg-[#203D2D] transition"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#44D62C] text-white font-semibold text-sm rounded-full shadow-sm hover:bg-[#3bc224] transition"
                   >
                     <Plus className="w-4 h-4" /> Add New Address
                   </button>
@@ -728,7 +728,7 @@ export function ProfilePage() {
                     </p>
                     <button
                       onClick={() => setIsAddressModalOpen(true)}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#14291D] text-[#FBF9F5] font-semibold rounded-full shadow-md hover:bg-[#203D2D] transition"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#44D62C] text-white font-semibold rounded-full shadow-md hover:bg-[#3bc224] transition"
                     >
                       Add Address Now
                     </button>
@@ -739,7 +739,7 @@ export function ProfilePage() {
                       <div
                         key={addr.id}
                         className={`bg-white rounded-[24px] border p-6 shadow-sm relative flex flex-col justify-between transition ${
-                          addr.isDefault ? 'border-[#2D5A43] ring-1 ring-[#2D5A43]' : 'border-stone-200'
+                          addr.isDefault ? 'border-[#44D62C] ring-1 ring-[#44D62C]' : 'border-stone-200'
                         }`}
                       >
                         <div>
@@ -809,7 +809,7 @@ export function ProfilePage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -821,7 +821,7 @@ export function ProfilePage() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+91 98765 43210"
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                       />
                     </div>
 
@@ -839,7 +839,7 @@ export function ProfilePage() {
                     <button
                       type="submit"
                       disabled={isUpdatingProfile}
-                      className="px-6 py-3 bg-[#14291D] hover:bg-[#203D2D] text-[#FBF9F5] font-semibold text-sm rounded-full shadow-sm transition disabled:opacity-50"
+                      className="px-6 py-3 bg-[#44D62C] hover:bg-[#3bc224] text-white font-semibold text-sm rounded-full shadow-sm transition disabled:opacity-50"
                     >
                       {isUpdatingProfile ? 'Saving...' : 'Save Profile Details'}
                     </button>
@@ -869,7 +869,7 @@ export function ProfilePage() {
                         type="password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -880,7 +880,7 @@ export function ProfilePage() {
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -891,7 +891,7 @@ export function ProfilePage() {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                         required
                       />
                     </div>
@@ -927,7 +927,7 @@ export function ProfilePage() {
                     </p>
                     <Link
                       to="/shop"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#14291D] text-[#FBF9F5] font-semibold rounded-full shadow-md hover:bg-[#203D2D] transition"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#44D62C] text-white font-semibold rounded-full shadow-md hover:bg-[#3bc224] transition"
                     >
                       Browse Products
                     </Link>
@@ -976,7 +976,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.fullName}
                     onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -987,7 +987,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.phone}
                     onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -1000,7 +1000,7 @@ export function ProfilePage() {
                   value={addressForm.address1}
                   onChange={(e) => setAddressForm({ ...addressForm, address1: e.target.value })}
                   placeholder="House/Flat No., Building Name, Street"
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                   required
                 />
               </div>
@@ -1012,7 +1012,7 @@ export function ProfilePage() {
                   value={addressForm.address2}
                   onChange={(e) => setAddressForm({ ...addressForm, address2: e.target.value })}
                   placeholder="Apartment, suite, unit, etc."
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                 />
               </div>
 
@@ -1023,7 +1023,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.city}
                     onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -1034,7 +1034,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.state}
                     onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -1047,7 +1047,7 @@ export function ProfilePage() {
                     type="text"
                     value={addressForm.postalCode}
                     onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                     required
                   />
                 </div>
@@ -1059,7 +1059,7 @@ export function ProfilePage() {
                     value={addressForm.landmark}
                     onChange={(e) => setAddressForm({ ...addressForm, landmark: e.target.value })}
                     placeholder="Near Park / Hospital"
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#2D5A43] outline-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#44D62C] outline-none text-sm"
                   />
                 </div>
               </div>
@@ -1070,7 +1070,7 @@ export function ProfilePage() {
                   id="isDefault"
                   checked={addressForm.isDefault}
                   onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
-                  className="w-4 h-4 text-[#2D5A43] rounded focus:ring-[#2D5A43]"
+                  className="w-4 h-4 text-[#44D62C] rounded focus:ring-[#44D62C]"
                 />
                 <label htmlFor="isDefault" className="text-sm font-medium text-stone-700">
                   Set as default shipping address
@@ -1087,7 +1087,7 @@ export function ProfilePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#14291D] text-[#FBF9F5] hover:bg-[#203D2D] rounded-full font-semibold text-sm shadow-md transition"
+                  className="px-6 py-2.5 bg-[#44D62C] text-white hover:bg-[#3bc224] rounded-full font-semibold text-sm shadow-md transition"
                 >
                   Save Address
                 </button>

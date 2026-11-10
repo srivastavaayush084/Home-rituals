@@ -219,7 +219,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {isSuccess ? (
             <div className="py-8 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-[#2D5A43]">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-[#44D62C]">
                 <CheckCircle2 size={36} />
               </div>
               <h3 className="mt-3 text-xl font-bold text-stone-900" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -241,7 +241,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#2D5A43]">Add Customer Review</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#44D62C]">Add Customer Review</p>
                   <h4 className="truncate text-sm font-bold text-stone-900">{product.name}</h4>
                   {product.price && <p className="text-xs font-semibold text-stone-600 leading-none">₹{product.price}</p>}
                 </div>
@@ -301,7 +301,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     value={authorName}
                     onChange={(e) => setAuthorName(e.target.value)}
                     placeholder="e.g. Priya Sharma"
-                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#2D5A43] focus:outline-none focus:ring-1 focus:ring-[#2D5A43]"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                   />
                 </div>
 
@@ -315,7 +315,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Loved the fragrance & results!"
-                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#2D5A43] focus:outline-none focus:ring-1 focus:ring-[#2D5A43]"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                   />
                 </div>
               </div>
@@ -331,7 +331,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="How did this product perform? Share your honest experience..."
-                  className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#2D5A43] focus:outline-none focus:ring-1 focus:ring-[#2D5A43]"
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#44D62C] focus:outline-none focus:ring-1 focus:ring-[#44D62C]"
                 />
               </div>
 
@@ -357,7 +357,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     htmlFor="media-upload-input"
                     className="flex cursor-pointer items-center justify-center gap-2 text-center"
                   >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#2D5A43] shadow-sm border border-stone-200">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#44D62C] shadow-sm border border-stone-200">
                       <UploadCloud size={14} />
                     </div>
                     <span className="text-xs font-semibold text-stone-700 hover:text-black">
@@ -415,7 +415,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex h-10 flex-[1.4] items-center justify-center rounded-full bg-[#14291D] hover:bg-[#203D2D] text-xs font-bold text-[#FBF9F5] shadow-md transition disabled:opacity-60"
+                  className="flex h-10 flex-[1.4] items-center justify-center rounded-full bg-[#44D62C] hover:bg-[#3ec428] text-xs font-bold text-white shadow-md transition disabled:opacity-60"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Review'}
                 </button>

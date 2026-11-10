@@ -53,8 +53,8 @@ export function ResetPasswordPage() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
       <div className="grid w-full gap-8 rounded-[36px] border border-black/5 bg-white p-8 shadow-sm lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[28px] bg-[#14291D] p-8 text-[#FBF9F5]">
-          <p className="text-sm uppercase tracking-[0.35em] text-[#C5A880] font-bold">New Password</p>
+        <div className="rounded-[28px] bg-[#44D62C] p-8 text-white">
+          <p className="text-sm uppercase tracking-[0.35em] text-white font-bold">New Password</p>
           <h1 className="mt-3 text-3xl font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Create your new password.</h1>
           <p className="mt-4 text-lg leading-8 text-white/80">Choose a secure password to protect your account and resume your rituals.</p>
         </div>

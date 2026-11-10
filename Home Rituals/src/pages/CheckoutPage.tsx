@@ -96,7 +96,7 @@ export function CheckoutPage() {
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
         <h2 className="text-2xl font-semibold">Please Sign In to Checkout</h2>
         <p className="mt-2 text-[#6f6f6f]">You must have a Home Rituals account to complete your purchase.</p>
-        <Link to="/login" className="mt-6 inline-flex items-center justify-center rounded-xl bg-[#14291D] text-[#FBF9F5] px-6 py-3 font-semibold hover:bg-[#203D2D]">Sign In</Link>
+        <Link to="/login" className="mt-6 inline-flex items-center justify-center rounded-full bg-[#44D62C] text-white px-6 py-3 font-semibold">Sign In</Link>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export function CheckoutPage() {
               key={addr.id}
               className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition ${
                 selectedAddressId === addr.id
-                  ? 'border-[#2D5A43] bg-[#FBF9F5]'
+                  ? 'border-[#44D62C] bg-[#fdfefc]'
                   : 'border-black/5 bg-white hover:border-black/10'
               }`}
             >
@@ -129,10 +129,10 @@ export function CheckoutPage() {
                 name="selectedAddress"
                 checked={selectedAddressId === addr.id}
                 onChange={() => setSelectedAddressId(addr.id)}
-                className="mt-1 accent-[#2D5A43]"
+                className="mt-1 accent-[#44D62C]"
               />
               <div className="text-sm">
-                <p className="font-semibold text-[#242424]">{addr.fullName} {addr.isDefault && <span className="ml-2 text-xs bg-[#2D5A43]/15 text-[#2D5A43] px-2 py-0.5 rounded-full">Default</span>}</p>
+                <p className="font-semibold text-[#242424]">{addr.fullName} {addr.isDefault && <span className="ml-2 text-xs bg-[#44D62C]/10 text-[#0B8F3C] px-2 py-0.5 rounded-full">Default</span>}</p>
                 <p className="mt-1 text-[#5f5f5f]">{addr.address1}, {addr.address2 && `${addr.address2}, `}{addr.city}, {addr.state} - {addr.postalCode}</p>
                 {addr.landmark && <p className="text-[#888]">Landmark: {addr.landmark}</p>}
                 <p className="mt-1 font-medium">Phone: {addr.phone}</p>
@@ -227,7 +227,7 @@ export function CheckoutPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center rounded-full bg-[#14291D] text-[#FBF9F5] px-6 py-3 font-semibold hover:bg-[#203D2D] disabled:bg-gray-300"
+              className="inline-flex items-center justify-center rounded-full bg-[#44D62C] text-white px-6 py-3 font-semibold hover:bg-[#3ebe27] disabled:bg-gray-300"
             >
               {loading ? 'Adding Address...' : 'Add Address'}
             </button>
@@ -240,7 +240,7 @@ export function CheckoutPage() {
         <div className="mt-8 pt-6 border-t border-black/5 flex items-center justify-between">
           <button
             onClick={handleProceedToPayment}
-            className="inline-flex items-center justify-center rounded-full bg-[#14291D] text-[#FBF9F5] px-6 py-3 font-semibold hover:bg-[#203D2D]"
+            className="inline-flex items-center justify-center rounded-full bg-[#44D62C] text-white px-6 py-3 font-semibold hover:bg-[#3ebe27]"
           >
             Save and continue to payment
           </button>

@@ -118,7 +118,7 @@ export function PaymentPage() {
           shippingAddress: `${shipping.address1}, ${shipping.city}, ${shipping.state} - ${shipping.postalCode}`,
         },
         theme: {
-          color: '#14291D',
+          color: '#44D62C',
         },
         modal: {
           ondismiss: function () {
@@ -238,7 +238,7 @@ export function PaymentPage() {
         {/* Razorpay Security Notice */}
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#2D5A43] animate-pulse"></span>
+            <span className="h-2 w-2 rounded-full bg-[#44D62C] animate-pulse"></span>
             <span>Secured with <strong>Razorpay Payment Gateway</strong> (UPI, Cards, NetBanking, Wallets)</span>
           </div>
           <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-700">

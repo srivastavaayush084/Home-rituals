@@ -113,7 +113,7 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-2.5 rounded-full transition-all ${
-                    idx === currentIndex ? 'w-8 bg-[#C5A880]' : 'w-2.5 bg-white/40 hover:bg-white/70'
+                    idx === currentIndex ? 'w-8 bg-[#44D62C]' : 'w-2.5 bg-white/40 hover:bg-white/70'
                   }`}
                 />
               ))}
