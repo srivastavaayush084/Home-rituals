@@ -1,12 +1,13 @@
 import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ProductCard } from '../components/ui/ProductCard';
 import { useApp } from '../context/AppContext';
 
 export function ShopPage() {
   const { products, addToCart, toggleWishlist, wishlistIds, isLoadingProducts, isFallbackMode, refreshProducts } = useApp();
   const bannerVideoRef = useRef<HTMLVideoElement>(null);
+  const [videoSrc] = useState(() => `/Animation1.mp4?v=${Date.now()}`);
 
   useEffect(() => {
     const v = bannerVideoRef.current;
@@ -70,7 +71,7 @@ export function ShopPage() {
               el.defaultMuted = true;
             }
           }}
-          src="/ritual-edit.mp4"
+          src={videoSrc}
           autoPlay
           loop
           muted
@@ -88,8 +89,9 @@ export function ShopPage() {
           }}
           className="h-full w-full object-cover rounded-[32px]"
         >
-          <source src="/ritual-edit.mp4" type="video/mp4" />
+          <source src={videoSrc} type="video/mp4" />
           <source src="/Animation1.mp4" type="video/mp4" />
+          <source src="/animation1.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </motion.div>
