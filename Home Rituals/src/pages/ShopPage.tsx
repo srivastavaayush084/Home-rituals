@@ -70,7 +70,7 @@ export function ShopPage() {
               el.defaultMuted = true;
             }
           }}
-          src="/Animation1.mp4?v=4"
+          src="/ritual-edit.mp4"
           autoPlay
           loop
           muted
@@ -88,8 +88,8 @@ export function ShopPage() {
           }}
           className="h-full w-full object-cover rounded-[32px]"
         >
-          <source src="/Animation1.mp4?v=4" type="video/mp4" />
-          <source src="/animation1.mp4?v=4" type="video/mp4" />
+          <source src="/ritual-edit.mp4" type="video/mp4" />
+          <source src="/Animation1.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </motion.div>

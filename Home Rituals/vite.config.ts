@@ -12,11 +12,12 @@ function caseInsensitiveAssetsPlugin(): Plugin {
       const pairs = [
         ['Animation.mp4', 'animation.mp4'],
         ['Animation1.mp4', 'animation1.mp4'],
+        ['ritual-edit.mp4', 'ritual-edit.mp4'],
       ];
       pairs.forEach(([src, dest]) => {
         const srcPath = path.join(distDir, src);
         const destPath = path.join(distDir, dest);
-        if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
+        if (fs.existsSync(srcPath)) {
           try {
             fs.copyFileSync(srcPath, destPath);
           } catch {}
