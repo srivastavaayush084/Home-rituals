@@ -116,6 +116,10 @@ export class ReturnService {
   public static async createReturnRequest(userId: string, input: CreateReturnInput) {
     const { orderId, items, reason, description, images = [], codUpiId, codAccountDetails } = input;
 
+    if (!orderId || !/^[0-9a-fA-F]{24}$/.test(orderId)) {
+      throw new BadRequestError('Invalid Order ID format');
+    }
+
     // Fetch order with items and existing returns
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -266,6 +270,10 @@ export class ReturnService {
    * Get return request details by ID
    */
   public static async getReturnById(returnId: string, userId?: string, isAdmin = false) {
+    if (!returnId || !/^[0-9a-fA-F]{24}$/.test(returnId)) {
+      throw new BadRequestError('Invalid Return ID format');
+    }
+
     const returnRequest = await prisma.returnRequest.findUnique({
       where: { id: returnId },
       include: {

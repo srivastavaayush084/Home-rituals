@@ -38,10 +38,10 @@ export const REFRESH_COOKIE_NAME = 'home_rituals_refresh';
  * Returns hardened cookie configuration options tailored for current environment.
  */
 export function getRefreshCookieOptions() {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || process.env.FRONTEND_URL?.startsWith('https');
   return {
     httpOnly: true,
-    secure: isProd,
+    secure: Boolean(isSecure),
     sameSite: 'lax' as const,
     path: '/api/auth',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
@@ -59,10 +59,10 @@ export function setRefreshTokenCookie(res: Response, token: string) {
  * Clears the HttpOnly refresh token cookie with matching path and flags.
  */
 export function clearRefreshTokenCookie(res: Response) {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || process.env.FRONTEND_URL?.startsWith('https');
   res.clearCookie(REFRESH_COOKIE_NAME, {
     httpOnly: true,
-    secure: isProd,
+    secure: Boolean(isSecure),
     sameSite: 'lax' as const,
     path: '/api/auth',
   });
