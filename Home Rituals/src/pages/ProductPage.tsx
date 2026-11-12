@@ -8,6 +8,8 @@ import { ProductCard } from '../components/ui/ProductCard';
 import { useApp } from '../context/AppContext';
 import { apiRequest } from '../utils/apiClient';
 import { ProductReviewsSection } from '../components/reviews/ProductReviewsSection';
+import { trackViewItem, trackAddToCart } from '../utils/analytics';
+import { addRecentlyViewed, getRecentlyViewed } from '../utils/recentlyViewed';
 
 export function ProductPage() {
   const { id } = useParams();
@@ -18,6 +20,7 @@ export function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [liveReviewCount, setLiveReviewCount] = useState<number>(0);
   const [liveRating, setLiveRating] = useState<number>(0);
+  const [recentProducts, setRecentProducts] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadProduct() {
@@ -26,15 +29,22 @@ export function ProductPage() {
       try {
         const data = await apiRequest<any>(`/api/products/${id}`);
         setProduct(data);
+        if (data) {
+          trackViewItem(data);
+          addRecentlyViewed(data);
+        }
       } catch (err) {
         console.warn('Failed to load product from API, falling back to local state', err);
         // Fallback: search in local context state
         const localProd = products.find((item) => String(item.id) === String(id) || item.slug === id);
         if (localProd) {
           setProduct(localProd);
+          trackViewItem(localProd);
+          addRecentlyViewed(localProd);
         }
       } finally {
         setLoading(false);
+        setRecentProducts(getRecentlyViewed().filter((item) => String(item.id) !== String(id)));
       }
     }
     loadProduct();
@@ -107,7 +117,15 @@ export function ProductPage() {
               <span className="px-4 text-sm font-semibold">{quantity}</span>
               <button className="p-2" onClick={handleIncrement}><Plus size={16} /></button>
             </div>
-            <Button icon={<ArrowRight size={16} />} onClick={() => addToCart(product, quantity)}>Add to cart</Button>
+            <Button
+              icon={<ArrowRight size={16} />}
+              onClick={() => {
+                addToCart(product, quantity);
+                trackAddToCart(product, quantity);
+              }}
+            >
+              Add to cart
+            </Button>
             <button onClick={() => toggleWishlist(product.id)} className={`rounded-full p-3 ${wishlistIds.includes(product.id) ? 'bg-[#44D62C] text-white' : 'bg-[#EFE9DF] text-black'}`}><Heart size={16} /></button>
           </div>
 
@@ -152,6 +170,26 @@ export function ProductPage() {
           ))}
         </div>
       </section>
+
+      {recentProducts.length > 0 && (
+        <section className="mt-16 border-t border-stone-200/60 pt-16">
+          <div className="mb-8">
+            <p className="text-sm uppercase tracking-[0.35em] text-[#0B8F3C]">Recently Viewed</p>
+            <h2 className="mt-2 text-3xl font-semibold text-[#242424]" style={{ fontFamily: 'Playfair Display, serif' }}>Pick up where you left off</h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {recentProducts.map((item) => (
+              <ProductCard
+                key={`recent-${item.id}`}
+                product={item}
+                isWishlisted={wishlistIds.includes(item.id)}
+                onToggleWishlist={toggleWishlist}
+                onAddToCart={addToCart}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

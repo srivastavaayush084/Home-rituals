@@ -164,3 +164,69 @@ export async function clearCart(req: AuthenticatedRequest, res: Response, next: 
     next(error);
   }
 }
+
+export async function mergeCart(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const { items = [] } = req.body;
+
+    if (Array.isArray(items) && items.length > 0) {
+      for (const item of items) {
+        if (!item || !item.productId || typeof item.quantity !== 'number' || item.quantity <= 0) {
+          continue;
+        }
+
+        const prodIdStr = String(item.productId);
+        const product = await prisma.product.findFirst({
+          where: { id: prodIdStr, OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
+        });
+
+        if (!product || product.stock <= 0) continue;
+
+        const maxAllowed = Math.min(item.quantity, product.stock);
+
+        const existingItem = await prisma.cartItem.findFirst({
+          where: { userId, productId: prodIdStr },
+        });
+
+        if (existingItem) {
+          const newQty = Math.min(existingItem.quantity + maxAllowed, product.stock);
+          await prisma.cartItem.update({
+            where: { id: existingItem.id },
+            data: { quantity: newQty },
+          });
+        } else {
+          await prisma.cartItem.create({
+            data: {
+              userId,
+              productId: prodIdStr,
+              quantity: maxAllowed,
+            },
+          });
+        }
+      }
+    }
+
+    const mergedCart = await prisma.cartItem.findMany({
+      where: { userId },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            originalPrice: true,
+            image: true,
+            stock: true,
+            stockStatus: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return sendSuccess(res, mergedCart, 200, 'Cart merged successfully');
+  } catch (error) {
+    next(error);
+  }
+}

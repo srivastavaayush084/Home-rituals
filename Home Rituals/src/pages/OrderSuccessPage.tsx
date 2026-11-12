@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiRequest, downloadInvoicePdf } from '../utils/apiClient';
 import { Button } from '../components/ui/Button';
+import { trackPurchase } from '../utils/analytics';
 
 interface OrderItem {
   id: string;
@@ -61,11 +62,15 @@ export function OrderSuccessPage() {
       try {
         setLoading(true);
         const response = await apiRequest<OrderDetails>(`/api/orders/${orderId}`);
-        // Handle standard wrapper from API
+        let loadedOrder: OrderDetails | null = null;
         if (response && (response as any).data) {
-          setOrder((response as any).data);
+          loadedOrder = (response as any).data;
         } else {
-          setOrder(response);
+          loadedOrder = response;
+        }
+        setOrder(loadedOrder);
+        if (loadedOrder) {
+          trackPurchase(loadedOrder);
         }
       } catch (err: any) {
         console.error('Failed to load order details:', err);

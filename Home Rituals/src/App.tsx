@@ -6,6 +6,7 @@ import { QuickViewModal } from './components/ui/QuickViewModal';
 import { TimedAuthPopup } from './components/ui/TimedAuthPopup';
 import { Toast } from './components/ui/Toast';
 import { Preloader } from './components/ui/Preloader';
+import { CookieConsentBanner } from './components/ui/CookieConsentBanner';
 import { Layout } from './components/layout/Layout';
 import { useApp } from './context/AppContext';
 
@@ -131,6 +132,7 @@ function App() {
       <QuickViewModal />
       <TimedAuthPopup />
       {toastMessage ? <Toast message={toastMessage} onDismiss={clearToast} /> : null}
+      <CookieConsentBanner />
     </BrowserRouter>
   );
 }

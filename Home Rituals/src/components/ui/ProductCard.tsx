@@ -4,6 +4,7 @@ import { Eye, Heart, Star, MessageSquarePlus, ShoppingBag } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { Product } from '../../data/content';
 import { ReviewModal } from '../reviews/ReviewModal';
+import { trackAddToCart } from '../../utils/analytics';
 
 type ProductCardProps = {
   product: Product;
@@ -186,6 +187,7 @@ export function ProductCard({ product, isWishlisted, onToggleWishlist, onAddToCa
               event.preventDefault();
               event.stopPropagation();
               onAddToCart(product);
+              trackAddToCart(product, 1);
             }}
             className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#14291D] text-xs sm:text-sm font-semibold tracking-wide text-[#FBF9F5] shadow-sm transition-all duration-200 hover:bg-[#203D2D] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43]"
           >

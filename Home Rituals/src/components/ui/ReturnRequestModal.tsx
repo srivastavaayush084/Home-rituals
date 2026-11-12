@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, RotateCcw, Upload, CheckCircle2 } from 'lucide-react';
-import { apiRequest } from '../../utils/apiClient';
+import { apiRequest, uploadReturnPhoto } from '../../utils/apiClient';
 
 export const RETURN_REASONS = [
   'Damaged / Defective',
@@ -103,25 +103,10 @@ export const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
     try {
       setUploadingImage(true);
       setErrorMessage(null);
-      const formData = new FormData();
-      formData.append('image', files[0]);
 
-      // Use native fetch for multipart/form-data
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/returns/upload-image', {
-        method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Image upload failed');
-
-      const url = data.data?.url || data.imageUrl || data.url || data.path;
-      if (url) {
-        setImages((prev) => [...prev, url]);
+      const result = await uploadReturnPhoto(files[0]);
+      if (result.url) {
+        setImages((prev) => [...prev, result.url]);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to upload photo. Please try again.');

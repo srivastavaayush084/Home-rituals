@@ -506,6 +506,15 @@ export function Layout({ children }: LayoutProps) {
               <li><Link to="/shipping-policy" className="block transition hover:text-black hover:underline">Shipping Policy</Link></li>
               <li><Link to="/return-policy" className="block transition hover:text-black hover:underline">Return Policy</Link></li>
               <li><Link to="/faq" className="block transition hover:text-black hover:underline">FAQ</Link></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-preferences'))}
+                  className="block text-left transition hover:text-black hover:underline cursor-pointer"
+                >
+                  Cookie Settings
+                </button>
+              </li>
             </ul>
           </div>
           <div>

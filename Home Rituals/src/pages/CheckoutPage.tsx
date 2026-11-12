@@ -1,10 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { trackBeginCheckout } from '../utils/analytics';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const { user, addresses, createAddress, setShipping, token, isAuthLoading } = useApp();
+  const { user, addresses, createAddress, setShipping, token, isAuthLoading, cart } = useApp();
+  const checkoutTrackedRef = useRef(false);
+
+  useEffect(() => {
+    if (cart && cart.length > 0 && !checkoutTrackedRef.current) {
+      checkoutTrackedRef.current = true;
+      const checkoutItems = cart.map((item) => ({
+        id: item.productId,
+        name: item.product?.name || 'Product',
+        price: Number(item.product?.price || 0),
+        quantity: item.quantity,
+      }));
+      const total = cart.reduce(
+        (sum, item) => sum + Number(item.product?.price || 0) * item.quantity,
+        0
+      );
+      trackBeginCheckout(checkoutItems, total);
+    }
+  }, [cart]);
   
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);

@@ -7,15 +7,33 @@
     <meta name="google-site-verification" content="3Jk-q9CjnMs7u3BDxtuL9KLl1EatWEYzGdAoF-kUZSs" />
     <title>HOME RITUALS</title>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-30MMRQ8BVM"></script>
+    <!-- Google Consent Mode v2 (Must be defined before gtag.js loads) -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
+      // Check for previously saved consent in localStorage
+      var savedConsent = null;
+      try {
+        var raw = localStorage.getItem('home-rituals-cookie-consent');
+        if (raw) savedConsent = JSON.parse(raw);
+      } catch (e) {}
+
+      var analyticsGranted = savedConsent && savedConsent.analytics === true ? 'granted' : 'denied';
+      var marketingGranted = savedConsent && savedConsent.marketing === true ? 'granted' : 'denied';
+
+      gtag('consent', 'default', {
+        'analytics_storage': analyticsGranted,
+        'ad_storage': marketingGranted,
+        'ad_user_data': marketingGranted,
+        'ad_personalization': marketingGranted,
+        'wait_for_update': 500
+      });
+      gtag('js', new Date());
       gtag('config', 'G-30MMRQ8BVM');
     </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-30MMRQ8BVM"></script>
 
     <!-- Official Razorpay Checkout SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

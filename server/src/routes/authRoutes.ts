@@ -28,7 +28,7 @@ router.post('/verify-email', validateRequest(authSchemas.verifyEmail), verifyEma
 router.get('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerificationLimiter, validateRequest(authSchemas.resendVerification), resendVerificationEmail);
 router.post('/refresh', refreshLimiter, refresh);
-router.post('/logout', requireAuth, logout);
+router.post('/logout', logout);
 router.get('/me', requireAuth, getMe);
 router.put('/profile', requireAuth, updateProfile);
 router.put('/change-password', requireAuth, validateRequest(authSchemas.changePassword), changePassword);

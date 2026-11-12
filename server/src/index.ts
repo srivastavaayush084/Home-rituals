@@ -16,6 +16,8 @@ import { connectDB, prisma } from './utils/db';
 import { errorHandler } from './middleware/errorHandler';
 import { authenticateToken, requireAuth } from './middleware/auth';
 import { xssSanitizer } from './middleware/validator';
+import { cookieParser } from './middleware/cookie';
+import { csrfProtection } from './middleware/csrf';
 
 // Import Routes
 import authRoutes from './routes/authRoutes';
@@ -176,6 +178,12 @@ app.use(
   })
 );
 app.use(express.urlencoded({ extended: true }));
+
+// Native HTTP Cookie parser
+app.use(cookieParser);
+
+// CSRF Protection for state-changing endpoints
+app.use(csrfProtection);
 
 // Serve persistent uploads (return photos, invoices, assets)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

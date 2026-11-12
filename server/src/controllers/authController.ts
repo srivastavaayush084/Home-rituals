@@ -8,6 +8,7 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { sendEmail, emailTemplates } from '../services/email';
 import { getJwtSecret } from '../utils/jwt';
 import { checkCompromisedPassword } from '../services/passwordSecurity';
+import { setRefreshTokenCookie, clearRefreshTokenCookie, REFRESH_COOKIE_NAME } from '../middleware/cookie';
 
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -69,11 +70,12 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Save hashed refresh token to DB
+    // Save hashed refresh token to DB and issue secure HttpOnly cookie
     await prisma.user.update({
       where: { id: user.id },
       data: { refreshToken: hashToken(refreshToken) },
     });
+    setRefreshTokenCookie(res, refreshToken);
 
     // Send email verification link if email was provided (Welcome email is sent only after verification!)
     if (user.email && rawVerificationToken) {
@@ -101,7 +103,7 @@ export async function register(req: AuthenticatedRequest, res: Response, next: N
       createdAt: user.createdAt,
     };
 
-    return sendSuccess(res, { user: userProfile, token: accessToken, refreshToken }, 201, 'User registered successfully');
+    return sendSuccess(res, { user: userProfile, token: accessToken }, 201, 'User registered successfully');
   } catch (error) {
     next(error);
   }
@@ -131,11 +133,12 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Save hashed refresh token to DB
+    // Save hashed refresh token to DB and issue secure HttpOnly cookie
     await prisma.user.update({
       where: { id: user.id },
       data: { refreshToken: hashToken(refreshToken) },
     });
+    setRefreshTokenCookie(res, refreshToken);
 
     const userProfile = {
       id: user.id,
@@ -147,7 +150,7 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
       createdAt: user.createdAt,
     };
 
-    return sendSuccess(res, { user: userProfile, token: accessToken, refreshToken }, 200, 'Login successful');
+    return sendSuccess(res, { user: userProfile, token: accessToken }, 200, 'Login successful');
   } catch (error) {
     next(error);
   }
@@ -155,19 +158,33 @@ export async function login(req: AuthenticatedRequest, res: Response, next: Next
 
 export async function refresh(req: Request, res: Response, next: NextFunction) {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
+    const rawRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME] || req.body?.refreshToken;
+    if (!rawRefreshToken) {
       throw new BadRequestError('Refresh token is required');
     }
 
-    const decoded = jwt.verify(refreshToken, getJwtSecret(), { algorithms: ['HS256'] }) as any;
-    
+    let decoded: any;
+    try {
+      decoded = jwt.verify(rawRefreshToken, getJwtSecret(), { algorithms: ['HS256'] });
+    } catch {
+      clearRefreshTokenCookie(res);
+      throw new UnauthorizedError('Invalid or expired refresh token');
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
     });
 
-    const incomingHash = hashToken(refreshToken);
+    const incomingHash = hashToken(rawRefreshToken);
     if (!user || user.refreshToken !== incomingHash) {
+      // Token reuse or mismatch detected: invalidate session
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { refreshToken: null },
+        });
+      }
+      clearRefreshTokenCookie(res);
       throw new UnauthorizedError('Invalid or expired session. Please login again.');
     }
 
@@ -178,10 +195,11 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
       where: { id: user.id },
       data: { refreshToken: hashToken(newRefreshToken) },
     });
+    setRefreshTokenCookie(res, newRefreshToken);
 
-    return sendSuccess(res, { token: accessToken, refreshToken: newRefreshToken });
+    return sendSuccess(res, { token: accessToken });
   } catch (error) {
-    next(new UnauthorizedError('Invalid or expired refresh token'));
+    next(error);
   }
 }
 
@@ -192,7 +210,18 @@ export async function logout(req: AuthenticatedRequest, res: Response, next: Nex
         where: { id: req.user.id },
         data: { refreshToken: null },
       });
+    } else if (req.cookies?.[REFRESH_COOKIE_NAME]) {
+      try {
+        const decoded = jwt.verify(req.cookies[REFRESH_COOKIE_NAME], getJwtSecret(), { algorithms: ['HS256'] }) as any;
+        if (decoded?.id) {
+          await prisma.user.update({
+            where: { id: decoded.id },
+            data: { refreshToken: null },
+          });
+        }
+      } catch { }
     }
+    clearRefreshTokenCookie(res);
     return sendSuccess(res, null, 200, 'Logout successful');
   } catch (error) {
     next(error);

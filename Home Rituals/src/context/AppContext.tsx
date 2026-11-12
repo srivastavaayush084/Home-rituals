@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { products as staticProducts, type Product } from '../data/content';
-import { apiRequest } from '../utils/apiClient';
+import { apiRequest, getAccessToken, setAccessToken, refreshAccessToken } from '../utils/apiClient';
+import { trackRemoveFromCart } from '../utils/analytics';
 
 interface CartItem {
   productId: number;
@@ -104,18 +105,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
-  const [token, setToken] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('home-rituals-token');
-    } catch {
-      return null;
-    }
-  });
-  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(() => {
-    const hasToken = Boolean(localStorage.getItem('home-rituals-token'));
-    const hasUser = Boolean(localStorage.getItem('home-rituals-user'));
-    return hasToken && !hasUser;
-  });
+  const [token, setToken] = useState<string | null>(() => getAccessToken());
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
 
   // Products State
   const [products, setProducts] = useState<Product[]>(staticProducts);
@@ -168,6 +159,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchProducts();
+  }, []);
+
+  // 1b. Session bootstrap via memory token or HttpOnly refresh cookie
+  useEffect(() => {
+    let isMounted = true;
+    async function initSession() {
+      try {
+        let currentToken = getAccessToken();
+        if (!currentToken) {
+          currentToken = await refreshAccessToken();
+        }
+        if (currentToken && isMounted) {
+          setToken(currentToken);
+        } else if (isMounted) {
+          setIsAuthLoading(false);
+        }
+      } catch {
+        if (isMounted) {
+          setIsAuthLoading(false);
+        }
+      }
+    }
+    initSession();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // 2. Fetch User Profile if token exists
@@ -314,22 +331,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
     });
     data.user.emailVerified = true;
-    localStorage.setItem('home-rituals-token', data.token);
+    setAccessToken(data.token);
     localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
     setIsAuthLoading(false);
     setToastMessage('Signed in successfully');
     
-    // Merge guest cart to server cart upon login
+    // Atomic merge of guest cart to server cart upon login
     const guestCart = readStoredCart();
     if (guestCart.length > 0) {
-      for (const item of guestCart) {
-        try {
-          await apiRequest('/api/cart', 'POST', { productId: item.productId, quantity: item.quantity });
-        } catch {}
+      try {
+        const mergedItems = guestCart.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        }));
+        await apiRequest('/api/cart/merge', 'POST', { items: mergedItems });
+        await fetchCartFromServer();
+      } catch (err) {
+        console.warn('Failed to merge guest cart', err);
+      } finally {
+        localStorage.removeItem('home-rituals-cart');
       }
-      localStorage.removeItem('home-rituals-cart');
     }
   };
 
@@ -347,7 +370,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       name,
       ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
     });
-    localStorage.setItem('home-rituals-token', data.token);
+    data.user.emailVerified = true;
+    setAccessToken(data.token);
     localStorage.setItem('home-rituals-user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
@@ -356,7 +380,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('home-rituals-token');
+    // Revoke refresh token and clear server session
+    apiRequest('/api/auth/logout', 'POST').catch(() => {});
+    setAccessToken(null);
     localStorage.removeItem('home-rituals-user');
     setToken(null);
     setUser(null);
@@ -415,15 +441,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = async (productId: number) => {
+    const itemToRemove = cart.find((item) => item.productId === productId);
     if (user) {
       try {
         await apiRequest(`/api/cart/${productId}`, 'DELETE');
         await fetchCartFromServer();
+        if (itemToRemove && itemToRemove.product) {
+          trackRemoveFromCart(
+            {
+              id: itemToRemove.productId,
+              name: itemToRemove.product.name,
+              price: Number(itemToRemove.product.price) || 0,
+            },
+            itemToRemove.quantity
+          );
+        }
       } catch (err) {
         console.error('Failed to remove from cart', err);
       }
     } else {
       setCart((current) => current.filter((item) => item.productId !== productId));
+      if (itemToRemove && itemToRemove.product) {
+        trackRemoveFromCart(
+          {
+            id: itemToRemove.productId,
+            name: itemToRemove.product.name,
+            price: Number(itemToRemove.product.price) || 0,
+          },
+          itemToRemove.quantity
+        );
+      }
     }
   };
 
